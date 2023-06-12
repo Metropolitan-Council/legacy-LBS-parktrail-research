@@ -2,15 +2,13 @@ StreetLight Use Estimates & Parks
 ================
 12 June 2023
 
-- <a href="#overview" id="toc-overview">Overview</a>
-  - <a href="#funding-and-acknowledgements"
-    id="toc-funding-and-acknowledgements">Funding and Acknowledgements</a>
-  - <a href="#resources" id="toc-resources">Resources</a>
-- <a href="#getting-started" id="toc-getting-started">Getting started</a>
-  - <a href="#file-organization" id="toc-file-organization">File
-    organization</a>
-  - <a href="#set-up" id="toc-set-up">Set-up</a>
-- <a href="#changelog" id="toc-changelog">Changelog</a>
+- [Overview](#overview)
+  - [Funding and Acknowledgements](#funding-and-acknowledgements)
+  - [Resources](#resources)
+- [Getting started](#getting-started)
+  - [File organization](#file-organization)
+  - [Set-up](#set-up)
+- [Changelog](#changelog)
 
 # Overview
 
@@ -45,6 +43,8 @@ and the [Metropolitan Council](https://metrocouncil.org/).
 We thank park managers and staff from across the state for their
 cooperation in sharing data and providing feedback to establish and
 refine our methodology.
+
+![](img/partner-logos.png)
 
 ## Resources
 
@@ -87,6 +87,7 @@ Initially, you will need to save some parameters to your machine.
 
 ``` r
 require(keyring)
+require(usethis)
 key_set(service = "StreetLightAPI")
 
 usethis::edit_r_environ() 
@@ -102,3 +103,9 @@ usethis::edit_r_environ()
 # Changelog
 
 - June 12, 2023: Initial release of project website and results.
+
+\## Code of Conduct
+
+Please note that the legacy-LBS-parktrail-research project is released
+with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By
+contributing to this project, you agree to abide by its terms.

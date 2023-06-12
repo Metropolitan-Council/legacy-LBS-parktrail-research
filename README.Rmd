@@ -5,7 +5,7 @@ output:
   github_document:
     toc: yes
 always_allow_html: yes
-urlcolor: blue
+urlcolor: "#0054A4"
 css: "./inst/app/www/stye.css"
 ---
 
@@ -26,12 +26,14 @@ This Project was funded with Legacy Partnership Research Funds from the State of
 
 We thank park managers and staff from across the state for their cooperation in sharing data and providing feedback to establish and refine our methodology.
 
+![](img/partner-logos.png)
 
 ## Resources
 
  - The findings and resources produced by this research are available on an interactive project website [here](). 
  - [StreetLight Data, Inc.](https://www.streetlightdata.com/) was the LBS data provider for this research.
  
+
 # Getting started
 
 ## File organization
@@ -42,8 +44,6 @@ Complete technical documentation is generated via `legaacy-LBS-parktrail-researc
 
 The `data-raw` folder contains data obtained from external sources; `data-intermediate` contains partially processed data, individual StreetLight (LBS) analysis downloads, or other internally-produced data; `data-processed` contains the final products of this research. 
 
-
-
 ## Set-up
 
 This project uses [`streetlightR`](https://metropolitan-council.github.io/streetlightR/) to conduct LBS analyses and [`councilR`](https://github.com/Metropolitan-Council/councilR) for plotting. Users will additionally require a StreetLight API key (request via StreetLight Support Team) and a [Census API Key](https://api.census.gov/data/key_signup.html). 
@@ -52,6 +52,7 @@ Initially, you will need to save some parameters to your machine.
 
 ```{r eval = FALSE}
 require(keyring)
+require(usethis)
 key_set(service = "StreetLightAPI")
 
 usethis::edit_r_environ() 
@@ -68,3 +69,8 @@ usethis::edit_r_environ()
 # Changelog
 
 - June 12, 2023: Initial release of project website and results. 
+
+
+ ## Code of Conduct
+  
+  Please note that the legacy-LBS-parktrail-research project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By contributing to this project, you agree to abide by its terms.
