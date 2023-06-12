@@ -40,7 +40,7 @@ We thank park managers and staff from across the state for their cooperation in 
 
 The code used to conduct primary analyses are located in three folders: `parks`, `trails`, and `visitors`. Each folder contains a tutorial document (`park_tutorial.RMD`, `trail_tutorial.Rmd`, and `visitor_tutorial.RMD`, respectively) which calls additional scripts to conduct each step of the analysis. These scripts are numbered in the order in which they are called. 
 
-Complete technical documentation is generated via `legaacy-LBS-parktrail-research-documentation.RMd`; higher level summary texts are generated in the `documentation` folder. 
+Complete technical documentation is generated via `legaacy-LBS-parktrail-research-documentation.Rmd`; higher level summary texts are generated in the `documentation` folder. 
 
 The `data-raw` folder contains data obtained from external sources; `data-intermediate` contains partially processed data, individual StreetLight (LBS) analysis downloads, or other internally-produced data; `data-processed` contains the final products of this research. 
 

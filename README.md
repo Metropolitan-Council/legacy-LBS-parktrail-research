@@ -65,7 +65,7 @@ conduct each step of the analysis. These scripts are numbered in the
 order in which they are called.
 
 Complete technical documentation is generated via
-`legaacy-LBS-parktrail-research-documentation.RMd`; higher level summary
+`legaacy-LBS-parktrail-research-documentation.Rmd`; higher level summary
 texts are generated in the `documentation` folder.
 
 The `data-raw` folder contains data obtained from external sources;
