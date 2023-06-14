@@ -2,7 +2,6 @@
 
 This project uses a [feature-branch](https://deepsource.io/blog/git-branch-naming-conventions/) naming convention and workflow.
 
-We highly suggest you take the time to set up commit [signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits) with GPG.  
 
 ## Fixing typos
 
@@ -28,8 +27,10 @@ Contribute to the project by making changes to your own feature branch and creat
     * create a new custom variable,  
     * fix an issue - [please name your branch with the issue number](https://deepsource.io/blog/git-branch-naming-conventions/)
 * Commit changes related to your feature and push them to GitHub. You can push changes to your feature branch at any time.
-* When you're ready to have your work reviewed you create a pull-request on GitHub.
-* You can create a pull-request and request a review of work-in-progress if you want guidance on code or content. You _must_ request a reviewer for your pull-request to be considered. 
+* Update the [changelog](NEWS.md) with your changes. 
+* When you're ready to have your work reviewed, create a pull-request on GitHub.
+* If you want guidance on code or content, create a draft pull-request and request a review from a project maintainer.
+* When your pull request is ready, you _must_ request a review from one of the project maintainers. Pull requests without an approving review will not be accepted.
 * Make changes or respond to comments in your pull-request reviews. New commits pushed to your branch will update the pull-request.
 * When your pull request is approved, the reviewer will merge your branch into main and may delete your branch from GitHub.
   * To remove deleted feature branches from your local repository run `git remote prune origin`.
@@ -37,14 +38,20 @@ Contribute to the project by making changes to your own feature branch and creat
 * Remember to update and branch off of `main` whenever you start a new feature, e.g., `git checkout main; git pull origin main; git checkout -b a-new-feature`.
 
 
-## Code style
+## Code style and standards
 
-*   New code should follow the tidyverse [style guide](https://style.tidyverse.org). 
-    You can use the [styler](https://CRAN.R-project.org/package=styler) package to apply these styles, but please don't restyle code that has nothing to do with your PR.  
+New code should follow the tidyverse [style guide](https://style.tidyverse.org). You can use the [styler](https://CRAN.R-project.org/package=styler) package to apply these styles, but please don't restyle code that has nothing to do with your PR.  
+
+In addition, these standards must be adhered to with every contribution.
+
+- No absolute file paths. All paths must be relative to the root project directory.
+- No API keys, passwords, credentials, or other secrets. We suggest you use [keyring](https://cran.r-project.org/web/packages/keyring/index.html) package to manage credentials. 
+- All commit messages, code comments, and other documentation must be professional and informative. 
+- All code should be documented, describing what the code does, a description of parameters, returned values, and side effects. 
+
+In addition, we highly suggest you take the time to set up commit [signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits) with GPG.  
 
 ## Code of Conduct
 
 Please note that the legacy-LBS-parktrail-research project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By contributing to this project you agree to abide by its terms.
-
-
 
