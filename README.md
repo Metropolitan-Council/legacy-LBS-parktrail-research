@@ -1,16 +1,7 @@
-StreetLight Use Estimates & Parks
-================
-12 June 2023
 
-- [Overview](#overview)
-  - [Funding and Acknowledgements](#funding-and-acknowledgements)
-  - [Resources](#resources)
-- [Getting started](#getting-started)
-  - [File organization](#file-organization)
-  - [Set-up](#set-up)
-- [Changelog](#changelog)
+# Minnesota Parks and Trails
 
-# Overview
+*A Minnesota Legacy research project*
 
 Understanding visitation to Minnesota’s parks and trails is essential
 for planning, programming, and investment decisions. Visitation
@@ -32,33 +23,33 @@ making.
 
 ## Funding and Acknowledgements
 
-This Project was funded with Legacy Partnership Research Funds from the
-State of Minnesota [Parks and Trails Legacy
-Fund](https://www.legacy.mn.gov/parks-trails-fund) in collaboration with
-the [Minnesota Department of Natural
-Resources](https://www.dnr.state.mn.us/), the [Greater Minnesota
+This project was funded with Legacy Partnership Research Funds from the
+[State of Minnesota Parks and Trails Legacy
+Fund](https://www.legacy.mn.gov/parks-trails-fund). The joint research
+project was conducted in collaboration with the [Minnesota Department of
+Natural Resources](https://www.dnr.state.mn.us/), the [Greater Minnesota
 Regional Parks and Trails Commission](https://www.gmrptcommission.org/),
-and the [Metropolitan Council](https://metrocouncil.org/).
+and the [Metropolitan Council](https://metrocouncil.org/). We thank
+staff from across the different organizations and cooperating
+implementing agencies for their cooperation in sharing data and
+providing feedback.
 
-We thank park managers and staff from across the state for their
-cooperation in sharing data and providing feedback to establish and
-refine our methodology.
+<figure>
+<img src="img/partner-logos.png" alt="Funding partner logos" />
+<figcaption aria-hidden="true">Funding partner logos</figcaption>
+</figure>
 
-![](img/partner-logos.png)
+## This repository
 
-## Resources
+This repository contains R code, tabular and spatial data files, and
+documentation behind this research project. As of June 2023, this
+repository primarily contains placeholders for future materials. We
+anticipate the repository will be completed in July 2023.
 
-- The findings and resources produced by this research are available on
-  an interactive project website [here]().
-- [StreetLight Data, Inc.](https://www.streetlightdata.com/) was the LBS
-  data provider for this research.
-
-# Getting started
-
-## File organization
+### File organization
 
 The code used to conduct primary analyses are located in three folders:
-`parks`, `trails`, and `visitors`. Each folder contains a tutorial
+`/parks`, `/trails`, and `/visitors`. Each folder contains a tutorial
 document (`park_tutorial.RMD`, `trail_tutorial.Rmd`, and
 `visitor_tutorial.RMD`, respectively) which calls additional scripts to
 conduct each step of the analysis. These scripts are numbered in the
@@ -68,12 +59,12 @@ Complete technical documentation is generated via
 `legaacy-LBS-parktrail-research-documentation.Rmd`; higher level summary
 texts are generated in the `documentation` folder.
 
-The `data-raw` folder contains data obtained from external sources;
-`data-intermediate` contains partially processed data, individual
+The `/data-raw` folder contains data obtained from external sources;
+`/data-intermediate` contains partially processed data, individual
 StreetLight (LBS) analysis downloads, or other internally-produced data;
-`data-processed` contains the final products of this research.
+`/data-processed` contains the final products of this research.
 
-## Set-up
+### Set-up
 
 This project uses
 [`streetlightR`](https://metropolitan-council.github.io/streetlightR/)
@@ -88,7 +79,7 @@ Initially, you will need to save some parameters to your machine.
 ``` r
 require(keyring)
 require(usethis)
-key_set(service = "StreetLightAPI")
+keyring::key_set(service = "StreetLightAPI")
 
 usethis::edit_r_environ() 
 # When the `.Renviron` file comes up in the editor, save the following parameters:
@@ -100,12 +91,19 @@ usethis::edit_r_environ()
 # Save and close the `.Renviron` file and Restart R.
 ```
 
-# Changelog
+## Important details
 
-- June 12, 2023: Initial release of project website and results.
-
-\## Code of Conduct
-
-Please note that the legacy-LBS-parktrail-research project is released
-with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By
-contributing to this project, you agree to abide by its terms.
+- **Contributing** Before contributing to this repository, please review
+  the [contribution guide](CONTRIBUTING.md).
+- **Code of Conduct** Please note that this repository is released with
+  a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By contributing
+  to this project, you agree to abide by its terms.
+- **License** Code is released with an [MIT license](LICENSE.md). Data
+  provided is for informational purposes. Please open an issue if you
+  have any questions regarding licensing.
+- Thanks to our contributors.
+  - Raven McKnight [@ravenmcknight](https://github.com/ravenmcknight)
+  - Ellen Esch [@ehesch](https://github.com/ehesch)
+  - Liz Roten [@eroten](https://github.com/eroten)
+  - Senior Manager, Joel Huting
+    [@joelhuting](https://github.com/joelhuting-r)
