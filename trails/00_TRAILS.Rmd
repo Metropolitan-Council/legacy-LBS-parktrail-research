@@ -693,7 +693,7 @@ Whether LBS data or physical counters are used to create these segment-level est
 
 Therefore, the 7 individual estimates cannot be summed together. This would likely create an overestimate of individual trail users. Similarly, the estimates cannot reasonably be averaged. Taking the average across segments would assume that use is equal across the length of a trail, which is often untrue. In this project, we identified significant variation in use between individual segments of the same trail. 
 
-With these challenges in mind, two primary methods for reporting trail use were explored: using the most-used trail segment as a proxy for total use, and reporting total trail milestraveled. 
+With these challenges in mind, two primary methods for reporting trail use were explored: using the most-used trail segment as a proxy for total use, and reporting total trail miles traveled. 
 
 There may be additional options for smaller-scale analyses focused on a smaller number of trails. For example, it may be possible to define parking areas for a trail and apply the methods described in our park methodology to estimate visitors who drive to a trailhead to access a trail. However, this method would miss any users who walk or bike onto a trail without first stopping at a designated access point. Identifying all relevant trailheads or parking areas also presents a challenge and may not be possible in all cases, particularly for trails in more walkable areas. This method would require substantial on-the-ground knowledge about individuals trails and is, therefore, beyond the scope of this project. Similarly, it may be possible to augment LBS data with other data sources, such as intercept survey results, to create an estimate of individual trail users. The methods explored in this report, however, rely solely on LBS data. 
 
@@ -875,7 +875,7 @@ cor_user_travel_unit <- cor_user_travel %>%
 tmt_counter_cor <- cor.test(cor_user_travel$max_use, cor_user_travel$miles_used)
 ```
 
-A key goal of this analysis was to create a measure of trail use which performs similarly across trails and is robust to small changes in identified OSM segments. To achieve these goals, we propose trail milestraveled (TMT) as the primary method for reporting trail-level data. 
+A key goal of this analysis was to create a measure of trail use which performs similarly across trails and is robust to small changes in identified OSM segments. To achieve these goals, we propose trail miles traveled (TMT) as the primary method for reporting trail-level data. 
 
 Trail miles traveled is the estimated count of users on a given segment (i.e., the LBS counter estimate described above) multiplied by the length of said trail segment. As a measure of trail use, trail miles traveled is conceptually similar to vehicle miles traveled (VMT), a measure of vehicle traffic [used by the US Department of Transportation](https://www.transportation.gov/mission/health/vmt-capita). When summed at the trail level, TMT provides a single, robust estimate of trail use. 
 
