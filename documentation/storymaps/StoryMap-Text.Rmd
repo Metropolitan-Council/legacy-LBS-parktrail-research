@@ -22,33 +22,33 @@ Other deliverables from this project include data summaries (spreadsheets), unit
 
 This project was funded with Legacy Partnership Research Funds from the State of Minnesota Parks and Trails Legacy Fund. The joint research project was conducted in collaboration with the Greater Minnesota Regional Parks and Trails Commission, the Metropolitan Council Regional Parks and Trails System, and the Minnesota Department of Natural Resources. We thank staff from across the different organizations and cooperating implementing agencies for their cooperation in sharing data and providing feedback.
 
-```{r, child = c('./keyfindings.Rmd')}
+```{r key-findings, child = c('./keyfindings.Rmd')}
 ```
 
 
-```{r, child = c('./parks.Rmd')}
+```{r parks, child = c('./parks.Rmd')}
 ```
 
 
-```{r, child = c('./trails.Rmd')}
+```{r trails, child = c('./trails.Rmd')}
 ```
 
 
-```{r, child = c('./visitors.Rmd')}
+```{r visitors, child = c('./visitors.Rmd')}
 ```
 
 
-```{r, child = c('./usecases.Rmd')}
+```{r use-cases, child = c('./usecases.Rmd')}
 ```
 
 
-```{r, child = c('./recs.Rmd')}
+```{r recommendations, child = c('./recs.Rmd')}
 ```
 
 
-```{r, child = c('./resources.Rmd')}
+```{r resources, child = c('./resources.Rmd')}
 ```
 
 
-```{r, child = c('./FAQ.Rmd')}
+```{r frequently-asked-questions, child = c('./FAQ.Rmd')}
 ```

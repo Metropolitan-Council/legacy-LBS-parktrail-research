@@ -3,23 +3,24 @@
 # TODO: build this out as an actual theme
 legacy_theme <-
   theme_council_open() +
-  theme(panel.grid.minor = element_blank(),
-        panel.grid.major.x = element_blank(),
-        panel.grid.major.y = element_line(linetype = 3),
-        strip.placement = "outside",
-        legend.spacing= unit(c(0, 0, 0, 0), "cm"),
-        plot.margin = unit(c(0, 0.2, 0, 0.2), "cm"),
-        axis.title.y = element_text(
-          angle = 0,
-          vjust = .5
-        ),
-        text = element_text(family = "Avenir"),
-        axis.text = element_text(size = 12),
-        plot.caption = element_text(size = 12, color = "grey30"),
-        plot.title = element_text(size = 22),
-        legend.title = element_text(size = 14),
-        legend.text = element_text(size = 13),
-        plot.subtitle = element_text(size = 14)
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(linetype = 3),
+    strip.placement = "outside",
+    legend.spacing = unit(c(0, 0, 0, 0), "cm"),
+    plot.margin = unit(c(0, 0.2, 0, 0.2), "cm"),
+    axis.title.y = element_text(
+      angle = 0,
+      vjust = .5
+    ),
+    text = element_text(family = "Avenir"),
+    axis.text = element_text(size = 12),
+    plot.caption = element_text(size = 12, color = "grey30"),
+    plot.title = element_text(size = 22),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 13),
+    plot.subtitle = element_text(size = 14)
   )
 
 # mn legacy colors -----
@@ -43,8 +44,8 @@ inset_state_color <- "#BACDB0"
 inset_marker_color <- "#F7AD64"
 
 # color palettes -----
-system_label_cols <- c("DNR State" = legacy_blue,
-                       "Greater MN Regional" = legacy_orange,
-                       "Metro Regional" = councilR::colors$cdGreen)
-
-
+system_label_cols <- c(
+  "DNR State" = legacy_blue,
+  "Greater MN Regional" = legacy_orange,
+  "Metro Regional" = councilR::colors$cdGreen
+)

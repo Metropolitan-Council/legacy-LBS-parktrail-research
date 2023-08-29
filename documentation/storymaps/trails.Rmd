@@ -16,11 +16,11 @@ urlcolor: blue
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   echo = FALSE,
-  warning = FALSE, 
-  message = FALSE, 
-  fig.pos = "H", 
-  out.width= "65%",
-  fig.height = 4, 
+  warning = FALSE,
+  message = FALSE,
+  fig.pos = "H",
+  out.width = "65%",
+  fig.height = 4,
   fig.asp = 0.6,
   dpi = 300
 )
@@ -40,13 +40,15 @@ gmn_validation_data <- readRDS(file.path(here(), "data-intermediate/trails/gmn-v
 
 
 trail_summary <- sf::st_drop_geometry(cleaned_trail_segments) %>%
-  left_join(trail_segment_metadata) %>% 
+  left_join(trail_segment_metadata) %>%
   filter(!is.na(system)) %>%
   rename(System = system_label) %>%
   group_by(System) %>%
-  summarise(Trails = n_distinct(unit_id),
-            Segments = n_distinct(osm_id),
-            Miles = sum(round(as.numeric(approx_length_miles)))) 
+  summarise(
+    Trails = n_distinct(unit_id),
+    Segments = n_distinct(osm_id),
+    Miles = sum(round(as.numeric(approx_length_miles)), .groups = "keep")
+  )
 
 n_trails <- sum(trail_summary$Trails)
 trail_miles <- sum(trail_summary$Miles)
@@ -67,8 +69,10 @@ miles_metro <- filter(trail_summary, System == "Metro Regional")$Miles
 n_months <- 40
 
 monthly_alldays <- monthly_trail_volume %>% filter(str_detect(day_type, "All"))
-annual_alldays <- annual_trail_volume %>% filter(str_detect(day_type, "All"), 
-                                                 year %in% c(2019, 2020, 2021))
+annual_alldays <- annual_trail_volume %>% filter(
+  str_detect(day_type, "All"),
+  year %in% c(2019, 2020, 2021)
+)
 ```
 
 # Trails
@@ -89,10 +93,10 @@ LBS data was obtained from StreetLight Data, Inc. and last accessed in April 202
 
 
 ```{r camdenfig}
-#| fig.cap = "Example of OSM segments at Camden Regional Trail (Greater MN). Each colored portion of the trail represents one OSM segment.", 
+#| fig.cap = "Example of OSM segments at Camden Regional Trail (Greater MN). Each colored portion of the trail represents one OSM segment.",
 #| results='markup',
 #| out.width= "65%",
-#| out.width= "2.5in", 
+#| out.width= "2.5in",
 #| out.extra='style="float:center"',
 #| fig.asp = .4,
 
@@ -103,14 +107,14 @@ knitr::include_graphics(file.path(here::here(), "figures/storymap/camdenex.png")
 
 ```{r trail-count-tab}
 summary_tab <- flextable::regulartable(
-  trail_summary 
+  trail_summary
 ) %>%
   flextable::autofit(add_w = 0, add_h = 0) %>%
   flextable::set_table_properties(layout = "autofit") %>%
-    fontsize(size = 10, part = "all") %>%
+  fontsize(size = 10, part = "all") %>%
   flextable::set_caption("Summary of unique trails, identified trail segments, and covered trail miles across the three systems.")
 
-summary_tab 
+summary_tab
 
 summary_tab %>%
   save_as_image(file.path(here::here(), "figures/storymap/trail-summary-table.png"))
@@ -123,14 +127,16 @@ Physical trail counter estimates were used to validate LBS estimates. For exampl
 
 ```{r setup-tmt}
 cor_user_travel <- annual_alldays %>%
-  mutate(max_use = counter_estimate/1e6,
-         miles_used = miles_traveled/1e6)  
+  mutate(
+    max_use = counter_estimate / 1e6,
+    miles_used = miles_traveled / 1e6
+  )
 
-cor_eq <- lm(miles_used ~ 0 + max_use , data = cor_user_travel)
+cor_eq <- lm(miles_used ~ 0 + max_use, data = cor_user_travel)
 
 cor_user_travel_unit <- cor_user_travel %>%
   group_by(unit_label, unit_id, year) %>%
-  summarise(miles_per_user = miles_used/max_use) %>%
+  summarise(miles_per_user = miles_used / max_use, .groups = "keep") %>%
   filter(!is.nan(miles_per_user)) %>%
   left_join(trail_metadata)
 
@@ -139,10 +145,10 @@ tmt_counter_cor <- cor.test(cor_user_travel$max_use, cor_user_travel$miles_used)
 # cleaned_trail_segments %>%
 #   filter(unit_label == "Paul Bunyan") %>%
 #   left_join(monthly_segment_volume %>%
-#               filter(unit_label == "Paul Bunyan", 
-#                      str_detect(day_type, "All")) %>% 
+#               filter(unit_label == "Paul Bunyan",
+#                      str_detect(day_type, "All")) %>%
 #               group_by(unit_label, osm_id, year) %>%
-#               summarise(annual_total = sum(counter_estimate))) %>%
+#               summarise(annual_total = sum(counter_estimate), .groups = "keep")) %>%
 #   filter(year == 2020) %>%
 #   mapview(zcol = "annual_total")
 ```
@@ -151,7 +157,7 @@ While estimates of trail users passing through trails counters or geographic “
 
 
 ```{r gmn-validation-figure}
-#| fig.cap = "Comparison of Greater MN trail counter estimates and LBS estimates at long-term trail counter sites. The dashed line indicates a perfect one-to-one relationship; the solid blue line indicates the line of best fit. LBS estimates tend to be slightly higher than existing estimates.", 
+#| fig.cap = "Comparison of Greater MN trail counter estimates and LBS estimates at long-term trail counter sites. The dashed line indicates a perfect one-to-one relationship; the solid blue line indicates the line of best fit. LBS estimates tend to be slightly higher than existing estimates.",
 
 gmn_validation_data_long <- gmn_validation_data %>%
   filter(long_count == TRUE)
@@ -162,29 +168,38 @@ gmn_cor_long <- cor.test(gmn_validation_data_long$Volume, gmn_validation_data_lo
 
 gmn_validation_data_long %>%
   mutate(plot_label = case_when(
-    label == "Short Stacker" ~ "Cook County", 
-    site == "Spirit Mountain" ~ "Duluth Traverse", 
+    label == "Short Stacker" ~ "Cook County",
+    site == "Spirit Mountain" ~ "Duluth Traverse",
     TRUE ~ NA
   )) %>%
   mutate(day_type = ifelse(day_type == "All Days", "Average Day", day_type)) %>%
   ggplot(aes(x = sadt, y = Volume)) +
-  geom_smooth(method = "lm", se = FALSE,  formula = y ~ x + 0, color = legacy_blue) + 
+  geom_smooth(method = "lm", se = FALSE, formula = y ~ x + 0, color = legacy_blue) +
   geom_point(aes(pch = day_type, fill = plot_label), size = 2) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
   theme_council_open(base_size = 10) +
-  theme(legend.position = "bottom", 
-        legend.box = "vertical") +
+  theme(
+    legend.position = "bottom",
+    legend.box = "vertical"
+  ) +
   expand_limits(x = 0, y = 0) +
-  scale_shape_manual(values = c("Average Day" = 21, 
-                                "Average Weekday" = 22, 
-                                "Average Weekend Day" = 23)) +
-  scale_fill_manual(values = c("Duluth Traverse" = legacy_green, 
-                               "Cook County" = legacy_orange)) + 
-    labs(x = "Greater MN trail counter estimates", y = "LBS\ntrail use\nestimates", 
-         shape = "", fill = "", 
-         caption = "StreetLight Data, Inc; Parks and Trails Council of Minnesota. Accessed July 2023.") +
+  scale_shape_manual(values = c(
+    "Average Day" = 21,
+    "Average Weekday" = 22,
+    "Average Weekend Day" = 23
+  )) +
+  scale_fill_manual(values = c(
+    "Duluth Traverse" = legacy_green,
+    "Cook County" = legacy_orange
+  )) +
+  labs(
+    x = "Greater MN trail counter estimates", y = "LBS\ntrail use\nestimates",
+    shape = "", fill = "",
+    caption = "StreetLight Data, Inc; Parks and Trails Council of Minnesota. Accessed July 2023."
+  ) +
   guides(fill = guide_legend(
-    override.aes=list(shape = 21)))
+    override.aes = list(shape = 21)
+  ))
 
 ggsave(file.path(here(), "figures/storymap/gmn-validation-fig.png"))
 ```
@@ -198,30 +213,33 @@ At the unit level, not all trails had increased use in 2020. Year 2020 had the h
 
 
 ```{r annual-trail-miles}
-#| fig.cap = "Total estimated trail use (trail miles traveled) by year. Bars show the system-wide total trail use across the three complete years in this study (2019, 2020, 2021). Bar color indicates trail system. Individual trail units may show annual visitation trends that differ from the overall system trend.", 
+#| fig.cap = "Total estimated trail use (trail miles traveled) by year. Bars show the system-wide total trail use across the three complete years in this study (2019, 2020, 2021). Bar color indicates trail system. Individual trail units may show annual visitation trends that differ from the overall system trend.",
 
 
 annual_alldays %>%
   filter(year != 2022) %>%
   group_by(year, system_label) %>%
-  summarise(miles = sum(miles_traveled) / 1e6) %>%
-#  pivot_longer(names_to = "names", values_to = "values", -c(system_label, year)) %>%
-#  mutate(values = values / 1e6) %>%
+  summarise(miles = sum(miles_traveled) / 1e6, .groups = "keep") %>%
+  #  pivot_longer(names_to = "names", values_to = "values", -c(system_label, year)) %>%
+  #  mutate(values = values / 1e6) %>%
   ggplot(aes(x = year, y = miles, fill = system_label)) +
-  geom_bar(stat = "identity",color = "black") +
+  geom_bar(stat = "identity", color = "black") +
   # geom_label(aes(x = year, y = miles, label = prettyNum(miles, digits = 4)), fill = "white") +
   geom_label(aes(label = format(round(miles, 2), nsmall = 2), y = rep(c(6, 3.3, 30), 3)), fill = "white", size = 2.5) +
-  labs(title = "Annual trail use (millions of miles traveled)", y = "", x = "",
-       caption = fig_caption) +
+  labs(
+    title = "Annual trail use (millions of miles traveled)", y = "", x = "",
+    caption = fig_caption
+  ) +
   theme_council_open(base_size = 10) +
-    coord_cartesian(clip = "off") + 
+  coord_cartesian(clip = "off") +
   scale_fill_manual(values = system_label_cols) +
-  theme(legend.position = "none",
-        axis.title.y = element_blank(),
-        axis.title.x = element_blank(),
-        plot.title = element_text(size = 10) 
-        # ,axis.text.x = element_text(size = 10)
-        )  +
+  theme(
+    legend.position = "none",
+    axis.title.y = element_blank(),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 10)
+    # ,axis.text.x = element_text(size = 10)
+  ) +
   facet_wrap(~system_label, scales = "free_y", nrow = 1) +
   scale_y_continuous(expand = c(0, 0))
 
@@ -243,14 +261,13 @@ Similarly, trails that are primarily rural with some segments passing through po
 This data can be explored for each trail and trail segment. In the interactive figure below (Figure \@ref(fig:trail-screenshot)), select a trail of interest to see a time series of trail use from January 2019 - April 2022, a map of activity by trail segment, a time series of mode share, and a summary table. Hover over any element and/or zoom in for additional detail.
 
 ```{r trail-screenshot, include = T, eval = T}
-#| fig.cap = "Screenshot of the dashboard which is embedded within the interactive report. The dashboard contains interactive elements showing a timeseries of monthly trail use and mode share. A summary table of use for the three complete years in this study is also included, and a map of the trail colored by segment-level use.", 
+#| fig.cap = "Screenshot of the dashboard which is embedded within the interactive report. The dashboard contains interactive elements showing a timeseries of monthly trail use and mode share. A summary table of use for the three complete years in this study is also included, and a map of the trail colored by segment-level use.",
 #| results='markup',
 #| out.width= "65%",
 #| out.extra='style="float:center"',
 #| fig.asp = .8
 
 knitr::include_graphics(file.path(here(), "documentation/images/trail_dashboard.png"))
-
 ```
 
 
@@ -260,50 +277,55 @@ knitr::include_graphics(file.path(here(), "documentation/images/trail_dashboard.
 Using LBS data to estimate trail use over a year shows that Minnesota’s trails are used in all seasons, although to a lesser extent than Minnesota’s parks. Trail use generally builds throughout the spring, peaks in the summer, and tapers off in the fall (Figure \@ref(fig:seasonal-fig-trail)). At the trail level, many segments which retain usage into the winter are within population centers or maintained (plowed) during the winter (e.g., portions of Brown’s Creek State Trail), highlighting the year-round importance of trails to the transportation network and for recreation benefits. 
 
 ```{r seasonal-fig-trail}
-#| fig.cap = "Monthly trail use as a percent of total annual use for each system. Points show the average monthly use across the three complete years in this study (2019, 2020, 2021). Point color indicates park system. Individual trail units may show trends that differ from the overall system trend.", 
+#| fig.cap = "Monthly trail use as a percent of total annual use for each system. Points show the average monthly use across the three complete years in this study (2019, 2020, 2021). Point color indicates park system. Individual trail units may show trends that differ from the overall system trend.",
 
 (monthly_alldays) %>%
   filter(year != 2022) %>%
   group_by(system_label, year, month) %>%
-  summarise(SUM = sum(miles_traveled)) %>%
+  summarise(SUM = sum(miles_traveled), .groups = "keep") %>%
   ungroup() %>%
   group_by(system_label, year) %>%
   mutate(percent = SUM / sum(SUM)) %>%
   ungroup() %>%
   group_by(system_label, month) %>%
-  summarise(MEAN = mean(percent),
-            SE = sd(percent)/ sqrt(n())) %>%
-  mutate(label = if_else(month == "Dec", system_label, NA_character_)
-         ) %>%
+  summarise(
+    MEAN = mean(percent),
+    SE = sd(percent) / sqrt(n()), .groups = "keep"
+  ) %>%
+  mutate(label = if_else(month == "Dec", system_label, NA_character_)) %>%
   ggplot(aes(x = month, y = MEAN, group = system_label, color = system_label, pch = system_label)) +
-  geom_segment(aes(x= 1, xend = 1, y= 0, yend = .04), lty = 3, color = "grey90") +
-  geom_segment(aes(x= 4, xend = 4, y= 0, yend = .095), lty = 3, color = "grey90") +
-  geom_segment(aes(x= 7, xend = 7, y= 0, yend = .17), lty = 3, color = "grey90") +
-  geom_segment(aes(x= 10, xend = 10, y= 0, yend = .08), lty = 3, color = "grey90") +
+  geom_segment(aes(x = 1, xend = 1, y = 0, yend = .04), lty = 3, color = "grey90") +
+  geom_segment(aes(x = 4, xend = 4, y = 0, yend = .095), lty = 3, color = "grey90") +
+  geom_segment(aes(x = 7, xend = 7, y = 0, yend = .17), lty = 3, color = "grey90") +
+  geom_segment(aes(x = 10, xend = 10, y = 0, yend = .08), lty = 3, color = "grey90") +
   # geom_errorbar(aes(x = month, ymin = MEAN - SE, ymax = MEAN + SE), lwd = .2, width = 0) +
-  geom_point(size = 2)+#position = position_dodge(width = .2)) + 
+  geom_point(size = 2) + # position = position_dodge(width = .2)) +
   geom_line() +
   # facet_wrap(~system) +
   scale_color_manual(values = system_label_cols[c("DNR State", "Greater MN Regional", "Metro Regional")]) +
   scale_y_continuous(labels = scales::label_percent(), expand = expansion(mult = 0, 0)) +
   # scale_x_date(date_breaks = '3 months', labels = scales::date_format("%b"),limits = c(as.Date("2020-11-1"), NA)) +
   theme_council_open() +
-  scale_x_discrete(expand = expansion(mult = c(0.01, 0.35))
-                   # breaks = c("Jan", "Apr", "Jul", "Oct"),
-                   # labels = c("Jan", "Apr", "Jul", "Oct")
-                   ) +
+  scale_x_discrete(
+    expand = expansion(mult = c(0.01, 0.35))
+    # breaks = c("Jan", "Apr", "Jul", "Oct"),
+    # labels = c("Jan", "Apr", "Jul", "Oct")
+  ) +
   coord_cartesian(clip = "off") +
-  labs(x = "", caption = fig_caption,
-     title = "Monthly trail use (% of annual trail miles traveled)"
-     ) +
-  geom_text(aes(x = 12.2, y = MEAN, label = label), hjust =0, size = 3) +
-    theme(legend.position = "none",
-          axis.title.y = element_blank(),
-                  # panel.grid.major.x= element_line(linetype = 3),
-          axis.title.x = element_blank(),
-          # axis.text.x =  element_text(size = 10),
-          # axis.text.y = element_text(size = 10),
-          plot.title = element_text(size = 10))
+  labs(
+    x = "", caption = fig_caption,
+    title = "Monthly trail use (% of annual trail miles traveled)"
+  ) +
+  geom_text(aes(x = 12.2, y = MEAN, label = label), hjust = 0, size = 3) +
+  theme(
+    legend.position = "none",
+    axis.title.y = element_blank(),
+    # panel.grid.major.x= element_line(linetype = 3),
+    axis.title.x = element_blank(),
+    # axis.text.x =  element_text(size = 10),
+    # axis.text.y = element_text(size = 10),
+    plot.title = element_text(size = 10)
+  )
 # takeaway here: winter ns at GMN, double check if spring vs fall is different at metro
 # car::Anova(lm(percent ~ system * year * as.character(month), data = filter(a, year != 2022)))
 
@@ -316,40 +338,46 @@ ggsave(file.path(here::here(), "figures/storymap/seasonal-trail-use.png"))
 On weekends (Sa-Su), trails tend to have a late morning peak in visitation around 11 a.m. (Figure \@ref(fig:hourly-fig-trail)). On weekdays (M-F), trail visitation shows a bimodal use pattern. A peak in the late morning to noon time frame is still observed. A second peak in use occurs around 5 p.m. The first peak (morning) is larger for DNR state trails, while the second peak (evenings) is larger for regional trails. The strength of the second peak may reflect commuting patterns (i.e., trails being used as transportation to and from work) or the ease of accessing regional trails near home after work. 
 
 ```{r hourly-fig-trail}
-#| fig.cap = "Daily trail use patterns during summer 2021 for each system. The total number of visits across all trails is summed for each system, from which the percent of total visits is calculated. Individual trail units may show trends that differ from the overall system trend.", 
+#| fig.cap = "Daily trail use patterns during summer 2021 for each system. The total number of visits across all trails is summed for each system, from which the percent of total visits is calculated. Individual trail units may show trends that differ from the overall system trend.",
 
 hourly_trails %>%
   mutate(day_type = str_remove_all(day_type, "1: Average |2: Average | Day")) %>%
   filter(!str_detect(day_type, "All")) %>%
   group_by(system_label, day_type, time) %>%
-  summarise(total = sum(sumtotal)) %>%
+  summarise(total = sum(sumtotal), .groups = "keep") %>%
   ungroup() %>%
   group_by(system_label, day_type) %>%
-  mutate(percent = total/sum(total)) %>%
+  mutate(percent = total / sum(total)) %>%
   filter(!is.na(system_label)) %>%
-  mutate(time2 = strftime(time, format = "%H:%M"), 
-         label = if_else(time2 == "23:00", system_label, NA_character_)) %>%
+  mutate(
+    time2 = strftime(time, format = "%H:%M"),
+    label = if_else(time2 == "23:00", system_label, NA_character_)
+  ) %>%
   ggplot(aes(x = time, y = percent, color = system_label, group = system_label, pch = system_label)) +
   geom_point() +
   geom_line() +
-  facet_wrap(~day_type,  nrow = 1) +
+  facet_wrap(~day_type, nrow = 1) +
   # geom_text(data = lab_text, aes(x = as.POSIXct("07:00", format = "%H:%M"), y = 0.9 * max_volume, label = label),
   #         size = 4) +
   scale_color_manual(values = system_label_cols[c("DNR State", "Greater MN Regional", "Metro Regional")]) +
   theme_council_open(base_size = 10) +
   scale_y_continuous(labels = scales::label_percent()) +
-  scale_x_datetime(date_breaks = "4 hours", date_labels = "%l%p", expand = expansion(mult = c(0.01, 0.01)))+# expand = expansion(mult = c(0.01, 0.4))) +
-  labs(x = "", y = "System \ntotal",  color = "", shape = "",
-       title = "Hourly trail use (summer 2021)",
-       # title = "Total arrivals to parks by system and hour",
-       caption = fig_caption)  +
+  scale_x_datetime(date_breaks = "4 hours", date_labels = "%l%p", expand = expansion(mult = c(0.01, 0.01))) + # expand = expansion(mult = c(0.01, 0.4))) +
+  labs(
+    x = "", y = "System \ntotal", color = "", shape = "",
+    title = "Hourly trail use (summer 2021)",
+    # title = "Total arrivals to parks by system and hour",
+    caption = fig_caption
+  ) +
   # geom_text(aes(x = time+2, y = percent, label = label), hjust =0) +
   # geom_text_repel(aes(x = time+5, y = percent, label = label), hjust ="left", nudge_x = 4, direction = "y") +
-    theme(legend.position = "bottom",
-                  panel.grid.major.x= element_line(linetype = 3),
-          axis.title.y = element_blank(),
-          axis.title.x = element_blank(),
-          plot.title = element_text(size = 10)) 
+  theme(
+    legend.position = "bottom",
+    panel.grid.major.x = element_line(linetype = 3),
+    axis.title.y = element_blank(),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 10)
+  )
 
 ggsave(file.path(here::here(), "figures/storymap/hourly-trail-use.png"))
 ```
@@ -361,7 +389,7 @@ ggsave(file.path(here::here(), "figures/storymap/hourly-trail-use.png"))
 During summer months, bikers generally make up the majority of trail users (Figure \@ref(fig:trail-modeshare-fig)). However, this pattern switches in the winter when pedestrians make up the majority of users. Trails that are maintained for winter mountain or fat tire biking see a less pronounced decline in bike use during winter months. This is most common for DNR state and Greater Minnesota regional trails. 
 
 ```{r trail-modeshare-fig}
-#| fig.cap = "Mode share of trips made to trails in summer (June - August) and winter seasons (December - February). Bars show the average annual mode share across the three complete years in this study (2019, 2020, 2021). Bar color indicates trail system. Individual trail units may show trends that differ from the overall system trend.", 
+#| fig.cap = "Mode share of trips made to trails in summer (June - August) and winter seasons (December - February). Bars show the average annual mode share across the three complete years in this study (2019, 2020, 2021). Bar color indicates trail system. Individual trail units may show trends that differ from the overall system trend.",
 #| results='markup',
 #| out.width= "65%",
 #| out.extra='style="float:right"',
@@ -369,45 +397,56 @@ During summer months, bikers generally make up the majority of trail users (Figu
 
 monthly_alldays %>%
   # mutate(season = "test") %>%
-  mutate(season = if_else(month %in% c("Dec", "Jan", "Feb"),  "Winter (December - February)", #
-                          if_else(month %in% c("Jun", "Jul", "Aug"), "Summer (June - August)", NA_character_))) %>%
+  mutate(season = if_else(month %in% c("Dec", "Jan", "Feb"), "Winter (December - February)", #
+    if_else(month %in% c("Jun", "Jul", "Aug"), "Summer (June - August)", NA_character_)
+  )) %>%
   filter(!is.na(season)) %>%
   group_by(system_label, season) %>%
-  summarise(#Vehicle = sum(monthly_vehicle_visitors), 
-            Bicycle = sum(bike_miles_traveled), 
-            Pedestrian = sum(ped_miles_traveled)) %>%
+  summarise( # Vehicle = sum(monthly_vehicle_visitors),
+    Bicycle = sum(bike_miles_traveled),
+    Pedestrian = sum(ped_miles_traveled), .groups = "keep"
+  ) %>%
   ungroup() %>%
-  mutate(total = (Bicycle + Pedestrian),
-         # Vehicle = Vehicle/ total,
-         Bicycle = Bicycle / total,
-         Pedestrian = Pedestrian / total) %>%
-  pivot_longer(cols = c(Bicycle, Pedestrian),
-               names_to = "Mode",
-               values_to = "Share") %>%
+  mutate(
+    total = (Bicycle + Pedestrian),
+    # Vehicle = Vehicle/ total,
+    Bicycle = Bicycle / total,
+    Pedestrian = Pedestrian / total
+  ) %>%
+  pivot_longer(
+    cols = c(Bicycle, Pedestrian),
+    names_to = "Mode",
+    values_to = "Share"
+  ) %>%
   ggplot(aes(x = Mode, y = Share, fill = system_label)) +
   geom_bar(stat = "identity", color = "black", position = position_dodge(width = .9)) +
   # geom_col(color = "black", position = position_dodge(width = .9)) +
   theme_council_open(base_size = 10) +
   # scale_fill_brewer(palette = "Purples", direction = -1,
   #                   guide = guide_legend(reverse = TRUE)) +
-scale_fill_manual(values = system_label_cols) +
+  scale_fill_manual(values = system_label_cols) +
   facet_wrap(~season) +
-  scale_y_continuous(labels = scales::label_percent(),  expand = expansion(mult = c(0.0, 0.05))) +
-  labs(title = "Trail visitor travel mode, 2021",
-       # subtitle = "Purples are random for now",
-       x = "", y = "", fill = "", 
-       caption = fig_caption) +
-      theme(legend.position = "bottom",
-                  # panel.grid.major.x= element_line(linetype = 3),
-          axis.title.y = element_blank(),
-          axis.title.x = element_blank(),
-          plot.title = element_text(size = 10)) +
-  annotate("segment", x=-Inf, xend=-Inf, y=-Inf, yend=Inf, colour = "grey92", lwd = 1) +
+  scale_y_continuous(labels = scales::label_percent(), expand = expansion(mult = c(0.0, 0.05))) +
+  labs(
+    title = "Trail visitor travel mode, 2021",
+    # subtitle = "Purples are random for now",
+    x = "", y = "", fill = "",
+    caption = fig_caption
+  ) +
+  theme(
+    legend.position = "bottom",
+    # panel.grid.major.x= element_line(linetype = 3),
+    axis.title.y = element_blank(),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 10)
+  ) +
+  annotate("segment", x = -Inf, xend = -Inf, y = -Inf, yend = Inf, colour = "grey92", lwd = 1) +
   # annotate("segment", x=-Inf, xend=Inf, y=-Inf, yend=-Inf) +
-    geom_label(aes(label = paste0(format(round(Share*100, 0), nsmall = 0), "%"), group = system_label
-                   , y = rep(c(.1, .1, .1, .1, .1, .1),  2)
-                   ), fill = "white", size = 2.5, position = position_dodge(width = .9))
+  geom_label(aes(
+    label = paste0(format(round(Share * 100, 0), nsmall = 0), "%"), group = system_label,
+    y = rep(c(.1, .1, .1, .1, .1, .1), 2)
+  ), fill = "white", size = 2.5, position = position_dodge(width = .9))
 
-    
+
 ggsave(file.path(here::here(), "figures/storymap/trail-modeshare.png"))
 ```

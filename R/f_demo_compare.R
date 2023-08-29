@@ -15,17 +15,18 @@ demo_compare <- function(x) {
       x = percent,
       col = source, shape = source, fill = source
     )) + # forcats::fct_rev(source))) +
-    geom_errorbar(aes(
-      xmin = if_else(percent - moe_95 < 0, 0, percent - moe_95),
-      xmax = if_else(percent + moe_95 > 1, 1, percent + moe_95)
-    ),
-    width = 0,
-    position = position_dodge(width = .2)
+    geom_errorbar(
+      aes(
+        xmin = if_else(percent - moe_95 < 0, 0, percent - moe_95),
+        xmax = if_else(percent + moe_95 > 1, 1, percent + moe_95)
+      ),
+      width = 0,
+      position = position_dodge(width = .2)
     ) +
     geom_point(position = position_dodge(width = .2)) +
     facet_wrap(~unit,
-               ncol = 2, scales = "free_x",
-               labeller = labeller(park = label_wrap_gen(20))
+      ncol = 2, scales = "free_x",
+      labeller = labeller(park = label_wrap_gen(20))
     ) +
     theme_council_open() +
     scale_x_continuous(labels = scales::percent, limits = c(0, 1)) + # percent_format(scale = 1)) +
@@ -45,13 +46,19 @@ demo_compare <- function(x) {
       legend.text = element_text(size = rel(.8)),
       legend.key.size = unit(.1, "lines")
     ) +
-    scale_colour_manual(values = c("no significant difference" = "black",
-                                   "Intercept survey" = "#a6611a",
-                                   "LBS data" = "#018571")) +
-    scale_fill_manual(values = c("no significant difference" = "white",
-                                 "Intercept survey" = "#a6611a",
-                                 "LBS data" = "#018571")) +
-    scale_shape_manual(values = c("no significant difference" = 21,
-                                  "Intercept survey" = 22,
-                                  "LBS data" = 23))
+    scale_colour_manual(values = c(
+      "no significant difference" = "black",
+      "Intercept survey" = "#a6611a",
+      "LBS data" = "#018571"
+    )) +
+    scale_fill_manual(values = c(
+      "no significant difference" = "white",
+      "Intercept survey" = "#a6611a",
+      "LBS data" = "#018571"
+    )) +
+    scale_shape_manual(values = c(
+      "no significant difference" = 21,
+      "Intercept survey" = 22,
+      "LBS data" = 23
+    ))
 }

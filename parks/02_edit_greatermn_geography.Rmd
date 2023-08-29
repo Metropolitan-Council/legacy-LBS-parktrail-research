@@ -30,7 +30,7 @@ Alexander Ramsey Park
 ```{r}
 name <- "Alexander-Ramsey_park_Greater-MN"
 park <- gmn[[name]]
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -45,12 +45,12 @@ mndot_rm2 <- roads %>%
   st_buffer(5) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>% 
-  st_erase(mndot_rm2) %>% 
-  fill_holes(1000) %>% 
-  select(zone_name, geometry) %>% #mapview()
+  st_erase(mndot_rm) %>%
+  st_erase(mndot_rm2) %>%
+  fill_holes(1000) %>%
+  select(zone_name, geometry) %>% # mapview()
   saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
@@ -59,21 +59,24 @@ Appleton OHV Park
 ```{r}
 name <- "Appleton-OHV_park_Greater-MN_Eligible"
 park <- gmn[[name]]
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
 # slightly smaller buffer to maintain parking lot
 mndot_rm <- roads %>%
-  filter(!ROUTE_NAME %in% c("Swift T 363-D", "Swift T 363-I", 
-                            "Swift T 254-I", "Swift T 254-D")) %>%
+  filter(!ROUTE_NAME %in% c(
+    "Swift T 363-D", "Swift T 363-I",
+    "Swift T 254-I", "Swift T 254-D"
+  )) %>%
   st_buffer(25) %>%
   summarise(do_union = TRUE)
 
-park %>% 
-  st_erase(mndot_rm) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Barsness Park
@@ -81,33 +84,36 @@ Barsness Park
 ```{r}
 name <- "Barsness_park_Greater-MN_Eligible"
 park <- gmn[[name]]
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
 # okayish
 mndot_rm <- roads %>%
-  filter(!ROUTE_NAME %in% c("Glenwood M 120-D", "Glenwood M 120-I",
-                            "Glenwood M 121-D", "Glenwood M 121-I", 
-                            "Glenwood M 122-D", "Glenwood M 122-I",
-                            "Glenwood M 123-D", "Glenwood M 123-I",
-                            "Glenwood M 124-D", "Glenwood M 124-I")) %>%
+  filter(!ROUTE_NAME %in% c(
+    "Glenwood M 120-D", "Glenwood M 120-I",
+    "Glenwood M 121-D", "Glenwood M 121-I",
+    "Glenwood M 122-D", "Glenwood M 122-I",
+    "Glenwood M 123-D", "Glenwood M 123-I",
+    "Glenwood M 124-D", "Glenwood M 124-I"
+  )) %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
-  st_erase(mndot_rm) %>%# mapview() 
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 
 Belle Prairie Park
 
 ```{r}
-name <- "Belle-Prairie_park_Greater-MN" 
+name <- "Belle-Prairie_park_Greater-MN"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 2000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
@@ -117,10 +123,11 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Bend in the River Park (GRPC)
@@ -129,7 +136,7 @@ Bend in the River Park (GRPC)
 name <- "Bend-in-the-River-GRPC_park_Greater-MN"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 2000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -137,22 +144,23 @@ mndot_rm <- roads %>%
   st_buffer(20) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   drop_crumbs(threshold = set_units(10000, m^2)) %>%
   fill_holes(10000) %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  
-   #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>%
+  # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Bertram Chain of Lakes
 
 ```{r}
 name <- "Bertram-Chain-of-Lakes_park_Greater-MN"
-park <- gmn[[name]] 
+park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
@@ -161,10 +169,11 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 
@@ -173,9 +182,9 @@ Big Elk Lake County park
 
 ```{r}
 name <- "Big-Elk-Lake_park_Greater-MN"
-park <- gmn[[name]] 
+park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -183,10 +192,11 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Big Falls
@@ -195,7 +205,7 @@ Big Falls
 name <- "Big-Falls-Campground-and-Horse-Camp_park_Greater-MN"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 2000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -203,10 +213,11 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Bluff's Traverse 
@@ -215,7 +226,7 @@ Bluff's Traverse
 name <- "Bluffs-Traverse_park_Greater-MN"
 park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
@@ -226,9 +237,9 @@ mndot_rm <- roads %>%
   summarise(do_union = TRUE)
 
 # add parking lot for trailhead
-lat = c(44.041688, 44.040731, 44.040274, 44.041347)
-lon = c(-91.663328, -91.660784, -91.661117, -91.663616)
-corners = data.frame(lon, lat)
+lat <- c(44.041688, 44.040731, 44.040274, 44.041347)
+lon <- c(-91.663328, -91.660784, -91.661117, -91.663616)
+corners <- data.frame(lon, lat)
 add <- corners %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
   summarise(geometry = st_combine(geometry)) %>%
@@ -237,12 +248,13 @@ add <- corners %>%
 
 mapview(park) + mapview(add)
 
-park %>% 
+park %>%
   st_make_valid() %>%
   st_erase(mndot_rm) %>%
   drop_crumbs(threshold = set_units(10000, m^2)) %>%
-  st_union(add) %>% #mapview() # don't drop crumbs after this step or the manual addition will be removed
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_union(add) %>% # mapview() # don't drop crumbs after this step or the manual addition will be removed
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Cascade Lake Park
@@ -251,7 +263,7 @@ Cascade Lake Park
 name <- "Cascade-Lake_park_Greater-MN"
 park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -259,11 +271,12 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  
-  drop_crumbs(threshold = set_units(10000, m^2)) %>%#mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Chester Woods
@@ -272,7 +285,7 @@ Chester Woods
 name <- "Chester-Woods_park_Greater-MN"
 park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -281,10 +294,11 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Cohasset Tioga Recreation Area
@@ -294,7 +308,7 @@ name <- "Cohasset-Tioga_park_Greater-MN"
 
 park <- addshore_fxn(gmn, gmn_water, name, 50, 2000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -303,10 +317,10 @@ mndot_rm <- roads %>%
   st_buffer(15) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
   st_erase(mndot_rm) %>% # mapview()
-  select(zone_name, geometry) %>% 
+  select(zone_name, geometry) %>%
   saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
@@ -316,7 +330,7 @@ Collinwood Park
 name <- "Collinwood_park_Greater-MN"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 2000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
@@ -326,10 +340,11 @@ mndot_rm <- roads %>%
   st_buffer(15) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Detroit Mountain Recreational Area
@@ -338,7 +353,7 @@ Detroit Mountain Recreational Area
 name <- "Detroit-Mountain_park_Greater-MN"
 park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -346,10 +361,11 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Elk River Woodland Trails Park
@@ -358,7 +374,7 @@ Elk River Woodland Trails Park
 name <- "Elk-River-Woodland-Trails_park_Greater-MN"
 park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -366,11 +382,12 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  
-  drop_crumbs(threshold = set_units(10000, m^2)) %>%#mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Fish Lake County Park
@@ -379,7 +396,7 @@ Fish Lake County Park
 name <- "Fish-Lake_park_Greater-MN_Eligible"
 park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -392,10 +409,10 @@ mndot_rm <- roads %>%
 park <- park %>%
   mutate(geometry = st_set_crs((st_geometry(geometry) + c(-250, 200)), 26915))
 
-park %>% 
-  st_erase(mndot_rm) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
-  
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Frazee Park
@@ -404,7 +421,7 @@ Frazee Park
 name <- "Frazee_park_Greater-MN_Eligible"
 park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -412,42 +429,44 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
-  st_erase(mndot_rm) %>% #mapview()
-  select(zone_name, geometry) %>%  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Garvin Park
 
 ```{r}
 name <- "Garvin_park_Greater-MN"
-park <- gmn[[name]] 
+park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
 mndot_rm <- roads %>%
-  filter(!OWNERSHIP %in%c("Local Park, Forest, or Reservation Agency") & 
-           !ROUTE_NAME %in% c("Lyon LOC 3-D", "Lyon LOC 3-I")) %>%
+  filter(!OWNERSHIP %in% c("Local Park, Forest, or Reservation Agency") &
+    !ROUTE_NAME %in% c("Lyon LOC 3-D", "Lyon LOC 3-I")) %>%
   st_buffer(10) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>% 
+  st_erase(mndot_rm) %>%
   drop_crumbs(threshold = set_units(10000, m^2)) %>%
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Gateway to the North
 
 ```{r}
 name <- "Gateway-to-the-North_park_Greater-MN_Eligible"
-park <- gmn[[name]] 
+park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -456,9 +475,10 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
-  st_erase(mndot_rm) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Grand Marais Recreation Area
@@ -467,7 +487,7 @@ Grand Marais Recreation Area
 name <- "Grand-Marais-Recreation-Area_park_Greater-MN_Eligible"
 park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -476,10 +496,11 @@ mndot_rm <- roads %>%
   st_buffer(10) %>%
   summarise(do_union = TRUE)
 
-park %>% 
-  st_erase(mndot_rm) %>% 
-  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview() + mapview(roads, zcol = "OWNERSHIP")
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+park %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview() + mapview(roads, zcol = "OWNERSHIP")
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 
@@ -489,7 +510,7 @@ Granite Falls Memorial Park
 name <- "Granite-Falls-Memorial_park_Greater-MN"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 2000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -497,10 +518,11 @@ mndot_rm <- roads %>%
   st_buffer(20) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Hartley
@@ -510,7 +532,7 @@ name <- "Hartley_park_Greater-MN"
 park <- gmn[[name]] %>%
   smoothr::fill_holes(4000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -519,11 +541,12 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  
-  drop_crumbs(threshold = set_units(10000, m^2)) %>%#mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 He Mni Can - Barn Bluff
@@ -532,7 +555,7 @@ He Mni Can - Barn Bluff
 name <- "He-Mni-Can-Barn-Bluff_park_Greater-MN"
 park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -547,11 +570,12 @@ rm2 <- roads %>%
   st_buffer(5) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  
-  st_erase(rm2) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>%
+  st_erase(rm2) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Hok Si La
@@ -560,7 +584,7 @@ Hok Si La
 name <- "Hok-Si-La_park_Greater-MN_Eligible"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 2000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -569,9 +593,10 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
-  st_erase(mndot_rm) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 
@@ -581,7 +606,7 @@ Hole in the Mountain
 name <- "Hole-in-the-Mountain_park_Greater-MN"
 park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -590,10 +615,11 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Irving & John Anderson County Park
@@ -602,7 +628,7 @@ Irving & John Anderson County Park
 name <- "Irving-and-John-Anderson_park_Greater-MN"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 2000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -610,20 +636,21 @@ mndot_rm <- roads %>%
   st_buffer(20) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>% 
-  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Jay C Hormel
 
 ```{r}
 name <- "Jay-C-Hormel-Nature-Center_park_Greater-MN"
-park <- gmn[[name]] 
+park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -640,11 +667,12 @@ rm2 <- st_read(file.path(here(), "data-raw/greater-mn/map.osm"), layer = "multip
   summarise(do_union = TRUE) %>%
   st_transform(26915)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  
-  st_erase(rm2) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>%
+  st_erase(rm2) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Kensington Rune Stone
@@ -653,7 +681,7 @@ Kensington Rune Stone
 name <- "Kensington-Rune-Stone_park_Greater-MN"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 2000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -661,11 +689,12 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
   st_erase(mndot_rm) %>%
-  fill_holes(1000) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  fill_holes(1000) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Kraemer Lake Park
@@ -674,7 +703,7 @@ Kraemer Lake Park
 name <- "Kraemer-Lake_park_Greater-MN"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 2000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -682,10 +711,11 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Lac qui Parle
@@ -694,7 +724,7 @@ Lac qui Parle
 name <- "Lac-qui-Parle_park_Greater-MN"
 park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -703,11 +733,12 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>% 
-  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Lake Brophy
@@ -716,7 +747,7 @@ Lake Brophy
 name <- "Lake-Brophy_park_Greater-MN"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 2000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -724,11 +755,12 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  
-  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Lake Byllesby
@@ -737,7 +769,7 @@ Lake Byllesby
 name <- "Lake-Byllesby_park_Greater-MN"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 2000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -745,10 +777,11 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Lake Washington Park and Campground
@@ -757,7 +790,7 @@ Lake Washington Park and Campground
 name <- "Lake-Washington_park_Greater-MN"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 10000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -765,11 +798,12 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>% 
-  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 MB Johnson
@@ -778,7 +812,7 @@ MB Johnson
 name <- "MB-Johnson_park_Greater-MN"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 2000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -787,10 +821,11 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Milford Mine Memorial Park
@@ -799,14 +834,15 @@ Milford Mine Memorial Park
 name <- "Milford-Mine-Memorial_park_Greater-MN"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 10000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
-park %>% 
-  st_make_valid() %>% 
-  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+park %>%
+  st_make_valid() %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Mississippi River Park (GRPC)
@@ -815,7 +851,7 @@ Mississippi River Park (GRPC)
 name <- "Mississippi-River-GRPC_park_Greater-MN"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 2000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -824,10 +860,11 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Ney Nature Center
@@ -835,7 +872,7 @@ Ney Nature Center
 ```{r}
 name <- "Ney-Nature-Center_park_Greater-MN_Eligible"
 park <- gmn[[name]]
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -844,9 +881,10 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
-  st_erase(mndot_rm) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Northerly Park
@@ -854,12 +892,12 @@ Northerly Park
 ```{r}
 name <- "Northerly_park_Greater-MN_Eligible"
 park <- gmn[["Northerly_park_Greater-MN_Eligible"]]
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
 park %>%
- select(zone_name, geometry) %>% 
+  select(zone_name, geometry) %>%
   saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
@@ -869,9 +907,9 @@ Northland Sports Park
 
 ```{r}
 name <- "Northland_park_Greater-MN"
-park <- gmn[[name]] 
+park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -879,19 +917,20 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Oxbow Park/Zollman Zoo
 
 ```{r}
 name <- "Oxbow-Zollman-Zoo_park_Greater-MN"
-park <- gmn[[name]] 
+park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -899,10 +938,11 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
 ```
 
 Pine Valley Recreation Area
@@ -911,7 +951,7 @@ Pine Valley Recreation Area
 name <- "Pine-Valley_park_Greater-MN_Eligible"
 park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -919,18 +959,19 @@ mndot_rm <- roads %>%
   st_buffer(15) %>%
   summarise(do_union = TRUE)
 
-park %>% 
-  st_erase(mndot_rm) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Plum Creek Park
 
 ```{r}
 name <- "Plum-Creek_park_Greater-MN"
-park <- gmn[[name]] 
+park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -938,19 +979,20 @@ mndot_rm <- roads %>%
   st_buffer(15) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
 ```
 
 Quarry Park
 
 ```{r}
 name <- "Quarry_park_Greater-MN"
-park <- gmn[[name]] 
+park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -958,20 +1000,21 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  
-  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
 ```
 
 Quarry Hill Park and Nature Center
 
 ```{r}
 name <- "Quarry-Hill_park_Greater-MN"
-park <- gmn[[name]] 
+park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -979,10 +1022,11 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
 ```
 
 River Bluffs Park
@@ -991,7 +1035,7 @@ River Bluffs Park
 name <- "River-Bluffs_park_Greater-MN_Eligible"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 2000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -1000,10 +1044,11 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
-  st_erase(mndot_rm) %>% 
-  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+park %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Robbins Island Park
@@ -1012,21 +1057,22 @@ Robbins Island Park
 name <- "Robbins-Island_park_Greater-MN"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 2000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
 # small buffer to maintain parking
 mndot_rm <- roads %>%
-  filter(!ROUTE_LABE %in% c("M 58", "LOC 1")) %>% 
+  filter(!ROUTE_LABE %in% c("M 58", "LOC 1")) %>%
   st_buffer(5) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  
-  drop_crumbs(threshold = set_units(5000, m^2)) %>% #mapview() + mapview(roads)
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(5000, m^2)) %>% # mapview() + mapview(roads)
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
 ```
 
 Robert Ney Memorial Park Reserve
@@ -1035,28 +1081,29 @@ Robert Ney Memorial Park Reserve
 name <- "Robert-Ney-Memorial_park_Greater-MN"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 5000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
-#small buffer to maintain parking @ public water access
+# small buffer to maintain parking @ public water access
 mndot_rm <- roads %>%
   st_buffer(5) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
 ```
 
 Rochester Gamehaven
 
 ```{r}
 name <- "Rochester-Gamehaven_park_Greater-MN"
-park <- gmn[[name]] 
+park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -1064,10 +1111,11 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
 ```
 
 Rockville County Park
@@ -1076,7 +1124,7 @@ Rockville County Park
 name <- "Rockville_park_Greater-MN"
 park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -1085,11 +1133,12 @@ mndot_rm <- roads %>%
   st_buffer(15) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  
-  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
 ```
 
 Root River Park
@@ -1098,21 +1147,22 @@ Root River Park
 name <- "Root-River_park_Greater-MN_Eligible"
 park <- addriver_fxn(gmn, gmn_water, name, 2000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
-park %>% 
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+park %>%
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 Sand Hill Recreation Area
 
 ```{r}
 name <- "Sand-Hill_park_Greater-MN_Eligible"
-park <- gmn[[name]] 
+park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -1121,9 +1171,10 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
-  st_erase(mndot_rm) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 
@@ -1133,7 +1184,7 @@ Sandstone Robinson
 name <- "Sandstone-Robinson_park_Greater-MN"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 2000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -1143,11 +1194,12 @@ mndot_rm <- roads %>%
   st_buffer(15) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  
-  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview() + mapview(roads)
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview() + mapview(roads)
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
 ```
 
 Sawtooth Bluff
@@ -1156,20 +1208,23 @@ Sawtooth Bluff
 name <- "Sawtooth-Bluff_park_Greater-MN_Eligible"
 park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
 mndot_rm <- roads %>%
-  filter(!ROUTE_NAME %in% c("Grand Marais M 36-I", "Grand Marais M 36-D", 
-                            "Grand Marais M 76-I", "Grand Marais M 76-D")) %>% 
+  filter(!ROUTE_NAME %in% c(
+    "Grand Marais M 36-I", "Grand Marais M 36-D",
+    "Grand Marais M 76-I", "Grand Marais M 76-D"
+  )) %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
-  st_erase(mndot_rm) %>% 
-  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+park %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 
@@ -1179,7 +1234,7 @@ Spirit Mountain
 name <- "Spirit-Mountain_park_Greater-MN"
 park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -1189,20 +1244,21 @@ mndot_rm <- roads %>%
   st_buffer(15) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>% 
-  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
 ```
 
 Springvale Park
 
 ```{r}
 name <- "Springvale_park_Greater-MN_Eligible"
-park <- gmn[[name]] 
+park <- gmn[[name]]
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -1210,10 +1266,11 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
-  st_erase(mndot_rm) %>% 
-  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
+park %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
 
@@ -1222,14 +1279,14 @@ Stanley Eddy
 ```{r}
 # this shapefiles was misaligned; corrected polygons were created using StreetLight Insights
 name <- "Stanley-Eddy_park_Greater-MN"
-park <- read_sf(paste0(here(),"/data-raw/stl-zones/stanley-eddy/zone_set_stanley_eddy.shp")) %>%
+park <- read_sf(paste0(here(), "/data-raw/stl-zones/stanley-eddy/zone_set_stanley_eddy.shp")) %>%
   mutate(zone_name = "Stanley-Eddy_park_Greater-MN") %>%
   select(zone_name, geometry) %>%
   st_transform(26915) %>%
   group_by(zone_name) %>%
   summarise(do_union = TRUE)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -1237,11 +1294,11 @@ mndot_rm <- roads %>%
   st_buffer(20) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  
+  st_erase(mndot_rm) %>%
   drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
-  select(zone_name, geometry) %>% 
+  select(zone_name, geometry) %>%
   saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(park$zone_name, " ", "_"), ".RDS"))
 ```
 
@@ -1251,13 +1308,14 @@ Twin Lakes Park
 name <- "Twin-Lakes_park_Greater-MN"
 park <- addshore_fxn(gmn, gmn_water, name, 50, 2000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
-park %>% 
-  st_make_valid() %>% 
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
+park %>%
+  st_make_valid() %>%
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
 ```
 
 Warner Lake Park
@@ -1267,7 +1325,7 @@ name <- "Warner-Lake_park_Greater-MN"
 park <- gmn[[name]] %>%
   smoothr::fill_holes(10000)
 
-roads <- gmn_mndot_roads[[name]] 
+roads <- gmn_mndot_roads[[name]]
 
 mapview(park) + mapview(roads, zcol = "OWNERSHIP")
 
@@ -1276,20 +1334,23 @@ mndot_rm <- roads %>%
   st_buffer(30) %>%
   summarise(do_union = TRUE)
 
-park %>% 
+park %>%
   st_make_valid() %>%
-  st_erase(mndot_rm) %>%  #mapview()
-  select(zone_name, geometry) %>% saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geometry) %>%
+  saveRDS(paste0(here(), "/data-temp/greatermn-park-geography/", str_replace_all(str_replace_all(park$zone_name, " ", "_"), "/", "_"), ".RDS"))
 ```
 
 # Combine all polygons into one shapefile
 
 ```{r}
-if(dropped > 0){
+if (dropped > 0) {
   cat(paste0("dropped ", dropped, " Greater MN park(s), expect ", length(gmn) - dropped, " zones"))
 }
-list_of_files <- as.list(paste0(here(), "/data-temp/greatermn-park-geography/", 
-                                list.files(paste0(here(), "/data-temp/greatermn-park-geography/"), pattern = ".RDS")))
+list_of_files <- as.list(paste0(
+  here(), "/data-temp/greatermn-park-geography/",
+  list.files(paste0(here(), "/data-temp/greatermn-park-geography/"), pattern = ".RDS")
+))
 
 list_of_parks <- list_of_files %>%
   map(readRDS)
@@ -1298,34 +1359,38 @@ gmn_parks <- do.call(rbind, list_of_parks)
 
 cat(paste0("found ", nrow(gmn_parks), " zones"))
 
-st_write(gmn_parks, paste0(here(), "/data-intermediate/partial-park-zones/gmn_", 
-                           park_geom_processing_date, ".shp"), append = FALSE)
+st_write(gmn_parks, paste0(
+  here(), "/data-intermediate/partial-park-zones/gmn_",
+  park_geom_processing_date, ".shp"
+), append = FALSE)
 ```
 
 # Convert polygons into perimerters
 
 ```{r}
-gmn_parks <- read_sf(paste0(here(), "/data-intermediate/partial-park-zones/gmn_", 
-                           park_geom_processing_date, ".shp"))
+gmn_parks <- read_sf(paste0(
+  here(), "/data-intermediate/partial-park-zones/gmn_",
+  park_geom_processing_date, ".shp"
+))
 
 perim <- 30
 
 # buffer inside of parks by 30 meters
 gmn_perimeter <- gmn_parks %>%
-  st_boundary() %>% 
-  st_buffer(-perim, singleSide = T) %>% 
-  st_intersection(gmn_parks) %>% 
-  select(-zone_name.1) %>% 
+  st_boundary() %>%
+  st_buffer(-perim, singleSide = T) %>%
+  st_intersection(gmn_parks) %>%
+  select(-zone_name.1) %>%
   st_collection_extract("POLYGON") %>%
   group_by(zone_name) %>%
   summarise(do_union = TRUE) %>%
-  mutate(area_m2 = st_area(geometry)) 
+  mutate(area_m2 = st_area(geometry))
 
 mapview(filter(gmn_perimeter, zone_name == "Hartley_park_Greater-MN"))
 
 # check to make sure all perimeters are less than 4km in area
 gmn_area_test <- gmn_perimeter %>% filter(as.numeric(area_m2) > 4e6)
-if(nrow(gmn_area_test) > 0){
+if (nrow(gmn_area_test) > 0) {
   warning("At least 1 Greater MN perimeter zone is greater than 4km^2")
 }
 

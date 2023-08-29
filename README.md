@@ -35,7 +35,8 @@ implementing agencies for their cooperation in sharing data and
 providing feedback.
 
 <figure>
-<img src="img/partner-logos.png" alt="Funding partner logos" />
+<img src="documentation/images/partner-logos.png"
+alt="Funding partner logos" />
 <figcaption aria-hidden="true">Funding partner logos</figcaption>
 </figure>
 
@@ -66,6 +67,9 @@ StreetLight (LBS) analysis downloads, or other internally-produced data;
 
 ### Set-up
 
+Before running any code, be sure to open `R/_load_packages.R` and ensure
+you have all neccessary packages installed.
+
 This project uses
 [`streetlightR`](https://metropolitan-council.github.io/streetlightR/)
 to conduct LBS analyses and
@@ -81,13 +85,13 @@ require(keyring)
 require(usethis)
 keyring::key_set(service = "StreetLightAPI")
 
-usethis::edit_r_environ() 
+usethis::edit_r_environ()
 # When the `.Renviron` file comes up in the editor, save the following parameters:
 
 # `STREETLIGHT_LOGIN` = "your email"
 # `STREETLIHT_API_KEY` = "your API key"
 # `CENSUS_API_KEY` = "your API key"
-# 
+#
 # Save and close the `.Renviron` file and Restart R.
 ```
 

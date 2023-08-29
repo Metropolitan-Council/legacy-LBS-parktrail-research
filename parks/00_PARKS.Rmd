@@ -15,11 +15,11 @@ always_allow_html: yes
 ```{r parks-setup, include = FALSE}
 knitr::opts_chunk$set(
   echo = FALSE,
-  warning = FALSE, 
-  message = FALSE, 
-  fig.pos = "H", 
-  out.width= "65%",
-  fig.height = 4, 
+  warning = FALSE,
+  message = FALSE,
+  fig.pos = "H",
+  out.width = "65%",
+  fig.height = 4,
   fig.asp = 0.6,
   dpi = 300
 )
@@ -32,10 +32,10 @@ source(file.path(here(), "R/_set_aesthetics.R"))
 ```
 
 ```{r fetch-parks}
-## set TRUE if you want to download original, unedited shapefiles 
+## set TRUE if you want to download original, unedited shapefiles
 fetch_parks <- FALSE
 
-if(fetch_parks == TRUE){
+if (fetch_parks == TRUE) {
   source(file.path(here(), "parks/01_fetch_park_geography.R"))
 }
 ```
@@ -44,22 +44,21 @@ if(fetch_parks == TRUE){
 ## set to TRUE if you want to manually edit park polygons
 edit_park_geography <- FALSE
 
-if(edit_park_geography == TRUE){
+if (edit_park_geography == TRUE) {
   ## edit code in the following scripts to update individual park polygons
-  
+
   park_geom_processing_date <- str_replace_all(Sys.Date(), "-", ".")
   source(file.path(here(), "R/_park_geography_functions.R"))
-  
+
   source_rmd(file.path(here(), "parks/02_edit_dnr_geography.Rmd"))
   source_rmd(file.path(here(), "parks/02_edit_greatermn_geography.Rmd"))
   source_rmd(file.path(here(), "parks/02_edit_metro_geography.Rmd"))
-
 } else {
   ## read existing zone sets to get processing date
   file_names <- file.info(list.files(paste0(here(), "/data-intermediate/parks/shp"), full.names = TRUE)) %>%
     filter(str_detect(rownames(., ), "shp"))
   recent_zones <- rownames(file_names)[which.max(file_names$mtime)]
-  
+
   ## date is the 10 characters immediate preceeding .shp
   park_geom_processing_date <- word(str_remove_all(recent_zones, ".shp"), -1, sep = "_")
 }
@@ -69,7 +68,7 @@ if(edit_park_geography == TRUE){
 ## set to TRUE to update all park metadata
 create_full_park_metadata <- FALSE
 
-if(create_full_park_metadata == TRUE){
+if (create_full_park_metadata == TRUE) {
   source(file.path(here(), "parks/03_create_metadata.R"))
 }
 
@@ -80,13 +79,13 @@ park_metadata <- readRDS(file.path(here(), "data-intermediate/parks/parks-metada
 ## set to TRUE if you want to create new zone sets to upload to StreetLight
 create_parks_zone_set <- FALSE # do you want to create & upload a new zone set?
 
-if(create_parks_zone_set == TRUE){
+if (create_parks_zone_set == TRUE) {
   source(file.path(here(), "parks/04_create_upload_zoneset.R"))
-  zone_set_name = paste0("legacy_park_polygons_", park_geom_processing_date)
-  perim_zone_set_name = paste0("legacy_park_perimeters_", park_geom_processing_date)
-} else{
-  zone_set_name = "please update to desired zone set"
-  perim_zone_set_name = "please update to desired zone set"
+  zone_set_name <- paste0("legacy_park_polygons_", park_geom_processing_date)
+  perim_zone_set_name <- paste0("legacy_park_perimeters_", park_geom_processing_date)
+} else {
+  zone_set_name <- "please update to desired zone set"
+  perim_zone_set_name <- "please update to desired zone set"
 }
 ```
 
@@ -95,79 +94,100 @@ if(create_parks_zone_set == TRUE){
 ## set to TRUE if you've uploaded new zones
 initiate_park_coverage_review <- FALSE
 
-if(initiate_park_coverage_review == TRUE){
+if (initiate_park_coverage_review == TRUE) {
   coverage_review_date <- str_replace_all(Sys.Date(), "-", ".")
-  
+
   ## bike tends to have the most coverage issues
-  create_streetlight_analysis(login_email = login_email,
-                              analysis_type = "Zone_Activity_Analysis",
-                              analysis_name = paste0("park_poly_coverage_", coverage_review_date),
-                              travel_mode_type = "Bicycle",
-                              output_type = "Volume",
-                              origin_zone_set = zone_set_name,
-                              date_ranges = list(start_date = month_sequence[1,]$start_date,
-                                                 end_date = month_sequence[1,]$end_date),
-                              day_types = day_types,
-                              day_parts = day_parts,
-                              tags = list("streetlightR"))
-  
-    create_streetlight_analysis(login_email = login_email,
-                              analysis_type = "Zone_Activity_Analysis",
-                              analysis_name = paste0("park_perim_coverage_", coverage_review_date),
-                              travel_mode_type = "Bicycle",
-                              output_type = "Volume",
-                              origin_zone_set = perim_zone_set_name,
-                              date_ranges = list(start_date = month_sequence[1,]$start_date,
-                                                 end_date = month_sequence[1,]$end_date),
-                              day_types = day_types,
-                              day_parts = day_parts,
-                              tags = list("streetlightR"))
+  create_streetlight_analysis(
+    login_email = login_email,
+    analysis_type = "Zone_Activity_Analysis",
+    analysis_name = paste0("park_poly_coverage_", coverage_review_date),
+    travel_mode_type = "Bicycle",
+    output_type = "Volume",
+    origin_zone_set = zone_set_name,
+    date_ranges = list(
+      start_date = month_sequence[1, ]$start_date,
+      end_date = month_sequence[1, ]$end_date
+    ),
+    day_types = day_types,
+    day_parts = day_parts,
+    tags = list("streetlightR")
+  )
+
+  create_streetlight_analysis(
+    login_email = login_email,
+    analysis_type = "Zone_Activity_Analysis",
+    analysis_name = paste0("park_perim_coverage_", coverage_review_date),
+    travel_mode_type = "Bicycle",
+    output_type = "Volume",
+    origin_zone_set = perim_zone_set_name,
+    date_ranges = list(
+      start_date = month_sequence[1, ]$start_date,
+      end_date = month_sequence[1, ]$end_date
+    ),
+    day_types = day_types,
+    day_parts = day_parts,
+    tags = list("streetlightR")
+  )
 }
 ```
+
 ```{r run-parks}
 # run weekly volume & index (for comparison)
-run_weekly <- FALSE; fetch_weekly <- FALSE
+run_weekly <- FALSE
+fetch_weekly <- FALSE
 # index is optional, only needed for comparison to volume
-run_index <- FALSE; fetch_index <- FALSE
+run_index <- FALSE
+fetch_index <- FALSE
 # run biweekly volume (for filling in missing weeks)
-run_biweekly <- FALSE; fetch_biweekly <- FALSE
+run_biweekly <- FALSE
+fetch_biweekly <- FALSE
 # run monthly volume (vehicle for filling in missing weeks, most granular bike/ped data available)
-run_monthly <- FALSE; fetch_monthly <- FALSE
+run_monthly <- FALSE
+fetch_monthly <- FALSE
 # run supplemental origin-destination analyses
-run_od <- FALSE; fetch_od <- FALSE
+run_od <- FALSE
+fetch_od <- FALSE
 # run demographics, home locations, hourly
-run_supplemental <- FALSE; fetch_supplemental <- FALSE
+run_supplemental <- FALSE
+fetch_supplemental <- FALSE
 
-if(isTRUE(any(run_weekly, run_biweekly, run_monthly, run_od, run_supplemental))){
+if (isTRUE(any(run_weekly, run_biweekly, run_monthly, run_od, run_supplemental))) {
   source(file.path(here(), "R/_run_stl_functions.R"))
-  ## set parameters 
+  ## set parameters
   park_stl_date <- str_replace_all(Sys.Date(), "-", ".")
   # StreetLight has a cap on the number of characters in an analysis name
   # need a shorter unique ID for each separate "run" of analyses
   # remove "20" from year & shorten date to use as label for analysis
   park_stl_date_id <- str_remove_all(substr(park_stl_date, 3, nchar(park_stl_date)), "\\.|0")
-  
+
   ## create data periods for demographic_analysis
   demographic_date_sequence <- data.frame(
-    start_date = c("06/01/2021", "01/01/2021"), 
-    end_date = c("08/31/2021", "12/31/2021"), 
+    start_date = c("06/01/2021", "01/01/2021"),
+    end_date = c("08/31/2021", "12/31/2021"),
     label = c("summer21", "year21")
   )
-  
+
   ## and run analyses
   source(file.path(here(), "parks/05_run_park_stl.R"))
 }
 ```
 
 ```{r fetch-park-data}
-run_weekly <- FALSE; fetch_weekly <- FALSE
-run_index <- FALSE; fetch_index <- FALSE
-run_biweekly <- FALSE; fetch_biweekly <- FALSE
-run_monthly <- FALSE; fetch_monthly <- FALSE
-run_od <- FALSE; fetch_od <- FALSE
-run_supplemental <- FALSE; fetch_supplemental <- FALSE
+run_weekly <- FALSE
+fetch_weekly <- FALSE
+run_index <- FALSE
+fetch_index <- FALSE
+run_biweekly <- FALSE
+fetch_biweekly <- FALSE
+run_monthly <- FALSE
+fetch_monthly <- FALSE
+run_od <- FALSE
+fetch_od <- FALSE
+run_supplemental <- FALSE
+fetch_supplemental <- FALSE
 
-if(isTRUE(any(fetch_weekly, fetch_biweekly, fetch_monthly, fetch_od, fetch_supplemental))){
+if (isTRUE(any(fetch_weekly, fetch_biweekly, fetch_monthly, fetch_od, fetch_supplemental))) {
   load(file.path(here(), "R/_run_stl_functions.R"))
   park_stl_date <- str_replace_all(Sys.Date(), "-", ".")
   park_stl_date_id <- str_remove_all(substr(park_stl_date, 3, nchar(park_stl_date)), "\\.|0")
@@ -180,7 +200,7 @@ if(isTRUE(any(fetch_weekly, fetch_biweekly, fetch_monthly, fetch_od, fetch_suppl
 ## set to TRUE if you've re-run StL data and need to reprocess & clean
 clean_park_data <- FALSE
 
-if(clean_park_data == TRUE){
+if (clean_park_data == TRUE) {
   source(file.path(here(), "parks/06_fill_in_volume.R"))
   source(file.path(here(), "parks/07_imputation.R"))
   source(file.path(here(), "parks/08_combine_modes.R"))
@@ -203,7 +223,7 @@ saveRDS(park_metadata, file.path(here(), "data-intermediate/parks/parks-metadata
 ## set to TRUE if you want to export a new excel workbook of park results
 export_park_excel <- FALSE
 
-if(export_park_excel == TRUE){
+if (export_park_excel == TRUE) {
   source(file.path(here(), "parks/11_export_park_excel.R"))
 }
 ```
@@ -212,7 +232,7 @@ if(export_park_excel == TRUE){
 ## set to TRUE if you want to create new factsheets
 export_park_factsheets <- FALSE
 
-if(export_park_factsheets == TRUE){
+if (export_park_factsheets == TRUE) {
   source(file.path(here(), "parks/12_generate_park_factsheets.R"))
 }
 ```
@@ -221,7 +241,7 @@ if(export_park_factsheets == TRUE){
 ## set to TRUE to update park-specific appendices
 create_park_appendices <- FALSE
 
-if(create_park_appendices == TRUE){
+if (create_park_appendices == TRUE) {
   source(file.path(here(), "parks/13_create_park_appendices.R"))
 }
 ```
@@ -293,16 +313,20 @@ load(file.path(here(), "data-intermediate/parks/raw-dnr-geography.rda"))
 options("rgdal_show_exportToProj4_warnings" = "none")
 
 before <- dnr$Glendalough_park_DNR %>%
-  ggplot() + 
-    ggspatial::annotation_map_tile(
+  ggplot() +
+  ggspatial::annotation_map_tile(
     type = "cartolight",
     zoom = 15
   ) +
-  geom_sf(fill = park_map_color, alpha = 0.8, 
-          color = park_map_color) + 
+  geom_sf(
+    fill = park_map_color, alpha = 0.8,
+    color = park_map_color
+  ) +
   theme_void() +
-  labs(title = "Original boundary", 
-       caption = "     ") +
+  labs(
+    title = "Original boundary",
+    caption = "     "
+  ) +
   theme(plot.margin = margin(0, 1, 1, 1))
 
 # load & plot edited polygon
@@ -310,19 +334,23 @@ park_polygons <- read_sf(file.path(here(), "data-processed/zone-sets/park-polygo
 
 after <- park_polygons %>%
   filter(zone_id == "Glendalough_park_DNR") %>%
-    ggplot() + 
+  ggplot() +
   ggspatial::annotation_map_tile(
     type = "cartolight",
     zoom = 15
   ) +
-  geom_sf(fill = park_map_color, alpha = 0.8, 
-          color = park_map_color) + 
+  geom_sf(
+    fill = park_map_color, alpha = 0.8,
+    color = park_map_color
+  ) +
   theme_void() +
-  labs(title = "Revised boundary", 
-       caption = "Source: MN Geospatial Commons. Accessed July 2023.") +
+  labs(
+    title = "Revised boundary",
+    caption = "Source: MN Geospatial Commons. Accessed July 2023."
+  ) +
   theme(plot.margin = margin(0, 1, 1, 1))
 
-title <- ggdraw() + 
+title <- ggdraw() +
   draw_label(
     "Glendalough State Park boundary",
     x = 0,
@@ -332,45 +360,55 @@ title <- ggdraw() +
     plot.margin = margin(0, 0, 0, 7)
   )
 
-plot_grid(title, 
-  plot_grid(before, after, 
-            nrow = 1), 
-  ncol = 1, rel_heights = c(0.1, 1))
+plot_grid(title,
+  plot_grid(before, after,
+    nrow = 1
+  ),
+  ncol = 1, rel_heights = c(0.1, 1)
+)
 ```
 
 
 ```{r inclusive-park-poly-fig, results = "hide", fig.keep = "all"}
-#| fig.cap = "Comparison of road-inclusive (left) and road-exclusive (right) boundaries for Nokomis-Hiawatha Regional Park (Metro Regional). The inclusive boundary, which encompasses roads and/or parkways, may allow for better understanding of visitation at this urban park.", 
+#| fig.cap = "Comparison of road-inclusive (left) and road-exclusive (right) boundaries for Nokomis-Hiawatha Regional Park (Metro Regional). The inclusive boundary, which encompasses roads and/or parkways, may allow for better understanding of visitation at this urban park.",
 #| fig.height = 4
 
 
 inc <- park_polygons %>%
   filter(zone_id == "Nokomis-Hiawatha_park_Metro-Regional-Inclusive_MPRB") %>%
-    ggplot() + 
+  ggplot() +
   ggspatial::annotation_map_tile(
     type = "cartolight",
     zoom = 15
   ) +
-  geom_sf(fill = park_map_color, alpha = 0.8, 
-          color = park_map_color) + 
+  geom_sf(
+    fill = park_map_color, alpha = 0.8,
+    color = park_map_color
+  ) +
   theme_void() +
-  labs(title = "Roads included", 
-       caption = "     ")
+  labs(
+    title = "Roads included",
+    caption = "     "
+  )
 
 ex <- park_polygons %>%
   filter(zone_id == "Nokomis-Hiawatha_park_Metro-Regional_MPRB") %>%
-    ggplot() + 
+  ggplot() +
   ggspatial::annotation_map_tile(
     type = "cartolight",
     zoom = 15
   ) +
-  geom_sf(fill = park_map_color, alpha = 0.8, 
-          color = park_map_color) + 
+  geom_sf(
+    fill = park_map_color, alpha = 0.8,
+    color = park_map_color
+  ) +
   theme_void() +
-  labs(title = "Roads excluded", 
-       caption = "Source: MN Geospatial Commons. Accessed July 2023.")
+  labs(
+    title = "Roads excluded",
+    caption = "Source: MN Geospatial Commons. Accessed July 2023."
+  )
 
-title_nok <- ggdraw() + 
+title_nok <- ggdraw() +
   draw_label(
     "Nokomis-Hiawatha Regional Park boundaries",
     x = 0,
@@ -380,10 +418,12 @@ title_nok <- ggdraw() +
     plot.margin = margin(0, 0, 0, 7)
   )
 
-plot_grid(title_nok, 
-  plot_grid(inc, ex, 
-                   nrow = 1), 
-  ncol = 1, rel_heights = c(0.1, 1)) 
+plot_grid(title_nok,
+  plot_grid(inc, ex,
+    nrow = 1
+  ),
+  ncol = 1, rel_heights = c(0.1, 1)
+)
 ```
 
 
@@ -402,16 +442,20 @@ park_perims <- read_sf(file.path(here(), "data-processed/zone-sets/park-perimete
 
 park_perims %>%
   filter(zone_id == "Glendalough_park_DNR") %>%
-    ggplot() + 
+  ggplot() +
   ggspatial::annotation_map_tile(
     type = "cartolight",
     zoom = 15
   ) +
-  geom_sf(fill = park_map_color, alpha = 0.8, 
-          color = park_map_color) + 
+  geom_sf(
+    fill = park_map_color, alpha = 0.8,
+    color = park_map_color
+  ) +
   theme_void() +
-  labs(title = "Perimeter for Glendalough State Park", 
-       caption = "Source: MN Geospatial Commons. Accessed July 2023.")
+  labs(
+    title = "Perimeter for Glendalough State Park",
+    caption = "Source: MN Geospatial Commons. Accessed July 2023."
+  )
 ```
 
 ### LBS analyses
@@ -481,8 +525,10 @@ load(file.path(here(), "data-intermediate/parks/veh-records-by-source.rda"))
 load(file.path(here(), "data-intermediate/parks/filled-imputed-volume.rda"))
 
 veh_records_by_source <- veh_records_by_source %>%
-  mutate(source = ifelse(is.na(source), "Imputation", source), 
-         percent = count/sum(count))
+  mutate(
+    source = ifelse(is.na(source), "Imputation", source),
+    percent = count / sum(count)
+  )
 ```
 
 In some cases, weekly LBS data was not available for a given park polygon. This generally occurred when visitation was low and the data provider masked data to maintain privacy standards. Data was masked (i.e., not reported) when the LBS provider estimated less than 50 daily visits over the analysis period. This was most common during winter months and at smaller park units.
@@ -507,15 +553,15 @@ The RMSE and MAPE were compared for each imputation method (Table \@ref(tab:rmse
 A "moving average" simply means that each missing value is estimated based on surrounding values. For example, an imputed estimate for the first week of January would be based on observed data from the last week of December and the second week of January. "Weighted" means that values closer to the missing week contribute more to the estimates than values further away. In other words, the second week of January will be more influential than the third or fourth week. 
 
 ```{r}
-bike_imputed <- filled_monthly_bike %>% 
-  group_by(source) %>% 
-  summarise(count = n()) %>%
-  mutate(pct = count/sum(count))
+bike_imputed <- filled_monthly_bike %>%
+  group_by(source) %>%
+  summarise(count = n(), .groups = "keep") %>%
+  mutate(pct = count / sum(count))
 
-ped_imputed <- filled_monthly_ped %>% 
-  group_by(source) %>% 
-  summarise(count = n()) %>%
-  mutate(pct = count/sum(count))
+ped_imputed <- filled_monthly_ped %>%
+  group_by(source) %>%
+  summarise(count = n(), .groups = "keep") %>%
+  mutate(pct = count / sum(count))
 ```
 
 
@@ -525,25 +571,30 @@ In total, weekly vehicle estimates consist of `r scales::percent(filter(veh_reco
 #| fig.cap = "An example of moving average imputation method at Ramsey Regional Park (Greater MN).",
 #| fig.asp = 0.8
 
-ggplot_na_imputations(x_with_na = ar_ts,
-                      x_with_imputations = ar_filled, 
-                      x_with_truth = ar_truth,
-                      shape_truth = 8,
-                      color_truth = "darkgreen",
-                      shape_points = 19,
-                      color_points = "black",
-                      shape_imputations = 24,
-                      color_imputations = "red",
-                      ylab = "Vehicles", xlab = "Timeseries week") + 
-  labs(title = "Imputed Values - Moving Average", 
-       subtitle = "Missing value replacements at Ramsey Park")
+ggplot_na_imputations(
+  x_with_na = ar_ts,
+  x_with_imputations = ar_filled,
+  x_with_truth = ar_truth,
+  shape_truth = 8,
+  color_truth = "darkgreen",
+  shape_points = 19,
+  color_points = "black",
+  shape_imputations = 24,
+  color_imputations = "red",
+  ylab = "Vehicles", xlab = "Timeseries week"
+) +
+  labs(
+    title = "Imputed Values - Moving Average",
+    subtitle = "Missing value replacements at Ramsey Park"
+  )
 ```
 
 ```{r rmse-mape-tab}
-#| results='markup', 
+#| results='markup',
 #| tidy = FALSE
 
-regulartable(avgs_tab %>% mutate_if(is.numeric, prettyNum, digits = 2)) %>%
+regulartable(avgs_tab %>%
+  mutate_if(is.numeric, prettyNum, digits = 2)) %>%
   autofit(add_w = 0, add_h = 0) %>%
   set_table_properties(layout = "autofit") %>%
   set_caption("Root mean squared error (RMSE) and mean absolute percent error (MAPE) for three imputation methods.")
@@ -563,45 +614,56 @@ all_monthly <- readRDS(file.path(here(), "data-intermediate/parks/all-monthly-wi
 stl_with_intrapark <- all_monthly %>%
   filter(system == "DNR") %>%
   group_by(zone_name, unit_label, year) %>%
-  summarise(total = sum(monthly_vehicles * 3.2 + monthly_bike_volume + monthly_ped_volume), 
-            total_raw = total + sum(removed_monthly_intrapark_vehicles * 3.2 +
-                                      removed_monthly_bike_intrapark_trips +
-                                      removed_monthly_ped_intrapark_trips)) %>%
-  mutate(NAME = toupper(unit_label), 
-         NAME = str_remove_all(NAME, " \\(STATE RECREATION AREA\\)| \\(STATE WAYSIDE\\)")) %>%
+  summarise(
+    total = sum(monthly_vehicles * 3.2 + monthly_bike_volume + monthly_ped_volume),
+    total_raw = total + sum(removed_monthly_intrapark_vehicles * 3.2 +
+      removed_monthly_bike_intrapark_trips +
+      removed_monthly_ped_intrapark_trips), .groups = "keep"
+  ) %>%
+  mutate(
+    NAME = toupper(unit_label),
+    NAME = str_remove_all(NAME, " \\(STATE RECREATION AREA\\)| \\(STATE WAYSIDE\\)")
+  ) %>%
   select(zone_name, NAME, year, total, total_raw) %>%
   unique()
 
 dnr_raw <- read_excel(file.path(here(), "data-raw/dnr/MonthlyStateParkAttendance_5-16_2022.6.7.xlsx"),
-    sheet = "Total Visitors By Month")
+  sheet = "Total Visitors By Month"
+)
 
 dnr_monthly <- dnr_raw %>%
   pivot_longer(names_to = "dnr_month", cols = names(dnr_raw)[2:49]) %>%
-  mutate(date = as.POSIXct(dnr_month, format = "%m/%d/%Y"),
-         year = year(date),
-         month = lubridate::month(date, label = TRUE),
-         week = week(date),
-         NAME = stringr::str_remove_all(NAME, " STATE PARK") %>%
-           str_remove_all(" STATE RECREATION AREA"),
-         dnr_count = value)
+  mutate(
+    date = as.POSIXct(dnr_month, format = "%m/%d/%Y"),
+    year = year(date),
+    month = lubridate::month(date, label = TRUE),
+    week = week(date),
+    NAME = stringr::str_remove_all(NAME, " STATE PARK") %>%
+      str_remove_all(" STATE RECREATION AREA"),
+    dnr_count = value
+  )
 
 dnr_annual <- dnr_monthly %>%
   group_by(NAME, year) %>%
-  summarise(dnr_count = sum(dnr_count))
+  summarise(dnr_count = sum(dnr_count), .groups = "keep")
 
 both <- dnr_annual %>% # DON'T INCLUDE 2021, DNR estimate is only for part of year
   filter(year %in% c(2019, 2020)) %>%
   left_join(stl_with_intrapark, by = c("NAME", "year"))
 
-nums <- both %>% 
-  mutate(diff = 100*(total_raw - dnr_count)/dnr_count, 
-         diff2 = 100*(total - dnr_count)/dnr_count) %>% 
+nums <- both %>%
+  mutate(
+    diff = 100 * (total_raw - dnr_count) / dnr_count,
+    diff2 = 100 * (total - dnr_count) / dnr_count
+  ) %>%
   filter(str_detect(zone_name, "Cuyuna") & year == 2020)
 
-nums_notes <- both %>% 
+nums_notes <- both %>%
   filter(str_detect(zone_name, "Gooseberry|Itasca|Tetegouche")) %>%
-  mutate(diff = 100*(total_raw - dnr_count)/dnr_count, 
-         diff2 = 100*(total - dnr_count)/dnr_count)
+  mutate(
+    diff = 100 * (total_raw - dnr_count) / dnr_count,
+    diff2 = 100 * (total - dnr_count) / dnr_count
+  )
 
 cor_raw <- cor.test(both$dnr_count, both$total_raw)
 cor_post <- cor.test(both$dnr_count, both$total)
@@ -614,21 +676,27 @@ This pattern was particularly evident at large, high-use state parks with many m
 
 ```{r pct-intra}
 #| fig.cap = "Percent of trips by system and mode which begin and end within the same park, 2021.",
-#| results='markup', 
+#| results='markup',
 
 all_monthly %>%
   filter(year == 2021) %>%
   group_by(system_label) %>%
-  summarise(bike_intra = sum(removed_monthly_bike_intrapark_trips, na.rm = TRUE), 
-            ped_intra = sum(removed_monthly_ped_intrapark_trips, na.rm = TRUE),
-            veh_intra = sum(removed_monthly_intrapark_vehicles, na.rm = TRUE), 
-            pct_veh_intra = veh_intra/sum(monthly_vehicles + removed_monthly_intrapark_vehicles), 
-            pct_bike_intra = bike_intra/sum(monthly_bike_volume + removed_monthly_bike_intrapark_trips, na.rm = TRUE), 
-            pct_ped_intra = ped_intra/sum(monthly_ped_volume + removed_monthly_ped_intrapark_trips, na.rm = TRUE)) %>%
-  transmute(System = system_label, 
-            Vehicle = scales::percent(pct_veh_intra, accuracy = 1), 
-            Bicycle = scales::percent(pct_bike_intra, accuracy = 1), 
-            Pedestrian = scales::percent(pct_ped_intra, accuracy = 1)) %>%
+  summarise(
+    bike_intra = sum(removed_monthly_bike_intrapark_trips, na.rm = TRUE),
+    ped_intra = sum(removed_monthly_ped_intrapark_trips, na.rm = TRUE),
+    veh_intra = sum(removed_monthly_intrapark_vehicles, na.rm = TRUE),
+    pct_veh_intra = veh_intra / sum(monthly_vehicles + removed_monthly_intrapark_vehicles),
+    pct_bike_intra = bike_intra / sum(monthly_bike_volume + removed_monthly_bike_intrapark_trips, na.rm = TRUE),
+    pct_ped_intra = ped_intra / sum(monthly_ped_volume + removed_monthly_ped_intrapark_trips, na.rm = TRUE),
+    .groups = "keep"
+  ) %>%
+  transmute(
+    System = system_label,
+    Vehicle = scales::percent(pct_veh_intra, accuracy = 1),
+    Bicycle = scales::percent(pct_bike_intra, accuracy = 1),
+    Pedestrian = scales::percent(pct_ped_intra, accuracy = 1),
+    .groups = "keep"
+  ) %>%
   flextable() %>%
   autofit() %>%
   set_caption("Percent of trips that start and end within the same park by system, 2021")
@@ -642,27 +710,41 @@ all_monthly %>%
 both %>%
   filter(!is.na(total_raw) & !is.na(total) & !is.na(dnr_count), year == 2020) %>%
   left_join(park_metadata) %>%
-  rename(`Intrapark trips included` = total_raw, 
-         `Intrapark trips removed` = total) %>%
-  pivot_longer(cols = c("Intrapark trips included", "Intrapark trips removed"), 
-               names_to = "Type", values_to = "Estimate") %>%
-  mutate(label = ifelse(str_detect(zone_name, "Cuyuna|Tettegouche|Itasca|Gooseberry"), 
-                        str_remove_all(unit_label," \\(State Recreation Area\\)"),
-                        NA_character_)) %>%
+  rename(
+    `Intrapark trips included` = total_raw,
+    `Intrapark trips removed` = total
+  ) %>%
+  pivot_longer(
+    cols = c("Intrapark trips included", "Intrapark trips removed"),
+    names_to = "Type", values_to = "Estimate"
+  ) %>%
+  mutate(label = ifelse(str_detect(zone_name, "Cuyuna|Tettegouche|Itasca|Gooseberry"),
+    str_remove_all(unit_label, " \\(State Recreation Area\\)"),
+    NA_character_
+  )) %>%
   ggplot(aes(x = dnr_count, y = Estimate)) +
   geom_point(alpha = .3) +
   geom_smooth(method = "lm", se = FALSE, color = legacy_blue) +
   geom_abline(slope = 1, intercept = 0, linetype = 2) +
   facet_wrap(~Type) +
   theme_council_open(base_size = 10) +
-  scale_x_continuous(labels = scales::label_comma(scale = .001), expand = expansion(mult = c(0, 0.01))) +
-  scale_y_continuous(labels = scales::label_comma(scale = .001), expand = expansion(mult = c(0, 0.01))) +
-  geom_text_repel(aes(label = label), 
-                  segment.color = 'grey50', min.segment.length = 0, 
-                  size = 3, box.padding = 0.7, point.padding = 0.3, segment.square = TRUE, 
-                  lineheight = 0.8) +
-  labs(title = "Use estimates at DNR State parks (2020)", 
-       x = "Count-based use estimate (thousands)", y = "LBS use \nestimate \n(thousands)") 
+  scale_x_continuous(
+    labels = scales::label_comma(scale = .001),
+    expand = expansion(mult = c(0, 0.01))
+  ) +
+  scale_y_continuous(
+    labels = scales::label_comma(scale = .001),
+    expand = expansion(mult = c(0, 0.01))
+  ) +
+  geom_text_repel(aes(label = label),
+    segment.color = "grey50", min.segment.length = 0,
+    size = 3, box.padding = 0.7, point.padding = 0.3, segment.square = TRUE,
+    lineheight = 0.8
+  ) +
+  labs(
+    title = "Use estimates at DNR State parks (2020)",
+    x = "Count-based use estimate (thousands)", y = "LBS use \nestimate \n(thousands)"
+  )
 ```
 
 
@@ -720,25 +802,35 @@ LBS estimates were compared to unit-level monthly use estimates for state parks 
 # combine monthly data for comparison
 dnr_monthly_comp <- dnr_monthly %>%
   mutate(month = month(date)) %>%
-  left_join(monthly_volume %>%
-              mutate(NAME = toupper(unit_label)), 
-            by = c("NAME", "month", "year")) %>%
+  left_join(
+    monthly_volume %>%
+      mutate(NAME = toupper(unit_label)),
+    by = c("NAME", "month", "year")
+  ) %>%
   group_by(NAME, month, year) %>%
-  summarise(LBS = sum(monthly_total), 
-            DNR = sum(dnr_count)) %>%
+  summarise(
+    LBS = sum(monthly_total),
+    DNR = sum(dnr_count),
+    .groups = "keep"
+  ) %>%
   ungroup() %>%
   group_by(NAME, year) %>%
-  summarise(LBS = sum(LBS), 
-            DNR = sum(DNR), 
-            nmonths = n()) %>%
+  summarise(
+    LBS = sum(LBS),
+    DNR = sum(DNR),
+    nmonths = n(),
+    .groups = "keep"
+  ) %>%
   filter(!is.na(LBS), !is.na(DNR))
 
 dnr_annual_comp <- dnr_monthly %>%
   group_by(year, NAME) %>%
-  summarise(dnr_count = sum(dnr_count)) %>%
-  left_join(annual_volume %>%
-              mutate(NAME = toupper(unit_label)), 
-            by = c("year", "NAME"))
+  summarise(dnr_count = sum(dnr_count), .groups = "keep") %>%
+  left_join(
+    annual_volume %>%
+      mutate(NAME = toupper(unit_label)),
+    by = c("year", "NAME")
+  )
 
 # get correlation, forced through origin
 dnr_cor <- summary(lm(DNR ~ 0 + LBS, data = filter(dnr_monthly_comp)))
@@ -748,27 +840,31 @@ dnr_cor <- summary(lm(DNR ~ 0 + LBS, data = filter(dnr_monthly_comp)))
 The overall agreement between DNR and LBS estimates was high (r = `r prettyNum(dnr_cor$r.squared, digits = 2)`, p = < 0.001) and confirmed that LBS data generates reasonable estimates of park use (Figure \@ref(fig:park-dnr-validation-fig)). There is some evidence to suggest that LBS data may overestimate use at particularly high-use units (Gooseberry Falls, Interstate, Tettegouche) compared to existing DNR estimates. This may be explained by the fact that LBS estimates measure use at all potential park entrances simultaneously, including informal entrances or entrances via intersecting trails. Therefore, LBS methods may report higher use than estimates based on counters or ticket sales at primary park entrances.
 
 ```{r park-dnr-validation-fig}
-#| fig.cap = "Comparison of count-based and LBS use estimates at state parks. Annual use estimates were compared. The dashed line indicates a perfect one-to-one relationship; the solid blue line indicates the line of best fit. Parks with the largest discrepancies between estimates are labeled.", 
+#| fig.cap = "Comparison of count-based and LBS use estimates at state parks. Annual use estimates were compared. The dashed line indicates a perfect one-to-one relationship; the solid blue line indicates the line of best fit. Parks with the largest discrepancies between estimates are labeled.",
 
-dnr_monthly_comp %>% 
+dnr_monthly_comp %>%
   mutate(label = if_else(abs(DNR - LBS) > 250000, paste0(str_to_title(NAME), " ", year), NA_character_)) %>%
-  filter(year != 2022) %>% 
+  filter(year != 2022) %>%
   ggplot(aes(x = DNR, y = LBS, label = label)) +
   geom_point(alpha = .3) +
   geom_smooth(method = "lm", formula = y ~ x + 0, se = FALSE, color = legacy_blue) +
-  geom_abline(slope = 1, intercept = 0, linetype = 2) + 
-  theme_council_open(base_size = 10) + 
+  geom_abline(slope = 1, intercept = 0, linetype = 2) +
+  theme_council_open(base_size = 10) +
   scale_x_continuous(labels = scales::label_comma(), breaks = c(0, 250000, 500000, 750000)) +
   scale_y_continuous(labels = scales::label_comma(), breaks = c(0, 250000, 500000, 750000, 1e6)) +
-  labs(x = "Count-based use estimate", y = "LBS use \nestimate",
-       caption = paste0(fig_caption, "\nDarin Newman personal communication."), 
-       title = "Use estimates at DNR State parks (2019 - 2021)") +
-  geom_text_repel(min.segment.length = 0,
-                   box.padding   = 0.35,
-                   point.padding = 0.5,
-                   segment.color = 'grey50',
-                   size = 3, 
-                   lineheight = 0.8)
+  labs(
+    x = "Count-based use estimate", y = "LBS use \nestimate",
+    caption = paste0(fig_caption, "\nDarin Newman personal communication."),
+    title = "Use estimates at DNR State parks (2019 - 2021)"
+  ) +
+  geom_text_repel(
+    min.segment.length = 0,
+    box.padding = 0.35,
+    point.padding = 0.5,
+    segment.color = "grey50",
+    size = 3,
+    lineheight = 0.8
+  )
 ```
 
 #### Metro Regional validation 
@@ -780,7 +876,7 @@ LBS data agreed strongly with Metro Regional park use estimates (Figure \@ref(fi
 There are several locations where LBS data underestimated visitation compared to the count-based use estimates. The most notable example is the Minneapolis Chain of Lakes (Figure \@ref(fig:park-metro-validation-fig)), in addition to Mississippi Gorge park units in both Saint Paul and Minneapolis (Figure \@ref(fig:park-metro-validation-fig)). All three of these units feature trails as a primary amenity. In the case of Mississippi Gorge (Saint Paul), the park is largely "shaped" like a trail (Figure \@ref(fig:park-miss-gorge-fig)). Parks with these features may be less compatible with the LBS methods developed in this project. Recall that users must stop within the park boundary for at least five minutes to be counted by LBS data. In the case of a linear park largely centered around a trail, it is possible that a portion of visitors may not meet these criteria. In these cases, a more bespoke unit-level analysis may be appropriate. 
 
 ```{r park-metro-validation-fig}
-#| fig.cap = "Comparison of count-based and LBS use estimates at Metro Regional parks. Data for summer of 2021 (June - August) is compared. The dashed line indicates a perfect one-to-one relationship; the solid blue line indicates the line of best fit. Parks with the largest discrepancies are labeled.", 
+#| fig.cap = "Comparison of count-based and LBS use estimates at Metro Regional parks. Data for summer of 2021 (June - August) is compared. The dashed line indicates a perfect one-to-one relationship; the solid blue line indicates the line of best fit. Parks with the largest discrepancies are labeled.",
 
 load(file.path(here(), "data-raw/metro/estimates_summer.rda"))
 load(file.path(here(), "data-raw/metro/park_id_name_index.rda"))
@@ -792,95 +888,121 @@ summer_counts1 <- estimates_summer$d2021_summer_estimates %>%
   # get one record per park
   group_by(Park_id) %>%
   slice(1) %>%
-  mutate(park_name = ifelse(str_detect(park_name, "Martin-Island"), "Martin-Island-Linwood", park_name), 
-         short_agency = case_when(
-           str_detect(Agency_name, "Three") ~ "Three Rivers", 
-           str_detect(Agency_name, "Minneapolis") ~ "MPRB", 
-           TRUE ~ Agency_name
-         ))
+  mutate(
+    park_name = ifelse(str_detect(park_name, "Martin-Island"), "Martin-Island-Linwood", park_name),
+    short_agency = case_when(
+      str_detect(Agency_name, "Three") ~ "Three Rivers",
+      str_detect(Agency_name, "Minneapolis") ~ "MPRB",
+      TRUE ~ Agency_name
+    )
+  )
 
 inclusive_summer_counts <- summer_counts1 %>%
   filter(str_detect(park_name, "Minneapolis Chain|Nokomis|Phalen|Minnehaha")) %>%
-  mutate(park_name = paste(park_name, "(inclusive)"), 
-         short_agency = paste(short_agency, "(Inclusive)"), 
-         inclusive = TRUE)
+  mutate(
+    park_name = paste(park_name, "(inclusive)"),
+    short_agency = paste(short_agency, "(Inclusive)"),
+    inclusive = TRUE
+  )
 
 summer_counts <- bind_rows(summer_counts1, inclusive_summer_counts)
 
 summer_metro_comp <- season_volume %>%
-  filter(str_detect(system, "Metro"), 
-         year == 2021, 
-         season == "Summer") %>%
-  mutate(park_name = ifelse(system == "Metro Regional Inclusive", 
-                            paste(word(unit_label, sep = ", ", 1), "(inclusive)"),
-                            word(unit_label, sep = ", ", 1))) %>%
+  filter(
+    str_detect(system, "Metro"),
+    year == 2021,
+    season == "Summer"
+  ) %>%
+  mutate(park_name = ifelse(system == "Metro Regional Inclusive",
+    paste(word(unit_label, sep = ", ", 1), "(inclusive)"),
+    word(unit_label, sep = ", ", 1)
+  )) %>%
   left_join(summer_counts, by = c("park_name", "short_agency")) %>%
-  select(zone_name, park_name, unit_label, year, LBS = season_total, count_est = Estimate, 
-         inclusive) %>%
+  select(zone_name, park_name, unit_label, year,
+    LBS = season_total, count_est = Estimate,
+    inclusive
+  ) %>%
   replace_na(list(inclusive = FALSE))
 
 summer_metro_cor <- cor.test(summer_metro_comp$LBS, summer_metro_comp$count_est)
 
 
-summer_metro_comp %>% 
+summer_metro_comp %>%
   mutate(label = if_else(abs(count_est - LBS) > 300000, unit_label, NA_character_)) %>%
   ggplot(aes(x = count_est, y = LBS, label = label)) +
-  geom_point(#aes(color = inclusive), 
-    alpha = .3) +
+  geom_point( # aes(color = inclusive),
+    alpha = .3
+  ) +
   geom_smooth(method = "lm", formula = y ~ x + 0, se = FALSE, color = legacy_blue) +
-  geom_abline(slope = 1, intercept = 0, linetype = 2) + 
-  theme_council_open(base_size = 10) + 
-  scale_x_continuous(labels = scales::label_comma(scale = .000001), 
-                     breaks = c(0, 500000, 1e6, 1.5e6, 2e6, 2.5e6)) +
-  scale_y_continuous(labels = scales::label_comma(scale = .000001), 
-                     breaks = c(0, 500000, 1e6, 1.5e6, 2e6, 2.5e6)) +
- # scale_color_manual(values = c("black", legacy_blue)) +
-  labs(#title = "Metropolitan Regional park data validation", 
-       x = "Count-based use estimates (millions)", y = "LBS use \nestimates (millions)",
-       caption = paste0("Source: StreetLight Data, Inc; Metropolitan Council Use Estimates. Accessed July 2023."), 
-       title = "Use estimates at Metro Regional parks \n(June - August 2021)") +
-    geom_text_repel(min.segment.length = 0,
-                   box.padding   = 0.35,
-                   point.padding = 0.5,
-                   segment.color = 'grey50',
-                   size = 3, 
-                   lineheight = 0.8)
+  geom_abline(slope = 1, intercept = 0, linetype = 2) +
+  theme_council_open(base_size = 10) +
+  scale_x_continuous(
+    labels = scales::label_comma(scale = .000001),
+    breaks = c(0, 500000, 1e6, 1.5e6, 2e6, 2.5e6)
+  ) +
+  scale_y_continuous(
+    labels = scales::label_comma(scale = .000001),
+    breaks = c(0, 500000, 1e6, 1.5e6, 2e6, 2.5e6)
+  ) +
+  # scale_color_manual(values = c("black", legacy_blue)) +
+  labs( # title = "Metropolitan Regional park data validation",
+    x = "Count-based use estimates (millions)", y = "LBS use \nestimates (millions)",
+    caption = paste0("Source: StreetLight Data, Inc; Metropolitan Council Use Estimates. Accessed July 2023."),
+    title = "Use estimates at Metro Regional parks \n(June - August 2021)"
+  ) +
+  geom_text_repel(
+    min.segment.length = 0,
+    box.padding = 0.35,
+    point.padding = 0.5,
+    segment.color = "grey50",
+    size = 3,
+    lineheight = 0.8
+  )
 ```
 
 
 ```{r park-miss-gorge-fig, results = "hide", fig.keep = "all"}
-#| fig.cap = "Map of Mississippi Gorge Regional Park in Saint Paul, MN.", 
+#| fig.cap = "Map of Mississippi Gorge Regional Park in Saint Paul, MN.",
 #| fig.height = 3
 
 
 # load original geography
 load(file.path(here(), "data-intermediate/parks/raw-metro-geography.rda"))
- 
+
 loc_bbox_1 <- st_bbox(metro$`Mississippi-Gorge_park_Metro-Regional_Saint-Paul`) %>% st_as_sfc()
 
 rot <- function(a) matrix(c(cos(a), sin(a), -sin(a), cos(a)), 2, 2)
 park_centroid <- st_centroid(st_geometry(metro$`Mississippi-Gorge_park_Metro-Regional_Saint-Paul`))
-rotated_park <- (st_geometry(metro$`Mississippi-Gorge_park_Metro-Regional_Saint-Paul`) - park_centroid) * rot(pi/2) + park_centroid
-loc_bbox_2 <- st_bbox(rotated_park) %>% st_as_sfc() %>% st_set_crs(26915)
+rotated_park <- (st_geometry(metro$`Mississippi-Gorge_park_Metro-Regional_Saint-Paul`) - park_centroid) * rot(pi / 2) + park_centroid
+loc_bbox_2 <- st_bbox(rotated_park) %>%
+  st_as_sfc() %>%
+  st_set_crs(26915)
 
 loc_bbox <- st_bbox(st_union(loc_bbox_1, loc_bbox_2)) %>%
-    st_as_sfc() %>% st_as_sf()
+  st_as_sfc() %>%
+  st_as_sf()
 
 loc_bbox %>%
-  ggplot() + 
+  ggplot() +
   geom_sf(fill = NA, color = NA) +
   ggspatial::annotation_map_tile(
     type = "cartolight",
     zoom = 15
   ) +
-  geom_sf(data = metro$`Mississippi-Gorge_park_Metro-Regional_Saint-Paul`, 
-          fill = park_map_color, alpha = 0.8, 
-          color = park_map_color) + 
+  geom_sf(
+    data = metro$`Mississippi-Gorge_park_Metro-Regional_Saint-Paul`,
+    fill = park_map_color, alpha = 0.8,
+    color = park_map_color
+  ) +
   theme_void() +
-  labs(title = "Mississippi Gorge, Saint Paul", 
-       caption = "Source: MN Geospatial Commons. Accessed July 2023.")
+  labs(
+    title = "Mississippi Gorge, Saint Paul",
+    caption = "Source: MN Geospatial Commons. Accessed July 2023."
+  )
 
-rm(metro); rm(metro_water); rm(metro_mndot_roads)#; gc()
+rm(metro)
+rm(metro_water)
+rm(metro_mndot_roads) # ; gc()
 ```
 
 #### Parks with limited cell service
@@ -905,42 +1027,57 @@ vol_monthly <- monthly_volume %>%
 
 both_monthly2 <- dnr_monthly2 %>%
   full_join(vol_monthly, by = c("NAME", "year", "month")) %>%
-  mutate(facet_name = case_when(NAME == "FORT SNELLING" ~ "Full cell coverage \n(Fort Snelling)",
-                                TRUE ~ "Limited cell coverage \n(Split Rock Lighthouse)"), 
-         label_name = case_when(NAME == "FORT SNELLING" ~ "Fort Snelling", 
-                                TRUE ~ "Split Rock Lighthouse"))
+  mutate(
+    facet_name = case_when(
+      NAME == "FORT SNELLING" ~ "Full cell coverage \n(Fort Snelling)",
+      TRUE ~ "Limited cell coverage \n(Split Rock Lighthouse)"
+    ),
+    label_name = case_when(
+      NAME == "FORT SNELLING" ~ "Fort Snelling",
+      TRUE ~ "Split Rock Lighthouse"
+    )
+  )
 
 
 both_monthly2 %>%
-  filter(year %in% c(2020), 
-         NAME != "GLACIAL LAKES") %>%
-  group_by(label_name, facet_name) %>% 
-  summarise(`Count-based estimate` = mean(dnr_count, na.rm = TRUE), SE_DNR = sd(dnr_count, na.rm = TRUE)/sqrt(n()), 
-            `LBS estimate` = mean(monthly_total), SE_STL = sd(monthly_total)/sqrt(n())) %>%
+  filter(
+    year %in% c(2020),
+    NAME != "GLACIAL LAKES"
+  ) %>%
+  group_by(label_name, facet_name) %>%
+  summarise(
+    `Count-based estimate` = mean(dnr_count, na.rm = TRUE), SE_DNR = sd(dnr_count, na.rm = TRUE) / sqrt(n()),
+    `LBS estimate` = mean(monthly_total), SE_STL = sd(monthly_total) / sqrt(n()),
+    .groups = "keep"
+  ) %>%
   tidyr::pivot_longer(cols = c(`Count-based estimate`, `LBS estimate`), names_to = "SOURCE", values_to = "MEAN") %>%
   tidyr::pivot_longer(cols = c(SE_DNR, SE_STL), names_to = "SOURCE_SE", values_to = "SE") %>%
-  
-  ggplot() + 
-    
-    geom_col(aes(x = SOURCE, y = MEAN, fill = SOURCE), position = "dodge", color= "black") +
-    geom_errorbar(aes(x = SOURCE, ymin = MEAN - SE, ymax = MEAN + SE, group = SOURCE), width = 0, position = position_dodge(width = .9)) +
-  theme_council_open(base_size = 10) + 
-  theme(panel.grid.minor = element_blank(),
-        panel.grid.major.x = element_blank(),
-        axis.title.y = element_text(angle=0,
-                                    vjust = .5),
-        strip.background = element_blank(),
-  #strip.text.x = element_blank(),
-        plot.margin = margin(7,7,7,7)) +
+  ggplot() +
+  geom_col(aes(x = SOURCE, y = MEAN, fill = SOURCE), position = "dodge", color = "black") +
+  geom_errorbar(aes(x = SOURCE, ymin = MEAN - SE, ymax = MEAN + SE, group = SOURCE), width = 0, position = position_dodge(width = .9)) +
+  theme_council_open(base_size = 10) +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    axis.title.y = element_text(
+      angle = 0,
+      vjust = .5
+    ),
+    strip.background = element_blank(),
+    # strip.text.x = element_blank(),
+    plot.margin = margin(7, 7, 7, 7)
+  ) +
   scale_y_continuous(labels = scales::comma, expand = c(0, 0)) +
   facet_wrap(~facet_name) +
   labs(
-       x = "", y = "Average\nmonthly\nuse, 2020") + 
+    x = "", y = "Average\nmonthly\nuse, 2020"
+  ) +
   scale_fill_manual(values = c(legacy_blue, legacy_green)) +
-  theme(legend.position = "none") + 
-  labs(caption = "Source: StreetLight Data, DNR. Accessed July 2023.", 
-       title = "Use estimates at parks with varying cell coverage")
-
+  theme(legend.position = "none") +
+  labs(
+    caption = "Source: StreetLight Data, DNR. Accessed July 2023.",
+    title = "Use estimates at parks with varying cell coverage"
+  )
 ```
 
 
@@ -956,27 +1093,37 @@ At the unit level, not all parks saw increased use in 2020. While `r annual_volu
 #| fig.cap = "Total estimated park use. Bars show the system-wide total visits to parks across the three complete years in this study (2019, 2020, 2021). Bar color indicates park system. Individual park units may show annual visitation trends which differ from the overall system trend.",
 
 annual_volume %>%
-  filter(year != 2022,
-         system != "Metro Regional Inclusive") %>%
+  filter(
+    year != 2022,
+    system != "Metro Regional Inclusive"
+  ) %>%
   group_by(system_label, year) %>%
-  summarise(system_total = sum(annual_total)/1e6,
-            system_vehicle = sum(annual_vehicle_visitors),
-            system_bike = sum(annual_bike),
-            system_ped = sum(annual_ped)) %>%
+  summarise(
+    system_total = sum(annual_total) / 1e6,
+    system_vehicle = sum(annual_vehicle_visitors),
+    system_bike = sum(annual_bike),
+    system_ped = sum(annual_ped),
+    .groups = "keep"
+  ) %>%
   ggplot(aes(x = year, y = system_total, fill = system_label)) +
   geom_col(color = "black") +
   facet_wrap(~system_label, scales = "free_y", nrow = 1) +
   theme_council_open(base_size = 10) +
-  labs(x = "", caption = fig_caption,
-       title = "Annual park use (millions of visits)"#,
-       ) +
-  scale_y_continuous(labels = scales::label_comma(), expand = expansion(mult = c(0, 0.1)), n.breaks = 4) +
+  labs(
+    x = "", caption = fig_caption,
+    title = "Annual park use (millions of visits)" # ,
+  ) +
+  scale_y_continuous(
+    labels = scales::label_comma(),
+    expand = expansion(mult = c(0, 0.1)), n.breaks = 4
+  ) +
   scale_fill_manual(values = system_label_cols) +
-  theme(legend.position = "none",
-        axis.title.y = element_blank(),
-        axis.title.x = element_blank(),
-        plot.title = element_text(size = 10)
-        )  +
+  theme(
+    legend.position = "none",
+    axis.title.y = element_blank(),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 10)
+  ) +
   geom_label(aes(label = format(round(system_total, 2), nsmall = 2), y = rep(c(7.5, 5, 19), each = 3)), fill = "white", size = 2.5)
 ```
 
@@ -991,7 +1138,7 @@ Seasonal summaries are valuable for identifying nuanced changes in visitation th
 top_season <- season_volume %>%
   filter(year == 2021) %>%
   group_by(system, zone_name, unit_label, long_unit_label) %>%
-  mutate(percent = season_total/sum(season_total)) %>%
+  mutate(percent = season_total / sum(season_total)) %>%
   ungroup() %>%
   filter(percent > 0.5) %>%
   select(unit_label, long_unit_label, season, percent)
@@ -1000,7 +1147,7 @@ top_season <- season_volume %>%
 At the park-level, variation in seasonal visitation patterns is often driven by season-specific amenities. For instance, two parks saw the majority (> 50%) of 2021 use occur during the winter months of December, January, and February (Figure \@ref(fig:ski-parks)). Both `r (top_season$long_unit_label[top_season$season == "Winter"])[1]` (`r round((top_season$percent[top_season$season == "Winter"])[1]*100,1)`% winter use) and `r (top_season$long_unit_label[top_season$season == "Winter"])[2]` (`r round((top_season$percent[top_season$season == "Winter"])[2]*100,1)`% winter use) have downhill skiing facilities. There were `r (length(top_season$unit_label[top_season$season == "Summer"]))` parks that saw the majority of their annual visitation occur during the summer and no parks that had the majority of visits during the spring or fall. Most parks (`r n_parks - nrow(top_season)`) did not see the majority of annual visitation occur within a single season.
 
 ```{r seasonal-system-fig}
-#| fig.cap = "Monthly park use as a percent of total annual use for each system. Points show the average monthly use across the three complete years in this study (2019, 2020, 2021). Point color indicates park system. Individual park units may show trends that differ from the overall system trend.", 
+#| fig.cap = "Monthly park use as a percent of total annual use for each system. Points show the average monthly use across the three complete years in this study (2019, 2020, 2021). Point color indicates park system. Individual park units may show trends that differ from the overall system trend.",
 
 month_labs <- data.frame(month = 1:12, month_lab = month.abb) %>%
   mutate(month_lab = factor(month_lab, levels = month.abb, ordered = TRUE))
@@ -1009,93 +1156,123 @@ month_labs <- data.frame(month = 1:12, month_lab = month.abb) %>%
   filter(system != "Metro Regional Inclusive") %>%
   ungroup() %>%
   group_by(system_label, year, month) %>%
-  summarise(SUM = sum(monthly_total)) %>%
+  summarise(SUM = sum(monthly_total), .groups = "keep") %>%
   ungroup() %>%
   group_by(system_label, year) %>%
   mutate(percent = SUM / sum(SUM)) %>%
   filter(year != 2022) %>%
   ungroup() %>%
   group_by(system_label, month) %>%
-  summarise(MEAN = mean(percent),
-            SE = sd(percent)/ sqrt(n())) %>%
+  summarise(
+    MEAN = mean(percent),
+    SE = sd(percent) / sqrt(n()), .groups = "keep"
+  ) %>%
   mutate(label = if_else(month == "12", system_label, NA_character_)) %>%
-  left_join(month_labs, by = "month") %>% 
+  left_join(month_labs, by = "month") %>%
   ggplot(aes(x = month_lab, y = MEAN, group = system_label, color = system_label, pch = system_label)) +
-  geom_segment(aes(x= 1, xend = 1, y= 0, yend = .07), lty = 3, color = "grey90") +
-  geom_segment(aes(x= 4, xend = 4, y= 0, yend = .08), lty = 3, color = "grey90") +
-  geom_segment(aes(x= 7, xend = 7, y= 0, yend = .17), lty = 3, color = "grey90") +
-  geom_segment(aes(x= 10, xend = 10, y= 0, yend = .085), lty = 3, color = "grey90") +
-  geom_point(size = 2) + 
+  geom_segment(aes(x = 1, xend = 1, y = 0, yend = .07), lty = 3, color = "grey90") +
+  geom_segment(aes(x = 4, xend = 4, y = 0, yend = .08), lty = 3, color = "grey90") +
+  geom_segment(aes(x = 7, xend = 7, y = 0, yend = .17), lty = 3, color = "grey90") +
+  geom_segment(aes(x = 10, xend = 10, y = 0, yend = .085), lty = 3, color = "grey90") +
+  geom_point(size = 2) +
   geom_line() +
   scale_color_manual(values = system_label_cols) +
-  scale_y_continuous(labels = scales::label_percent(), expand = expansion(mult = 0, 0)) +
+  scale_y_continuous(
+    labels = scales::label_percent(),
+    expand = expansion(mult = 0, 0)
+  ) +
   theme_council_open(base_size = 10) +
   scale_x_discrete(expand = expansion(mult = c(0.01, 0.3))) +
   coord_cartesian(clip = "off") +
-  labs(x = "", caption = fig_caption,
-     title = "Monthly park use (% of annual)"
-     ) +
-  geom_text(aes(x = 12.2, y = MEAN, label = label), hjust =0, size = 3) +
-    theme(legend.position = "none",
-          axis.title.y = element_blank(),
-                  # panel.grid.major.x= element_line(linetype = 3),
-          axis.title.x = element_blank(),
-          plot.title = element_text(size = 10))
+  labs(
+    x = "", caption = fig_caption,
+    title = "Monthly park use (% of annual)"
+  ) +
+  geom_text(aes(x = 12.2, y = MEAN, label = label), hjust = 0, size = 3) +
+  theme(
+    legend.position = "none",
+    axis.title.y = element_blank(),
+    # panel.grid.major.x= element_line(linetype = 3),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 10)
+  )
 # takeaway here: winter ns at GMN, double check if spring vs fall is different at metro
 # car::Anova(lm(percent ~ system * year * as.character(month), data = filter(a, year != 2022)))
 ```
 
 
 ```{r ski-parks}
-#| fig.cap = "Monthly park use as a percent of total annual use for each park unit. Detroit Mountain Recreation Area (Greater MN), Spirit Mountain Recreation Area (Greater MN), and Hyland-Bush-Anderson Lakes Park Reserve (Metro Regional, Three Rivers unit) are highlighted. These units contain downhill ski slopes and therefore display different monthly or seasonal use patterns than the majority of park units.", 
+#| fig.cap = "Monthly park use as a percent of total annual use for each park unit. Detroit Mountain Recreation Area (Greater MN), Spirit Mountain Recreation Area (Greater MN), and Hyland-Bush-Anderson Lakes Park Reserve (Metro Regional, Three Rivers unit) are highlighted. These units contain downhill ski slopes and therefore display different monthly or seasonal use patterns than the majority of park units.",
 #| out.width = "75%"
 
 monthly_volume %>%
   filter(system != "Metro Regional Inclusive") %>%
   ungroup() %>%
   group_by(unit_label, year, month) %>%
-  summarise(SUM = sum(monthly_total)) %>%
+  summarise(SUM = sum(monthly_total), .groups = "keep") %>%
   ungroup() %>%
   group_by(unit_label, year) %>%
   mutate(percent = SUM / sum(SUM)) %>%
   filter(year != 2022) %>%
   ungroup() %>%
   group_by(unit_label, month) %>%
-  summarise(MEAN = mean(percent),
-            SE = sd(percent)/ sqrt(n())) %>%
-  mutate(label = ifelse(month == 12 & str_detect(unit_label, "Spirit Mountain|Detroit Mountain"), unit_label, NA_character_),
-         label = ifelse(month == 12 & str_detect(unit_label, "Anderson Lakes, Three Rivers"),
-                        "Hyland-Bush-Anderson, \nThree Rivers", label),
-         flag = ifelse(str_detect(unit_label, "Spirit Mountain|Detroit Mountain|Anderson Lakes, Three Rivers"), "yes", "no"), 
-         unit_label = factor(unit_label, levels = c("Spirit Mountain", "Detroit Mountain", "Hyland-Bush-Anderson Lakes, Three Rivers",
-                                                    unique(filter(monthly_volume, !str_detect(unit_label, "Spirit Mountain|Detroit Mountain|Anderson Lakes, Three Rivers"))$unit_label)), 
-                                                    ordered = TRUE), 
-         unit_label = forcats::fct_rev(unit_label)) %>%
-  left_join(month_labs, by = "month") %>% 
-  ggplot(aes(x = month_lab, y = MEAN, group = unit_label, 
-             color = unit_label, alpha = flag, size = flag)) +
+  summarise(
+    MEAN = mean(percent),
+    SE = sd(percent) / sqrt(n()), .groups = "keep"
+  ) %>%
+  mutate(
+    label = ifelse(month == 12 & str_detect(unit_label, "Spirit Mountain|Detroit Mountain"), unit_label, NA_character_),
+    label = ifelse(month == 12 & str_detect(unit_label, "Anderson Lakes, Three Rivers"),
+      "Hyland-Bush-Anderson, \nThree Rivers", label
+    ),
+    flag = ifelse(str_detect(unit_label, "Spirit Mountain|Detroit Mountain|Anderson Lakes, Three Rivers"), "yes", "no"),
+    unit_label = factor(unit_label,
+      levels = c(
+        "Spirit Mountain", "Detroit Mountain", "Hyland-Bush-Anderson Lakes, Three Rivers",
+        unique(filter(monthly_volume, !str_detect(unit_label, "Spirit Mountain|Detroit Mountain|Anderson Lakes, Three Rivers"))$unit_label)
+      ),
+      ordered = TRUE
+    ),
+    unit_label = forcats::fct_rev(unit_label)
+  ) %>%
+  left_join(month_labs, by = "month") %>%
+  ggplot(aes(
+    x = month_lab, y = MEAN, group = unit_label,
+    color = unit_label, alpha = flag, size = flag
+  )) +
   geom_line() +
-  scale_color_manual(values = c("Spirit Mountain" = legacy_blue, 
-                                "Detroit Mountain" = legacy_green, 
-                                "Hyland-Bush-Anderson Lakes, Three Rivers" = legacy_orange)) +
-  scale_alpha_manual(values = c("yes" = 1, 
-                                "no" = 0.2)) +
-  scale_size_manual(values = c("yes" = 1, 
-                              "no" = 0.5)) +
-  scale_y_continuous(labels = scales::label_percent(), expand = expansion(mult = 0, 0)) +
+  scale_color_manual(values = c(
+    "Spirit Mountain" = legacy_blue,
+    "Detroit Mountain" = legacy_green,
+    "Hyland-Bush-Anderson Lakes, Three Rivers" = legacy_orange
+  )) +
+  scale_alpha_manual(values = c(
+    "yes" = 1,
+    "no" = 0.2
+  )) +
+  scale_size_manual(values = c(
+    "yes" = 1,
+    "no" = 0.5
+  )) +
+  scale_y_continuous(
+    labels = scales::label_percent(),
+    expand = expansion(mult = 0, 0)
+  ) +
   theme_council_open(base_size = 10) +
   scale_x_discrete(expand = expansion(mult = c(0.01, 0.4))) +
   coord_cartesian(clip = "off") +
-  labs(x = "", caption = fig_caption,
-     title = "Monthly park use (% of annual)"
-     ) +
+  labs(
+    x = "", caption = fig_caption,
+    title = "Monthly park use (% of annual)"
+  ) +
   geom_text(aes(x = 12.2, y = MEAN, label = label), hjust = 0, size = 3) +
-  theme(legend.position = "none",
-        axis.title.y = element_blank(),
-        panel.grid.major.x= element_line(linetype = 3),
-        axis.title.x = element_blank(),
-        plot.title = element_text(size = 10))
-
+  theme(
+    legend.position = "none",
+    axis.title.y = element_blank(),
+    panel.grid.major.x = element_line(linetype = 3),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 10)
+  )
 ```
 
 ### Weekly data shows nuanced use patterns
@@ -1106,69 +1283,107 @@ For instance, some units closed facilities during the spring and summer of 2020 
 
 
 ```{r park-weekly-ts}
-#| fig.cap = "Estimated weekly park use at Spirit Mountain Recreation Area (top), Nokomis-Hiawatha Regional Park (middle), and Lake Waconia Regional Park (bottom). Notable events at each park are labeled.", 
+#| fig.cap = "Estimated weekly park use at Spirit Mountain Recreation Area (top), Nokomis-Hiawatha Regional Park (middle), and Lake Waconia Regional Park (bottom). Notable events at each park are labeled.",
 #| fig.asp = 1.2,
 #| out.width = "75%"
 
 a <- weekly_volume %>%
-  filter(str_detect(unit_label, "Spirit"), year == 2020) %>% 
-  mutate(label = ifelse(start_date == "2020-03-10", "COVID-19 \nstay-at-home \norder announced", NA_character_)) %>%
+  filter(str_detect(unit_label, "Spirit"), year == 2020) %>%
+  mutate(label = ifelse(start_date == "2020-03-10", "COVID-19 \nstay-at-home \norder announced",
+    NA_character_
+  )) %>%
   ggplot(aes(x = start_date, y = weekly_total)) +
   geom_point() +
   geom_line() +
   theme_council_open(base_size = 10) +
   labs(title = "Spirit Mountain Recreation Area, 2020", x = "", y = "") +
-  scale_y_continuous(labels = scales::label_comma(), expand = expansion(mult = c(0.0, 0.1)), limits = c(0, 44000)) +
-  scale_x_date(date_breaks = "1 month", date_labels = "%b", expand = c(0, 0), limits = c(as.Date("2020-01-07"), as.Date("2020-12-29"))) +
+  scale_y_continuous(
+    labels = scales::label_comma(),
+    expand = expansion(mult = c(0.0, 0.1)), limits = c(0, 44000)
+  ) +
+  scale_x_date(
+    date_breaks = "1 month", date_labels = "%b",
+    expand = c(0, 0),
+    limits = c(as.Date("2020-01-07"), as.Date("2020-12-29"))
+  ) +
   theme(legend.position = "none") +
-  geom_text_repel(aes(label = label), 
-                segment.color = 'grey50', min.segment.length = 0, 
-                size = 3, box.padding = 0.7, point.padding = 0.3, 
-                segment.square = TRUE, nudge_x = 100, nudge_y = 10000, 
-                lineheight = 0.8) 
+  geom_text_repel(aes(label = label),
+    segment.color = "grey50", min.segment.length = 0,
+    size = 3, box.padding = 0.7, point.padding = 0.3,
+    segment.square = TRUE, nudge_x = 100, nudge_y = 10000,
+    lineheight = 0.8
+  )
 
 
 b <- weekly_volume %>%
   filter(system != "Metro Regional Inclusive") %>%
-  filter(str_detect(unit_label, "Nokomis"), year == 2020) %>% 
-  mutate(label = ifelse(start_date == "2020-01-21", "US Pond Hocky \nChampionships", NA_character_)) %>%
+  filter(str_detect(unit_label, "Nokomis"), year == 2020) %>%
+  mutate(label = ifelse(start_date == "2020-01-21",
+    "US Pond Hocky \nChampionships", NA_character_
+  )) %>%
   ggplot(aes(x = start_date, y = weekly_total)) +
   geom_point() +
   geom_line() +
   theme_council_open(base_size = 10) +
   labs(title = "Nokomis-Hiawatha Regional Park, 2020", x = "", y = "") +
-  scale_y_continuous(labels = scales::label_comma(), expand = expansion(mult = c(0.0, 0.1)), limits = c(0, 70000)) +
-  scale_x_date(date_breaks = "1 month", date_labels = "%b", expand = c(0, 0), limits = c(as.Date("2020-01-07"), as.Date("2020-12-29"))) +
+  scale_y_continuous(
+    labels = scales::label_comma(),
+    expand = expansion(mult = c(0.0, 0.1)),
+    limits = c(0, 70000)
+  ) +
+  scale_x_date(
+    date_breaks = "1 month", date_labels = "%b",
+    expand = c(0, 0), limits = c(
+      as.Date("2020-01-07"),
+      as.Date("2020-12-29")
+    )
+  ) +
   theme(legend.position = "none") +
-  geom_text_repel(aes(label = label), 
-                segment.color = 'grey50', min.segment.length = 0, 
-                size = 3, box.padding = 0.7, point.padding = 0.3, 
-                max.overlaps = 1, nudge_y = 10000, segment.square = TRUE, 
-                lineheight = 0.8) 
+  geom_text_repel(aes(label = label),
+    segment.color = "grey50", min.segment.length = 0,
+    size = 3, box.padding = 0.7, point.padding = 0.3,
+    max.overlaps = 1, nudge_y = 10000, segment.square = TRUE,
+    lineheight = 0.8
+  )
 
 c <- weekly_volume %>%
   filter(system != "Metro Regional Inclusive") %>%
-  filter(str_detect(unit_label, "Waconia"), year == 2021) %>% 
-  mutate(label = ifelse(start_date == "2021-06-29", "Lola's Lake 10 \nMile & 5k race", NA_character_)) %>%
+  filter(str_detect(unit_label, "Waconia"), year == 2021) %>%
+  mutate(label = ifelse(start_date == "2021-06-29",
+    "Lola's Lake 10 \nMile & 5k race", NA_character_
+  )) %>%
   ggplot(aes(x = start_date, y = weekly_total)) +
   geom_point() +
   geom_line() +
   theme_council_open(base_size = 10) +
-  labs(title = "Lake Waconia Regional Park, 2021", x = "", y = "", caption = fig_caption) +
-  scale_y_continuous(labels = scales::label_comma(), expand = expansion(mult = c(0.0, 0.1)),) +
-  scale_x_date(date_breaks = "1 month", date_labels = "%b", expand = c(0, 0), limits = c(as.Date("2021-01-05"), as.Date("2021-12-28"))) +
+  labs(
+    title = "Lake Waconia Regional Park, 2021", x = "", y = "",
+    caption = fig_caption
+  ) +
+  scale_y_continuous(
+    labels = scales::label_comma(),
+    expand = expansion(mult = c(0.0, 0.1)),
+  ) +
+  scale_x_date(
+    date_breaks = "1 month", date_labels = "%b",
+    expand = c(0, 0), limits = c(
+      as.Date("2021-01-05"),
+      as.Date("2021-12-28")
+    )
+  ) +
   theme(legend.position = "none") +
-  geom_text_repel(aes(label = label), 
-                segment.color = 'grey50', min.segment.length = 0, 
-                size = 3, box.padding = 0.7, point.padding = 0.3, 
-                nudge_x = 100, segment.square = TRUE, 
-                lineheight = 0.8) 
+  geom_text_repel(aes(label = label),
+    segment.color = "grey50", min.segment.length = 0,
+    size = 3, box.padding = 0.7, point.padding = 0.3,
+    nudge_x = 100, segment.square = TRUE,
+    lineheight = 0.8
+  )
 
 
-weekly_title <- ggdraw() + 
+weekly_title <- ggdraw() +
   draw_label(
     "Weekly park use estimates",
-    fontface = 'bold',
+    fontface = "bold",
     x = 0,
     hjust = 0
   ) +
@@ -1177,8 +1392,9 @@ weekly_title <- ggdraw() +
   )
 
 plot_grid(weekly_title, a, b, c,
-          rel_heights = c(0.1, 1, 1, 1), 
-          ncol = 1)
+  rel_heights = c(0.1, 1, 1, 1),
+  ncol = 1
+)
 ```
 
 
@@ -1198,28 +1414,37 @@ hourly_parks %>%
   filter(!str_detect(day_type, "All")) %>%
   filter(!str_detect(day_type, "All")) %>%
   group_by(system_label, day_type, time) %>%
-  summarise(total = sum(total)) %>%
+  summarise(total = sum(total), .groups = "keep") %>%
   ungroup() %>%
   group_by(system_label, day_type) %>%
   mutate(percent = total / sum(total)) %>%
-  mutate(time2 = strftime(time, format = "%H:%M"),
-         label = if_else(time2 == "23:00", system_label, NA_character_)) %>%
+  mutate(
+    time2 = strftime(time, format = "%H:%M"),
+    label = if_else(time2 == "23:00", system_label, NA_character_)
+  ) %>%
   ggplot(aes(x = time, y = percent, color = system_label, group = system_label, pch = system_label)) +
   geom_point() +
   geom_line() +
-  facet_wrap(~day_type,  nrow = 1) +
+  facet_wrap(~day_type, nrow = 1) +
   scale_color_manual(values = system_label_cols) +
   theme_council_open(base_size = 10) +
   scale_y_continuous(labels = scales::label_percent()) +
-  scale_x_datetime(date_breaks = "4 hours", date_labels = "%l%p", expand = expansion(mult = c(0.01, 0.01)))+
-  labs(x = "", y = "System \ntotal",  color = "", shape = "",
-       title = "Hourly park use (summer 2021)",
-       caption = fig_caption)  +
-    theme(legend.position = "bottom",
-                  panel.grid.major.x= element_line(linetype = 3),
-          axis.title.y = element_blank(),
-          axis.title.x = element_blank(),
-          plot.title = element_text(size = 10))
+  scale_x_datetime(
+    date_breaks = "4 hours", date_labels = "%l%p",
+    expand = expansion(mult = c(0.01, 0.01))
+  ) +
+  labs(
+    x = "", y = "System \ntotal", color = "", shape = "",
+    title = "Hourly park use (summer 2021)",
+    caption = fig_caption
+  ) +
+  theme(
+    legend.position = "bottom",
+    panel.grid.major.x = element_line(linetype = 3),
+    axis.title.y = element_blank(),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 10)
+  )
 ```
 
 
@@ -1232,36 +1457,57 @@ At individual park units, mode share  mode share information may be helpful in i
 ```{r modeshare-fig}
 #| fig.cap = "Mode share of trips made to parks. Bars show the average annual mode share across the three complete years in this study (2019, 2020, 2021). Bar color indicates park system. Individual park units may show trends that differ from the overall system trend.",
 
-annual_volume %>% filter(year != 2022, system != "Metro Regional Inclusive") %>%
-  group_by(system_label, year) %>% #, season) %>%
-  summarise(Vehicle = sum(annual_vehicle_visitors),
-            Bicycle = sum(annual_bike),
-            Pedestrian = sum(annual_ped)) %>%
+annual_volume %>%
+  filter(year != 2022, system != "Metro Regional Inclusive") %>%
+  group_by(system_label, year) %>% # , season) %>%
+  summarise(
+    Vehicle = sum(annual_vehicle_visitors),
+    Bicycle = sum(annual_bike),
+    Pedestrian = sum(annual_ped), .groups = "keep"
+  ) %>%
   ungroup() %>%
-  mutate(total = (Vehicle + Bicycle + Pedestrian),
-         Vehicle = Vehicle/ total,
-         Bicycle = Bicycle / total,
-         Pedestrian = Pedestrian / total)  %>%
+  mutate(
+    total = (Vehicle + Bicycle + Pedestrian),
+    Vehicle = Vehicle / total,
+    Bicycle = Bicycle / total,
+    Pedestrian = Pedestrian / total
+  ) %>%
   group_by(system_label) %>%
-  summarise(Vehicle = mean(Vehicle),
-            Bicycle = mean(Bicycle),
-            Pedestrian = mean(Pedestrian)) %>%
-  pivot_longer(cols = c(Vehicle, Bicycle, Pedestrian),
-               names_to = "Mode",
-               values_to = "Share") %>%
+  summarise(
+    Vehicle = mean(Vehicle),
+    Bicycle = mean(Bicycle),
+    Pedestrian = mean(Pedestrian), .groups = "keep"
+  ) %>%
+  pivot_longer(
+    cols = c(Vehicle, Bicycle, Pedestrian),
+    names_to = "Mode",
+    values_to = "Share"
+  ) %>%
   ggplot(aes(x = Mode, y = Share, fill = system_label)) +
-  geom_bar(stat = "identity", color = "black", position = position_dodge(width = .9)) +
+  geom_bar(
+    stat = "identity", color = "black",
+    position = position_dodge(width = .9)
+  ) +
   theme_council_open(base_size = 10) +
-scale_fill_manual(values = system_label_cols) +
-  scale_y_continuous(labels = scales::label_percent(),  expand = expansion(mult = c(0.0, 0.05))) +
-  labs(title = "Park visitor travel mode",
-       x = "", y = "", fill = "",
-       caption = fig_caption) +
-      theme(legend.position = "bottom",
-          axis.title.y = element_blank(),
-          axis.title.x = element_blank(),
-          plot.title = element_text(size = 10)) +
-    geom_label(aes(label = paste0(format(round(Share*100, 1), nsmall = 1), "%"), group = system_label
-                   , y = rep(c(.14, .14, .14),  3)
-                   ), fill = "white", size = 2.5, position = position_dodge(width = .9))
+  scale_fill_manual(values = system_label_cols) +
+  scale_y_continuous(
+    labels = scales::label_percent(),
+    expand = expansion(mult = c(0.0, 0.05))
+  ) +
+  labs(
+    title = "Park visitor travel mode",
+    x = "", y = "", fill = "",
+    caption = fig_caption
+  ) +
+  theme(
+    legend.position = "bottom",
+    axis.title.y = element_blank(),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 10)
+  ) +
+  geom_label(aes(
+    label = paste0(format(round(Share * 100, 1), nsmall = 1), "%"),
+    group = system_label,
+    y = rep(c(.14, .14, .14), 3)
+  ), fill = "white", size = 2.5, position = position_dodge(width = .9))
 ```

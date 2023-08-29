@@ -11,7 +11,22 @@ output:
 urlcolor: blue
 always_allow_html: yes
 ---
-
+```{r introduction-setup, include = FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.pos = "H",
+  out.width = "65%",
+  dpi = 300
+)
+## source basic utility functions, colors for plotting, etc
+source(file.path(here::here(), "R/_load_packages.R"))
+source(file.path(here(), "R/_utility_functions.R"))
+source(file.path(here(), "R/_global_parameters.R"))
+source(file.path(here(), "R/_streetlight_credentials_parameters.R"))
+source(file.path(here(), "R/_set_aesthetics.R"))
+```
 # Introduction
 
 Understanding visitation to Minnesota’s parks and trails is essential for planning, programming, and investment decisions. Visitation estimates generally rely on methods such as intercept surveys, in-field visitation counts, and automated trail counters. Visitation estimates using passively-generated data sources may offer opportunities to complement existing strategies.
@@ -25,9 +40,9 @@ This project used aggregated and anonymized location-based services (LBS) data t
 
 ```{r cellphone-park-picture, results = "show"}
 #| fig.cap = "A person uses a cellphone while resting on a bench.",
-#| results='markup', 
-#| out.width= "65%", 
-#| out.extra='style="float:right"', 
+#| results='markup',
+#| out.width= "65%",
+#| out.extra='style="float:right"',
 knitr::include_graphics(file.path(here::here(), "documentation/images/2118.png"))
 ```
 
@@ -38,9 +53,11 @@ StreetLight reviews every query to ensure sample sizes are sufficiently large. L
 
 Using StreetLight to understand park visitation is an experimental project, and any findings are meant to complement existing and future parks research. Importantly, different methodological approaches may be employed to understand various facets of park and trail visitation and certain methods may be preferable over others based on the key research question. A brief description and comparison of several most-used methodologies are given in Table \@ref(tab:method-table).
 
-```{r, method-table, results = "markup", tidy = FALSE, echo = FALSE}
+```{r method-table, results = "markup", tidy = FALSE, echo = FALSE}
 qflextable(
-  read_excel(file.path(here(), "data-intermediate/documentation/Park research method comparisons.xlsx"))) %>% 
+  read_excel(file.path(
+    here(), 
+    "data-intermediate/documentation/Park research method comparisons.xlsx"))) %>% 
   autofit() %>% 
   set_caption("Park and recreation research methods compared") %>%
   autofit(add_w = 0, add_h = 0) %>%

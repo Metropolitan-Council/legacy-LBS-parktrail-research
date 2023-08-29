@@ -10,4 +10,3 @@ get_date_sequence(end_date)
 
 # basic figure caption -----
 fig_caption <- "Source: StreetLight Data, Inc. Accessed July 2023."
-
