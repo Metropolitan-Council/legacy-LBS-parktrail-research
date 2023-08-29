@@ -21,3 +21,6 @@ data-temp/
 .RDataTmp
 *rosm.cache/
 *.docx
+
+# factsheets
+figures/factsheets/
