@@ -1,0 +1,418 @@
+---
+title: "Park Results (StoryMap text)"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  bookdown::word_document2:
+    reference_docx: ../wordtemplate.docx
+    toc: yes
+    toc_depth: 2
+  word_document:
+    toc: yes
+    toc_depth: '2'
+always_allow_html: yes
+urlcolor: blue
+---
+
+```{r include = FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE, 
+  message = FALSE, 
+  fig.pos = "H", 
+  out.width= "65%",
+  fig.height = 4, 
+  fig.asp = 0.6,
+  dpi = 300
+)
+## source basic utility functions, colors for plotting, etc
+source(file.path(here::here(), "R/_load_packages.R"))
+source(file.path(here(), "R/_utility_functions.R"))
+source(file.path(here(), "R/_global_parameters.R"))
+source(file.path(here(), "R/_set_aesthetics.R"))
+
+load(file.path(here(), "data-intermediate/processed/park-volume.rda"))
+load(file.path(here(), "data-intermediate/processed/hourly-parks.rda"))
+park_metadata <- readRDS(file.path(here(), "data-intermediate/parks/parks-metadata.RDS"))
+
+annual_volume <- annual_volume %>% filter(system != "Metro Regional Inclusive")
+monthly_volume <- monthly_volume %>% filter(system != "Metro Regional Inclusive")
+weekly_volume <- weekly_volume %>% filter(system != "Metro Regional Inclusive")
+
+n_parks <- n_distinct(annual_volume$zone_name)
+
+n_dnr <- nrow(filter(park_metadata, system == "DNR"))
+n_gmn <- nrow(filter(park_metadata, system == "Greater MN"))
+n_egmn <- nrow(filter(park_metadata, str_detect(zone_name, "Eligible")))
+n_metro <- nrow(filter(park_metadata, system == "Metro"))
+analysis_period <- "January 2019 - April 2022"
+n_weeks <- 173
+```
+
+# Parks
+
+Understanding park visitation is essential for planning, programming, and investment decisions. This project used location-based services (LBS) data to analyze weekly use of `r n_parks` state and regional parks across Minnesota from `r analysis_period`. This data is intended to supplement, but not replace existing data used for decision making. Approximately `r round(sum(weekly_volume$weekly_total)/1e6, 2)` million park visits occurred across all parks during the study period. In total, 2020 had the highest use across the years analyzed. We found that parks were used in all seasons, although the summer months of June, July, and August had the highest use. Most visitors traveled to parks in vehicles, but this analysis also considered people arriving on bike or foot. Weekly-level detail revealed considerable variation in use patterns across and within individual park units. 
+
+
+## Methods
+
+Aggregated and anonymized LBS data was used to estimate weekly use of `r n_parks` state and regional parks across three systems (n = `r n_dnr` Minnesota Department of Natural Resources parks (DNR State), n = `r n_gmn` Greater Minnesota Regional Parks and Trails Commission parks (Greater MN Regional; 43 designated and 14 eligible for designation), and n = `r n_metro` Twin Cities metropolitan regional parks (Metro Regional)). The resulting data set consists of `r n_weeks` weekly observations for each park. Each observation reports estimated weekly use disaggregated by travel mode (vehicle, bicycle, and pedestrian). 
+
+
+Geographic boundaries used to measure park use were accessed via the Minnesota Geospatial Commons for [DNR State](https://gisdata.mn.gov/dataset/bdry-dnr-lrs-prk) and [Metro Regional systems](https://gisdata.mn.gov/dataset/us-mn-state-metc-plan-parks-regional). Greater MN Regional park geographies were obtained via personal communication with Renee Mattson (Executive Director, Greater Minnesota Regional Parks and Trails Commission). In all cases, park geographies were post-processed to optimize suitability for LBS analyses. Specifically, geographies were reviewed to ensure all amenities, trailheads, beaches, and parking lots were included but that unrelated parking lots, transverse roads, or other activity centers were removed. Post-processing also incorporated unit-specific feedback requested throughout the project.  
+
+Total park use was estimated by summing the number of visitors entering a park via vehicle, bicycle, or foot. The LBS data provider does not explicitly measure visitors arriving by other transportation modes, but other modes (i.e., snowmobiles, boaters) may be captured and classified as either vehicle, bike or foot visitors by the LBS data provider using their probabilistic models. A park visitor must have remained within the park boundary for at least five minutes to be counted. Visitors were counted once upon each park entry (i.e., overnight campers making a day trip outside the park would be counted upon their return as well as initial entry but visitors making multiple stops or short trips within the park are only counted upon initial entry). 
+
+LBS data was obtained from StreetLight Data, Inc. and last accessed in April 2023. The StreetLight application programming interface was used to run a zone activity analysis for each park’s vehicle, bike, and pedestrian counts during each week of the study period (`r prettyNum(n_weeks * n_parks * 3, big.mark = ",")` unique analyses for parks). Vehicle multipliers representing the average number of persons per vehicle were applied to convert vehicle counts to visitor counts. Devices registered to minors (under age 18) are not included in the LBS data source, however vehicle multipliers include visitors of all ages.  
+
+
+### Data validation
+
+```{r}
+dnr_raw <- read_excel(file.path(here(), "data-raw/dnr/MonthlyStateParkAttendance_5-16_2022.6.7.xlsx"),
+    sheet = "Total Visitors By Month")
+
+dnr_monthly <- dnr_raw %>%
+  pivot_longer(names_to = "dnr_month", cols = names(dnr_raw)[2:49]) %>%
+  mutate(date = as.POSIXct(dnr_month, format = "%m/%d/%Y"),
+         year = lubridate::year(date),
+         month = lubridate::month(date, label = TRUE),
+         week = lubridate::week(date),
+         NAME = stringr::str_remove_all(NAME, " STATE PARK") %>%
+           str_remove_all(" STATE RECREATION AREA"),
+         NAME = str_remove_all(NAME, "\\.|'|-"), 
+         dnr_count = value)
+
+dnr_monthly_comp <- dnr_monthly %>%
+  mutate(month_numeric = as.numeric(month)) %>%
+  left_join(monthly_volume %>%
+              mutate(NAME = toupper(unit_label)) %>%
+              rename(month_numeric = month), 
+            by = c("year", "month_numeric", "NAME")) %>%
+  group_by(NAME, month, year) %>%
+  summarize(LBS = sum(monthly_total),
+            DNR = sum(dnr_count)) %>%
+  ungroup() %>%
+  group_by(NAME, year) %>%
+  summarise(LBS = sum(LBS),
+            DNR = sum(DNR),
+            nmonths = n()) %>%
+  filter(!is.na(LBS), !is.na(DNR))
+
+
+dnr_annual_comp <- dnr_monthly %>%
+  group_by(year, NAME) %>%
+  summarise(dnr_count = sum(dnr_count)) %>%
+  left_join(annual_volume %>%
+              mutate(NAME = toupper(unit_label)), 
+            by = c("year", "NAME"))
+
+# dnr_cor <- cor.test(dnr_annual_comp$dnr_count, dnr_annual_comp$annual_total)
+# dnr_cor <- cor.test(dnr_monthly_comp$DNR, dnr_monthly_comp$LBS)
+
+#force through origin
+dnr_cor <- summary(lm(DNR ~ 0 + LBS, data = filter(dnr_monthly_comp)))
+# levels(as.factor(dnr_monthly$NAME))
+```
+
+Existing use estimates were used to validate LBS estimates. For example, the DNR generates park-level use estimates based on vehicle counters, permit sales, and vehicle multipliers. Because the estimates are generated using different data sources and methods, some discrepancies are expected. However, the overall agreement between DNR and LBS estimates is high (r = `r prettyNum(dnr_cor$r.squared, digits = 2)`, p = < 0.001) and confirms that LBS data generates reasonable estimates of park use. Full data validation and methodology is available in the technical documentation.  
+
+
+```{r dnr-validation-fig}
+#| fig.cap = "Comparison of DNR and LBS use estimates at state parks. Annual measurements of 2019 and 2020 were compared, as well as the first six months of 2021. The dashed line indicates a perfect one-to-one relationship; the solid blue line indicates the line of best fit. LBS estimates tend to be slightly higher than existing DNR estimates. Parks with the largest discrepancies are labeled.", 
+#| results='markup', 
+#| out.width= "6.5in",  
+#| out.extra='style="float:center"', 
+#| fig.asp = .7
+dnr_monthly_comp %>% #filter(year != 2021) %>%
+  # filter(dnr_count != 0 & annual_total != 0) %>% #View()
+  mutate(label = if_else(abs(DNR - LBS) > 250000, paste0(str_to_title(NAME), " ", year), NA_character_)) %>%
+  ggplot(aes(x = DNR, y = LBS, label = label)) +
+  # ggplot(aes(x = dnr_count, y = annual_total, label = label)) +
+  # geom_point(shape = 21) +
+  geom_point(alpha = .3) +
+  geom_smooth(method = "lm", formula = y ~ x + 0, se = FALSE, color = legacy_blue) +
+  geom_abline(slope = 1, intercept = 0, linetype = 2) + 
+  theme_council_open(base_size = 10) + 
+  scale_x_continuous(labels = scales::label_comma(), breaks = c(0, 250000, 500000, 750000)) +
+  scale_y_continuous(labels = scales::label_comma(), breaks = c(0, 250000, 500000, 750000, 1e6)) +
+  labs(x = "DNR use estimates", y = "LBS use \nestimates",
+       caption = paste0(fig_caption, "\nDarin Newman personal communication.")) +
+  geom_text_repel(min.segment.length = 0,
+                   box.padding   = 0.35,
+                   point.padding = 0.5,
+                   segment.color = 'grey50',
+                   label.size = .1, size = 3)
+
+ggsave(file.path(here(), "figures/storymap/dnr-park-validation.png"))
+```
+
+
+## Park use increased in 2020
+
+In total, 2020 had the highest park use across the years analyzed (`r round(sum(weekly_volume$weekly_total[weekly_volume$year == 2020])/1e6, 2)` total million visitors across three systems compared to `r round(sum(weekly_volume$weekly_total[weekly_volume$year == 2019])/1e6, 2)` and `r round(sum(weekly_volume$weekly_total[weekly_volume$year == 2021])/1e6, 2)` million visitors in 2019 and 2021, respectively). In many cases, the COVID-19 pandemic encouraged the use of Minnesota’s outdoor spaces as other indoor social and recreational opportunities were limited. While pandemic-related effects on park visitation varied across and within systems (Figure \@ref(fig:annual-fig)), the state park system saw the greatest overall increase in 2020. Both regional park systems (Greater MN Regional and Metro Regional) saw more modest increases from 2019 to 2020, with visitation remaining high into 2021. 
+
+At the unit level, not all parks saw increased use in 2020. While `r annual_volume %>% group_by(zone_name) %>% filter(annual_total == max(annual_total)) %>% ungroup() %>% count(year) %>% .[2,2]` units saw their highest use in 2020, `r annual_volume %>% group_by(zone_name) %>% filter(annual_total == max(annual_total)) %>% ungroup() %>% count(year) %>% .[1,2]` units had their highest use in 2019 and another `r annual_volume %>% group_by(zone_name) %>% filter(annual_total == max(annual_total)) %>% ungroup() %>% count(year) %>% .[3,2]` had the highest use in 2021. Closures of campgrounds, beaches, or other amenities to facilitate social distancing often characterized units with lower use in 2020.
+
+```{r annual-fig}
+#| fig.cap = "Total estimated park use. Bars show the system-wide total visits to parks across the three complete years in this study (2019, 2020, 2021). Bar color indicates park system. The number of parks varies by system (DNR State = 79, Greater MN Regional = 57, Metro Regional = 67), and individual park units may show annual visitation trends which differ from the overall system trend.", 
+#| results='markup',
+#| out.width= "6.5in",  
+#| out.extra='style="float:center"', 
+#| fig.asp = .6
+
+
+system_vis <- annual_volume %>% 
+  filter(year != 2022,
+         !str_detect(zone_name, "inclusive")) %>%
+  group_by(system_label, year) %>%
+  summarise(system_total = sum(annual_total)/1e6, 
+            system_vehicle = sum(annual_vehicle_visitors), 
+            system_bike = sum(annual_bike), 
+            system_ped = sum(annual_ped)) %>%
+  ggplot(aes(x = year, y = system_total, fill = system_label)) +
+  geom_col(color = "black") +
+  facet_wrap(~system_label, scales = "free_y", nrow = 1) +
+  theme_council_open(base_size = 10) +
+  labs(x = "", caption = fig_caption, #y = "Annual\npark\nvisitation\n(millions)"
+       title = "Annual park use (millions of visits)"#,
+       ) +
+  scale_y_continuous(labels = scales::label_comma(), expand = expansion(mult = c(0, 0.1)), n.breaks = 4) +
+  scale_fill_manual(values = system_label_cols) +
+  theme(legend.position = "none",
+        axis.title.y = element_blank(),
+        axis.title.x = element_blank(),
+        plot.title = element_text(size = 10) 
+        # ,axis.text.x = element_text(size = 10)
+        )  +
+  geom_label(aes(label = format(round(system_total, 2), nsmall = 2), y = rep(c(7.5, 5, 19), each = 3)), fill = "white", size = 2.5)
+
+
+system_vis
+
+ggsave(file.path(here(), "figures/storymap/annual-park-use.png"))
+```
+
+
+## Weekly data shows nuanced use patterns
+
+At individual park units, weekly LBS estimates can identify relatively precise changes in use. The data often reflect special events, extreme weather, and management changes. This temporal granularity may assist in evaluating park planning and management decisions.  
+
+For instance, some units closed facilities during the spring and summer of 2020 to facilitate social distancing (e.g., Spirit Mountain Recreation Area (Greater MN Regional) closed mountain biking facilities). The associated drop in park use is clear in a weekly time series; more generalized annual or monthly summaries may have otherwise obscured this causal relationship. Additionally, some special events cause notable increases in use, which can also be observed in a weekly time series (e.g., Nokomis Hiawatha Regional Park (Metro Regional) hosts US pond hockey championships every winter). 
+
+Detailed use data for individual park units can be explored in the interactive below (Figure \@ref(fig:park-screenshot)). Select a unit of interest using the drop-down menu, and hover over the plot to view detailed information about use. If desired, click and drag on the plot to zoom in. 
+
+
+```{r park-screenshot, include = T, eval = T}
+#| fig.cap = "Screenshot of the dashboard which is embedded within the interactive report. The dashboard contains interactive elements showing a timeseries of weekly park use and mode share. A summary table of use for the three complete years in this study is also included, and an outline map of the park location.", 
+#| results='markup',
+#| out.width= "65%",
+#| out.extra='style="float:center"',
+#| fig.asp = .8
+
+knitr::include_graphics(file.path(here(), "documentation/images/park_dashboard.png"))
+
+```
+
+
+## Parks are used in all seasons
+
+```{r season-calc}
+top_season <- (monthly_volume) %>% filter(year == 2021) %>%
+  mutate(season = if_else(month %in% c(12, 1, 2), "winter",
+                          if_else(month %in% c(3, 4, 5), "Spring",
+                                  if_else(month %in% c(6, 7, 8), "Summer", "Fall")))) %>%
+  ungroup() %>%
+  group_by(system, year, season, zone_name, unit_label) %>%
+  summarise(SUM = sum(monthly_total)) %>%
+  ungroup() %>%
+  group_by(system, year, zone_name, unit_label) %>%
+  mutate(percent = SUM / sum(SUM)) %>%
+  filter(year != 2022) %>%
+  ungroup() %>%
+  group_by(system, season, zone_name, unit_label) %>%
+  summarise(MEAN = mean(percent)) %>%
+  ungroup() %>% 
+  filter(MEAN > .5)
+  # group_by(season) %>%
+  # top_n(MEAN, n = 5) %>% arrange(season, MEAN)
+
+# n_parks - nrow(top_season)
+# round((top_season$MEAN[top_season$season == "winter"])[2]*100,1)
+# top_season %>% arrange(-MEAN)
+# xfun::numbers_to_words(length(top_season$unit_label[top_season$season == "Summer"]))
+```
+
+Our data shows that Minnesota’s parks are well-used in all seasons. At the system level, the summer months of June, July, and August consistently had the highest use; however, there is substantial “off-peak” park use (Figure \@ref(fig:seasonal-fig)). 
+
+At the park level, strong seasonal patterns generally indicate the presence of season-specific amenities such as ski facilities or beaches. For instance, two parks saw the majority (> 50%) of 2021 use occur during the winter months of December, January, and February. Both Detroit Mountain Recreation Area (Greater MN Regional, `r round((top_season$MEAN[top_season$season == "winter"])[1]*100,1)`% winter use) and `r (top_season$unit_label[top_season$season == "winter"])[2]` (Metro Regional, `r round((top_season$MEAN[top_season$season == "winter"])[2]*100,1)`% winter use) have downhill skiing facilities. There were `r (length(top_season$unit_label[top_season$season == "Summer"]))` parks that saw the majority of their annual visitation occur during the summer and no parks that had the majority of visits during the spring or fall. Most parks (`r n_parks - nrow(top_season)`) did not see the majority of annual visitation occur within a single season. 
+
+```{r seasonal-fig}
+#| fig.cap = "Monthly park use as a percent of total annual use for each system. Points show the average monthly use across the three complete years in this study (2019, 2020, 2021). Point color indicates park system. Individual park units may show trends that differ from the overall system trend.", 
+#| results='markup',
+#| out.extra='style="float:right"',
+#| out.width= "6.5in",  
+#| fig.asp = .6
+
+(monthly_volume) %>%
+  ungroup() %>%
+  group_by(system_label, year, month) %>%
+  summarise(SUM = sum(monthly_total)) %>%
+  ungroup() %>%
+  group_by(system_label, year) %>%
+  mutate(percent = SUM / sum(SUM)) %>%
+  filter(year != 2022) %>%
+  ungroup() %>%
+  group_by(system_label, month) %>%
+  summarise(MEAN = mean(percent),
+            SE = sd(percent)/ sqrt(n())) %>%
+         mutate(label = if_else(month == "12", system_label, NA_character_)) %>%
+  ggplot(aes(x = month, y = MEAN, group = system_label, color = system_label, pch = system_label)) +
+  geom_segment(aes(x= 1, xend = 1, y= 0, yend = .07), lty = 3, color = "grey90") +
+  geom_segment(aes(x= 4, xend = 4, y= 0, yend = .08), lty = 3, color = "grey90") +
+  geom_segment(aes(x= 7, xend = 7, y= 0, yend = .17), lty = 3, color = "grey90") +
+  geom_segment(aes(x= 10, xend = 10, y= 0, yend = .085), lty = 3, color = "grey90") +
+  geom_point(size = 2) + 
+  geom_line() +
+  # facet_wrap(~system) +
+  scale_color_manual(values = system_label_cols) +
+  scale_y_continuous(labels = scales::label_percent(), expand = expansion(mult = 0, 0)) +
+  # scale_x_date(date_breaks = '3 months', labels = scales::date_format("%b"),limits = c(as.Date("2020-11-1"), NA)) +
+  theme_council_open() +
+  scale_x_discrete(expand = expansion(mult = c(0.01, 0.35))) +
+  coord_cartesian(clip = "off") +
+  labs(x = "", caption = fig_caption,
+     title = "Monthly park use (% of annual)"
+     ) +
+  geom_text(aes(x = 12.2, y = MEAN, label = label), hjust =0, size = 3) +
+    theme(legend.position = "none",
+          axis.title.y = element_blank(),
+                  # panel.grid.major.x= element_line(linetype = 3),
+          axis.title.x = element_blank(),
+          plot.title = element_text(size = 10))
+# takeaway here: winter ns at GMN, double check if spring vs fall is different at metro
+# car::Anova(lm(percent ~ system * year * as.character(month), data = filter(a, year != 2022)))
+
+ggsave(file.path(here(), "figures/storymap/seasonal-park-use.png"))
+```
+
+
+## Hourly park use varies by day and system
+
+On weekends (Sa-Su), all parks showed a midday peak in use (Figure \@ref(fig:hourly-fig)). On weekdays (M-F), this same midday peak is observed for DNR state parks. Regional parks, however, had a pronounced “after work” peak beginning around 5:00 pm.  
+
+```{r hourly-fig}
+#| fig.cap = "Daily use patterns during summer 2021 for each system. For each system, the total number of visits across all parks is summed, from which the percent of total visits is calculated. Individual park units may show trends that differ from the overall system trend.", 
+#| results='markup',
+#| out.width= "65%",
+#| out.extra='style="float:right"',
+#| fig.asp = .6
+
+
+hourly_parks %>%
+  left_join(park_metadata) %>%
+  filter(system_label != "Metro Regional Inclusive") %>%
+  mutate(day_type = str_remove_all(day_type, "1: Average |2: Average | Day")) %>%
+  filter(!str_detect(day_type, "All")) %>%
+  filter(!str_detect(day_type, "All")) %>%
+  group_by(system_label, day_type, time) %>%
+  summarise(total = sum(total)) %>%
+  ungroup() %>%
+  group_by(system_label, day_type) %>%
+  mutate(percent = total / sum(total)) %>%
+  mutate(time2 = strftime(time, format = "%H:%M"), 
+         label = if_else(time2 == "23:00", system_label, NA_character_)) %>%
+  ggplot(aes(x = time, y = percent, color = system_label, group = system_label, pch = system_label)) +
+    # geom_segment(aes(x= as.POSIXct("08:00", "%H:%M"), xend = 1, y= 0, yend = .07), lty = 3, color = "grey90") +
+  # geom_segment(aes(x= 4, xend = 4, y= 0, yend = .08), lty = 3, color = "grey90") +
+  # geom_segment(aes(x= 7, xend = 7, y= 0, yend = .17), lty = 3, color = "grey90") +
+  # geom_segment(aes(x= 10, xend = 10, y= 0, yend = .085), lty = 3, color = "grey90") +
+  
+  geom_point() +
+  geom_line() +
+  facet_wrap(~day_type,  nrow = 1) +
+  # geom_text(data = lab_text, aes(x = as.POSIXct("07:00", format = "%H:%M"), y = 0.9 * max_volume, label = label),
+  #         size = 4) +
+
+  scale_color_manual(values = system_label_cols) +
+  theme_council_open(base_size = 10) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  scale_x_datetime(date_breaks = "4 hours", date_labels = "%l%p", expand = expansion(mult = c(0.01, 0.01)))+# expand = expansion(mult = c(0.01, 0.4))) +
+  labs(x = "", y = "System \ntotal",  color = "", shape = "",
+       title = "Hourly park use (summer 2021)",
+       # title = "Total arrivals to parks by system and hour",
+       caption = fig_caption)  +
+  # geom_text(aes(x = time+2, y = percent, label = label), hjust =0) +
+  # geom_text_repel(aes(x = time+5, y = percent, label = label), hjust ="left", nudge_x = 4, direction = "y") +
+    theme(legend.position = "bottom",
+                  panel.grid.major.x= element_line(linetype = 3),
+          axis.title.y = element_blank(),
+          axis.title.x = element_blank(),
+          plot.title = element_text(size = 10))
+
+ggsave(file.path(here(), "figures/storymap/hourly-park-use.png"))
+```
+
+
+## Most visitors drive to parks
+
+Our analysis includes estimated counts of visitors arriving at parks by vehicle, bicycle, or on foot (pedestrian). This “mode share” data provides nuance and can help characterize parks. For example, while most visitors traveled to parks in vehicles, the state park system had the highest vehicle mode share (Figure \@ref(fig:modeshare-fig)). Regional park systems had a larger portion of bicyclist and pedestrian visitors. The mode share of park visitors was relatively stable across different seasons. 
+
+At individual park units, mode share information may be helpful in identifying infrastructure improvements. For example, additional bike storage may be needed at state parks with high bicycle mode share. A regional park with low pedestrian mode share in an otherwise walkable area may indicate barriers to access (e.g., fenced areas or roads without crosswalks or bridges, or lack of links to public transit). Such park-level analyses are beyond the scope of this project, but may prove valuable in future work. 
+
+```{r modeshare-fig}
+#| fig.cap = "Mode share of trips made to parks. Bars show the average annual mode share across the three complete years in this study (2019, 2020, 2021). Bar color indicates park system. Individual park units may show trends that differ from the overall system trend.", 
+#| results='markup',
+#| out.width= "65%",
+#| out.extra='style="float:right"',
+#| fig.asp = .7
+# # this is fine but the colors are ugly, can we be consistent??
+
+annual_volume %>% filter(year != 2022) %>%
+  group_by(system_label, year) %>% #, season) %>%
+  summarise(Vehicle = sum(annual_vehicle_visitors), 
+            Bicycle = sum(annual_bike), 
+            Pedestrian = sum(annual_ped)) %>%
+  ungroup() %>%
+  mutate(total = (Vehicle + Bicycle + Pedestrian),
+         Vehicle = Vehicle/ total,
+         Bicycle = Bicycle / total,
+         Pedestrian = Pedestrian / total)  %>%
+  group_by(system_label) %>%
+  summarise(Vehicle = mean(Vehicle),
+            Bicycle = mean(Bicycle),
+            Pedestrian = mean(Pedestrian)) %>%
+  pivot_longer(cols = c(Vehicle, Bicycle, Pedestrian),
+               names_to = "Mode",
+               values_to = "Share") %>%
+  ggplot(aes(x = Mode, y = Share, fill = system_label)) +
+  geom_bar(stat = "identity", color = "black", position = position_dodge(width = .9)) +
+  # geom_col(color = "black", position = position_dodge(width = .9)) +
+  theme_council_open(base_size = 10) +
+  # scale_fill_brewer(palette = "Purples", direction = -1,
+  #                   guide = guide_legend(reverse = TRUE)) +
+scale_fill_manual(values = system_label_cols) +
+  # facet_wrap(~season) +
+  scale_y_continuous(labels = scales::label_percent(),  expand = expansion(mult = c(0.0, 0.05))) +
+  labs(title = "Park visitor travel mode",
+       # subtitle = "Purples are random for now",
+       x = "", y = "", fill = "", 
+       caption = fig_caption) +
+  # theme(legend.position = "bottom",
+  #       axis.text = element_text(size = 12),
+  #       plot.title = element_text(size = 11),
+  #       legend.text = element_text(size = 10),
+  #       # panel.grid.major.x= element_line(linetype = 3),
+  #       panel.grid.major.y = element_blank(),
+  #       axis.title.x = element_blank(),
+  #       axis.title.y = element_blank()) +
+      theme(legend.position = "bottom",
+                  # panel.grid.major.x= element_line(linetype = 3),
+          axis.title.y = element_blank(),
+          axis.title.x = element_blank(),
+          plot.title = element_text(size = 10)) +
+    geom_label(aes(label = paste0(format(round(Share*100, 1), nsmall = 1), "%"), group = system_label
+                   , y = rep(c(.14, .14, .14),  3)
+                   ), fill = "white", size = 2.5, position = position_dodge(width = .9))
+
+ggsave(file.path(here(), "figures/storymap/park-mode-share.png"))
+```

@@ -1,0 +1,327 @@
+---
+title: "StreetLight Legacy Project Park Results (StoryMap text)"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  bookdown::word_document2:
+    reference_docx: ../wordtemplate.docx
+    toc: yes
+    toc_depth: 2
+  word_document:
+    toc: yes
+    toc_depth: '2'
+always_allow_html: yes
+urlcolor: blue
+---
+
+```{r setup-vis, include = FALSE}
+knitr::opts_chunk$set(
+  error = TRUE, # do not interrupt in case of errors
+  echo = FALSE,
+  warning = FALSE, 
+  message = FALSE, 
+  fig.pos = "H", 
+  out.width= "65%",
+  fig.height = 4, 
+  fig.asp = 0.6,
+  dpi = 300
+)
+
+## source basic utility functions, colors for plotting, etc
+source(file.path(here::here(), "R/_load_packages.R"))
+source(file.path(here(), "R/_utility_functions.R"))
+source(file.path(here(), "R/_global_parameters.R"))
+source(file.path(here(), "R/_streetlight_credentials_parameters.R"))
+source(file.path(here(), "R/_set_aesthetics.R"))
+
+
+park_metadata <- readRDS(file.path(here::here(), "data-intermediate/parks/parks-metadata.RDS"))
+
+load(file.path(here::here(), "data-intermediate/processed/all-processed-demographics.rda"))
+load(file.path(here::here(), "data-intermediate/processed/processed-homes.rda"))
+
+n_parks <- distinct(filter(stl_dem, unit_type == "park"), zone_name) %>% nrow()
+n_trails <- distinct(filter(stl_dem, unit_type == "trail"), zone_name) %>% nrow()
+```
+
+
+
+```{r home-states, warning = FALSE, message = FALSE, results = "hide"}
+state_pcts <- home_states %>%
+  filter(label %in% c("full21", "year21")) %>%
+  group_by(state_name) %>%
+  summarise(total_by_state = sum(total_by_state)) %>%
+  ungroup() %>%
+  mutate(percent_by_state = total_by_state/sum(total_by_state))
+
+
+states <- tigris::states(cb = TRUE) %>%
+  filter(!NAME %in% c("Commonwealth of the Northern Mariana Islands", "Hawaii", "United States Virgin Islands", 
+                      "American Samoa", "Alaska", "Guam", "Puerto Rico"))
+
+map_data <- states %>%
+  left_join(state_pcts, by = c("NAME" = "state_name"))
+```
+
+
+
+
+# Visitors
+
+We found high use of parks and trails across the state. Most visitors live within Minnesota (`r scales::percent(state_pcts$percent_by_state[state_pcts$state_name=="Minnesota"], accuracy = 0.01)`), but we also found that Minnesota’s parks and trails attracted visitors from across the country. We found the benefits of accessible green space are not equitably distributed among Minnesotans, but the specifics of the visitation gap varied across systems and individual park and trail units. Understanding the demographic characteristics of visitors to Minnesota’s parks and trails can help reduce barriers to access and create more equitable access to parks and trails for all Minnesotans.  
+
+## Methods
+
+Aggregated and anonymized LBS data was used to infer park and trail visitor demographics. Inferred demographics from LBS data provide an opportunity to explore the demographics of park and trail visitors on a broad scale. Note that inferred demographics cannot and should not replace data about individuals’ lived experiences. Inferred data may be used to augment existing data or guide future research efforts, but should not be considered a replacement for intercept survey data. 
+
+To produce demographic estimates, the LBS data provider (StreetLight Data, Inc.) combines aggregated, anonymized GPS data with census information. StreetLight first assigns a home location to devices in their sample (i.e., smartphones) based on where devices “spend the night” most often. While StreetLight’s methods have nuance, generally if a device stays in a given location between 7 p.m. and 8 a.m., it’s home location is assigned to that census block group. Then demographic attributes are assigned to that device using a probability model based on the observed census demographics. The resulting data are distributed at coarser geographies (i.e., zip codes), and are always aggregated and anonymized. The data provided by StreetLight can never be used to identify individuals. 
+
+In this project, similar methods are used to process visitor demographics for parks and trails. For parks, demographics and home locations are collected for all visitors passing through the perimeter of the park. For trails, data is collected for any bicyclist or pedestrian passing through any section of the trail (i.e., trail segments are not used).
+
+
+
+Inferred demographics are reported in three categories: race/ethnicity, educational attainment, and income. Visitor home locations are reported at the state level in this report; home locations are additionally available by zip code for individual parks and trails. Demographics are available for summer 2021. 
+
+
+
+### Data validation
+
+
+Inferred LBS visitor demographics were validated against the Metropolitan Council’s 2021 Park and Trail Visitor Survey. Data was compared at eight regional parks in the 7-county Twin Cities metropolitan area. A total of four education categories, seven income categories, and eight race categories were compared. 
+
+The alignment between surveyed and inferred visitor demographics is strong (Figure \@ref(fig:simple-demo-compare), Table \@ref(tab:demo-table)). Across the eight parks, there are no significant differences between surveyed and inferred visitor income. Within education categories, LBS methods estimated more visitors with a high school or less educational attainment and fewer visitors with a graduate or professional degree. LBS data tends to estimate fewer white visitors than the intercept survey. Please see the technical documentation for further validation detail.  
+
+
+```{r demo-table}
+demo_table <- both %>% 
+  filter(source == "LBS") %>%
+    filter(!str_detect(zone_name, "trail")) %>%
+  mutate(sig = if_else(sig == "ns", "Not significantly different", "Significant")) %>%  
+  # filter(str_detect(group, "High s"))
+  count(category, group, sig) %>%
+  pivot_wider(names_from = sig, values_from = n) %>%
+  replace(is.na(.), 0) %>%
+  mutate(group = if_else(str_detect(group, "Associate"), "Associate degree or some college", group),
+         group = if_else(str_detect(group, "High school"), "High school", group)) %>%
+  mutate(group = forcats::fct_relevel(
+    group,
+    "High school",
+    "Associate degree or some college",
+    "4-year degree",
+    "Graduate or professional degree",
+    "Less than $25,000",
+    "$25,000 - 39,999",
+    "$40,000 - 59,999",
+    "$60,000 - 74/79,999",
+    "$75/80,000 - 99,999",
+    "$100,000 - 149,999",
+    "$150,000 or higher"
+  ))  %>%
+  arrange(group)
+
+demo_tab <- flextable::regulartable(
+  demo_table %>% 
+    rename(Attribute = category,
+           Category = group)
+) %>%
+  flextable::autofit(add_w = 0, add_h = 0) %>%
+  # flextable::set_table_properties(layout = "autofit", width = 1) %>%
+    merge_at(i = 1:4, j = 1, part = "body") %>%
+  hline(i = 4, part = "body") %>%
+  merge_at(i = 5:11, j = 1, part = "body") %>%
+  hline(i = 11, part = "body") %>%
+  merge_at(i = 12:19, j = 1, part = "body") %>%
+  fontsize(size = 8, part = "all") %>%
+  autofit(add_h = 0) %>%
+    line_spacing(space = .25, part = "all") %>% 
+  # theme_zebra() %>%
+  flextable::set_caption("Summary of validation between location based services derived demographic values and intercept survey values. Values show the number of parks with and without a statistically significant difference in demographic percentages at the 95% confidence interval.")
+
+demo_tab
+
+demo_tab %>%
+  save_as_image(file.path(here::here(), "figures/storymap/demographic-comparison-table.png"))
+```
+
+```{r simple-demo-compare}
+#| fig.cap = "Comparison of location based services (LBS) demographic values against intercept survey values where there were significant differences in percentages at the 95% confidence interval. The dashed grey line shows a perfect one-to-one relationship.", 
+#| results='markup', 
+#| out.width= "6.5in",  
+#| out.extra='style="float:center"', 
+#| fig.asp = .7
+df <- both %>% 
+  select(zone_name, source, category, group, percent, moe_95, abbrsig, sig) %>%
+  pivot_wider(names_from = source, values_from = c(percent, moe_95))
+
+# Validation of location based services (LBS) derived demographic values against intercept survey values. Point color indicates demographic attribute type (education, income, race). The demographic attributes which are most commonly significantly different are indicated by distinct point shapes and direct labeling. When there was no significant difference in percentages at the 95% confidence interval, points are placed along the 1:1 line (dashed grey line) and show LBS percentages. In comparison to traditional survey methods, LBS data tends to indicate fewer white visitors, fewer visitors with a graduate or professional degree, and more visitors with a high school education or less.
+#1:1 line with points
+
+
+filter(df, sig != "ns") %>%
+  arrange(category, group) %>%
+  ggplot(aes(x = percent_survey, y = percent_LBS, col = group, pch = group, fill = group)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey70") +
+
+  geom_point() +
+  theme_council_open(base_size =10) +
+  scale_x_continuous(labels = scales::label_percent(), expand = expansion(mult = c(0, .1))) +
+  scale_y_continuous(labels = scales::label_percent(), expand = expansion(mult = c(0, .1))) +
+  scale_fill_brewer(palette = "Dark2") +
+  scale_shape_manual(values = c(21:25))+
+  scale_color_brewer(palette = "Dark2") +
+  labs(x = "Survey demographic percents", y = "LBS\ndemographic\npercents", title = "", 
+       fill = "Attribute", color = "Attribute", shape = "Attribute",
+       caption = paste0(fig_caption, "\nand Metropolitan Council 2021 Visitor Survey")) +
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.key.size = unit(.1, "lines")) +
+  guides(
+    col = guide_legend(nrow = 2, byrow = TRUE),
+    fill = guide_legend(nrow = 2, byrow = TRUE),
+    shape = guide_legend(nrow = 2, byrow = TRUE)
+  ) 
+
+ggsave(file.path(here::here(), "figures/storymap/demographic-validation.png"))
+```
+
+## Visitors from across the country visited Minnesota's parks and trails
+
+Visitors traveled to visit Minnesota’s parks and trails from all lower 48 states (Figure \@ref(fig:country-map)). Overall, Minnesota residents made up approximately 90.22% of users to parks and trails. Following Minnesota, adjacent states represent the largest portion of total use: Wisconsin with 3%, North Dakota with 0.83%, Iowa with 0.81%, and Illinois with 0.65%. Notably, California was the 5th most common home location (outside of Minnesota), representing 0.43% of total use. 
+
+While visits by international residents are counted in park and trail estimates, LBS data does not allow for identification of home locations for international residents. 
+
+ 
+
+
+```{r country-map}
+#| fig.cap = "Proportion of visitors to Minnesota parks and trails in 2021 mapped by state of residence. Darker green colors indicate states with a greater share of visitors.",
+#| out.extra='style="float:right"',
+#| out.width = "6.5in",
+#| fig.asp = .6,
+
+map_data %>%
+  mutate(logp = (percent_by_state)) %>%
+  ggplot() + 
+  geom_sf(aes(fill = logp)) +
+  coord_sf(crs = (3785)) +
+  theme_void() +
+  # scale_fill_gradient2(low = "white", mid = "#74c476", high = "#00441b", midpoint = .3,labels = scales::comma) +
+      scale_fill_gradientn(colours = c("white", "#238b45", "#00441b"), 
+                         values = scales::rescale(c(min(map_data$percent_by_state), .02 , max(map_data$percent_by_state))),
+                         guide = "colorbar", limits=c(min(map_data$percent_by_state), max(map_data$percent_by_state)),
+                         labels = scales::label_comma()) +
+  # scale_fill_continuous(trans = "log",type = "viridis") +
+  guides(fill = "none") +
+  theme(legend.position = "bottom", legend.text = element_blank()) +
+  labs(caption = fig_caption, fill = "Percent visitors")+
+  geom_sf_label(aes(label = paste0(round(percent_by_state*100,1), "%")),
+    colour = "black",
+    check_overlap = F,
+    size = 2, data = filter(map_data, percent_by_state > .001)
+  )
+
+ggsave(file.path(here::here(), "figures/storymap/home-locations-by-state.png"))
+```
+
+
+## Park and trail visitor demographics vary widely
+
+Park and trail users are not always representative of local or regional populations. We refer to this as a “visitation gap”, meaning that the use of parks and trails in Minnesota is not equitably distributed across the population. The extent of the visitation gap and specific dynamics vary across individual units and demographic categories (Figures \@ref(fig:race-distribution), \@ref(fig:edu-distribution), \@ref(fig:income-distribution)).  
+
+Systems, and individual park and trail units, have unique missions and visitor populations. Equity analyses which compare LBS inferred demographics of park and trail users to baseline population demographics may be of interest but are recommended to be performed in a manner that is recognizes specific unit-level context. Therefore, it may be more appropriate to compare park and trail visitor demographics to local or regional demographics. Defining unit-specific reference populations is beyond the scope of this project, but park staff may be interested in using the spreadsheets produced from this project to compare visitor demographics with bespoke baseline populations. 
+
+
+## Visitor attributes differ at the unit level
+
+From visitor home locations to inferred demographics of visitors, a key finding of this work is that there is significant variation across parks and trails within a given system. This data can be explored individually for each unit. 
+
+
+
+```{r race-distribution}
+#| fig.cap = "Inferred race and ethnicity of park and trail visitors. Each point represents a single park or trail. Point color and shape indicates system."
+stl_dem %>%
+  filter(label %in% c("year21", "full21"), 
+         str_detect(day_type, "All"), 
+         category == "Race/ethnicity", 
+         system != "Metro Regional Inclusive") %>% 
+  ungroup() %>%
+  select(zone_name, unit_label, system_label, unit_type, category, group, percent) %>% 
+  ggplot(aes(x = forcats::fct_rev(group), y = percent, color = system_label, fill = system_label, pch = system_label)) +
+  ggbeeswarm::geom_quasirandom(dodge.width = 0.8, size = 0.7, 
+                               width = .15, alpha = 0.5) +
+  coord_flip() +
+  theme_council_open(base_size = 10) +
+  scale_fill_manual(values = system_label_cols) +
+  scale_color_manual(values = system_label_cols) +
+  scale_shape_manual(values = c(21, 24, 23)) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 20)) +
+  scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0, 0.05))) +
+  labs(caption = fig_caption,
+    x = "", y = "", fill = "", col = "", pch = "", 
+    title = "Inferred race and ethnicity"
+  ) 
+```
+
+
+```{r edu-distribution}
+#| fig.cap = "Inferred educational attainment of park and trail visitors. Each point represents a single park or trail. Point color and shape indicates system."
+stl_dem %>%
+  filter(label %in% c("year21", "full21"), 
+         str_detect(day_type, "All"), 
+         category == "Education", 
+         system != "Metro Regional Inclusive") %>% 
+  ungroup() %>%
+  select(zone_name, unit_label, system_label, unit_type, category, group, percent) %>% 
+  ggplot(aes(x = forcats::fct_rev(group), y = percent, color = system_label, fill = system_label, pch = system_label)) +
+  ggbeeswarm::geom_quasirandom(dodge.width = 0.8, size = 0.7, 
+                               width = .15, alpha = 0.5) +
+  coord_flip() +
+  theme_council_open(base_size = 10) +
+  scale_fill_manual(values = system_label_cols) +
+  scale_color_manual(values = system_label_cols) +
+  scale_shape_manual(values = c(21, 24, 23)) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 20)) +
+  scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0, 0.05))) +
+  labs(caption = fig_caption,
+    x = "", y = "", fill = "", col = "", pch = "", 
+    title = "Inferred educational attainment"
+  ) 
+```
+
+
+```{r income-distribution}
+#| fig.cap = "Inferred household income of park and trail visitors. Each point represents a single park or trail. Point color and shape indicates system."
+stl_dem %>%
+  filter(label == c("year21", "full21"), 
+         str_detect(day_type, "All"), 
+         category == "Income", 
+         system != "Metro Regional Inclusive") %>% 
+  mutate(group = case_when(
+    group == "$60,000 - 74/79,999" ~ "$60,000 - 74,999", 
+    group == "$75/80,000 - 99,999" ~ "$75,000 - 99,999", 
+    TRUE ~ group
+  ), 
+  group = factor(group, levels =  c("Less than $25,000", "$25,000 - 39,999", "$40,000 - 59,999",
+                                    "$60,000 - 74,999", "$75,000 - 99,999", "$100,000 - 149,999",
+                                    "$150,000 or higher"), ordered = TRUE)) %>%
+  ungroup() %>%
+  select(zone_name, unit_label, system_label, unit_type, category, group, percent) %>% 
+  ggplot(aes(x = forcats::fct_rev(group), y = percent, color = system_label, fill = system_label, pch = system_label)) +
+  ggbeeswarm::geom_quasirandom(dodge.width = 0.8, size = 0.7, 
+                               width = .15, alpha = 0.5) +
+  coord_flip() +
+  theme_council_open(base_size = 10) +
+  scale_fill_manual(values = system_label_cols) +
+  scale_color_manual(values = system_label_cols) +
+  scale_shape_manual(values = c(21, 24, 23)) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 20)) +
+  scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0, 0.05))) +
+  labs(caption = fig_caption,
+    x = "", y = "", fill = "", col = "", pch = "", 
+    title = "Inferred household income"
+  ) 
+```
+
+
+
+
+

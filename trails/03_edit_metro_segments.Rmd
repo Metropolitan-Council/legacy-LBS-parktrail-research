@@ -1,0 +1,1436 @@
+---
+title: "Metro Regional Trail Segment Processing"
+output:
+  github_document:
+    toc: true
+always_allow_html: true
+urlcolor: blue
+---
+
+This Rmarkdown manually edits the OSM segments identified in `02_fetch_osm_data.R` for each Metro Regional trail. Each trail is visually inspected and individual OSM segments are added or removed as necessary. The Rmarkdown outputs two pieces of data: `metro_osm_edits`, a data frame documenting the osm_id for each segment to be added or removed, and `metro_new_to_pull`, a list of osm_ids that were not captured in the original pull of OSM data. This data is saved to `data-intermediate/trails`.
+
+Rmarkdown is used for this step primarily for better legibility. Trails are accessed manually by zone name (rather than by index, for example) to ensure that edits are associated with the correct trail, and that changes to the order of trail or zone names does not introduce errors.
+
+# Setup
+
+```{r setup-metro-segment-edits}
+# identified OSM segments
+metro_osm <- bike_ped_osm %>%
+  filter(str_detect(unit_id, "Metro-Regional")) %>%
+  st_transform(4326)
+
+# list of metro trail names
+metro_trails <- unique(filter(trail_lines, str_detect(unit_id, "Metro-Regional"))$unit_id)
+
+# set up data frames of manually added/removed segments
+metro_remove <- data.frame(NA_real_, NA_character_)
+names(metro_remove) <- c("osm_id", "unit_id")
+
+metro_add <- data.frame(NA_real_, NA_character_)
+names(metro_add) <- c("osm_id", "unit_id")
+```
+
+# Edit each trail
+
+Baker-Carver_trail_Metro-Regional_Three-Rivers
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Baker-Carver_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(717770375)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Bassett-Creek_trail_Metro-Regional_Three-Rivers
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Bassett-Creek_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(512629522, 828557302, 828557303, 1187746741)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Big-Rivers_trail_Metro-Regional_Dakota-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Big-Rivers_trail_Metro-Regional_Dakota-County")
+fxn_map(sample)  
+```
+
+Birch-Lake_trail_Metro-Regional_Ramsey-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Birch-Lake_trail_Metro-Regional_Ramsey-County")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(1132667453)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Bruce-Vento_trail_Metro-Regional_Ramsey-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Bruce-Vento_trail_Metro-Regional_Ramsey-County")
+fxn_map(sample)  
+```
+
+Bruce-Vento_trail_Metro-Regional_Saint-Paul
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Bruce-Vento_trail_Metro-Regional_Saint-Paul")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(41920775)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(605344868)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Bunker-Hills-Chain-of-Lakes_trail_Metro-Regional_Anoka-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Bunker-Hills-Chain-of-Lakes_trail_Metro-Regional_Anoka-County")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(707784045)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Canadian-Pacific-Railway_trail_Metro-Regional_Bloomington
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Canadian-Pacific-Railway_trail_Metro-Regional_Bloomington")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(847234941, 6011731, 489653927)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Canadian-Pacific-Railway_trail_Metro-Regional_Three-Rivers
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Canadian-Pacific-Railway_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(844755795, 844766640)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(43077815, 541984019, 784630517, 125663838)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Cedar-Lake_trail_Metro-Regional_MPRB
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Cedar-Lake_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(704199846, 856367670, 856367672, 
+               856367675, 988181554, 988181555, 
+               990571613)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(290457943, 166647435)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Cedar-Lake_trail_Metro-Regional_Three-Rivers
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Cedar-Lake_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(706536206,706536211, 706539084, 
+               706678935, 708021263)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Central-Anoka-County_trail_Metro-Regional_Anoka-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Central-Anoka-County_trail_Metro-Regional_Anoka-County")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(1084511650, 710383025)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Central-Greenway_trail_Metro-Regional_Washington-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Central-Greenway_trail_Metro-Regional_Washington-County")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(1010098524, 788268175, 1052463773, 
+               260223916, 958510715)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Central-Mississippi-Riverfront_trail_Metro-Regional_MPRB
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Central-Mississippi-Riverfront_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(22914717, 718970958)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(1183842954, 117298537, 900530983, 
+               900530984, 325986842, 722635315, 
+               81049085)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Chain-of-Lakes-Otter-Lake_trail_Metro-Regional_Anoka-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Chain-of-Lakes-Otter-Lake_trail_Metro-Regional_Anoka-County")
+fxn_map(sample)  
+```
+
+Columbia-Parkway_trail_Metro-Regional_MPRB
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Columbia-Parkway_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(1190090658)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Coon-Creek_trail_Metro-Regional_Anoka-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Coon-Creek_trail_Metro-Regional_Anoka-County")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(702576712, 703942411, 705860049)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(915579582)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Crow-River_trail_Metro-Regional_Three-Rivers
+```{r}
+sample <- filter(metro_osm, unit_id == "Crow-River_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(18296378, 116651860, 997808516, 
+               605806713, 6043214, 605806726, 
+               6026864)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Crystal-Lake_trail_Metro-Regional_Three-Rivers
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Crystal-Lake_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(655215989, 701241393)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(129693806, 932502596)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Dakota-Rail_trail_Metro-Regional_Carver-County
+```{r}
+sample <- filter(metro_osm, unit_id == "Dakota-Rail_trail_Metro-Regional_Carver-County")
+fxn_map(sample)  
+```
+
+Dakota-Rail_trail_Metro-Regional_Three-Rivers
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Dakota-Rail_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+```
+
+East-Anoka-County_trail_Metro-Regional_Anoka-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "East-Anoka-County_trail_Metro-Regional_Anoka-County")
+fxn_map(sample)  
+```
+
+Hardwood-Creek_trail_Metro-Regional_Washington-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Hardwood-Creek_trail_Metro-Regional_Washington-County")
+fxn_map(sample)  
+```
+
+Highway-5_trail_Metro-Regional_Carver-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Highway-5_trail_Metro-Regional_Carver-County")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(183157911, 450249731)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Highway-96_trail_Metro-Regional_Ramsey-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Highway-96_trail_Metro-Regional_Ramsey-County")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(165799885, 290278549)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Kenilworth_trail_Metro-Regional_MPRB
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Kenilworth_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(1002860069, 46616452, 708023397)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(706813423)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Lake-Independence_trail_Metro-Regional_Three-Rivers
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Lake-Independence_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(1093166985, 382081663, 382081705)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Lake-Links_trail_Metro-Regional_Ramsey-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Lake-Links_trail_Metro-Regional_Ramsey-County")
+fxn_map(sample)  
+```
+
+Lake-Minnetonka-LRT_trail_Metro-Regional_Carver-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Lake-Minnetonka-LRT_trail_Metro-Regional_Carver-County")
+fxn_map(sample)  
+```
+
+Lake-Minnetonka-LRT_trail_Metro-Regional_Three-Rivers
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Lake-Minnetonka-LRT_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(495756326)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Lilydale_trail_Metro-Regional_Dakota-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Lilydale_trail_Metro-Regional_Dakota-County")
+fxn_map(sample)  
+```
+
+Lilydale_trail_Metro-Regional_Saint-Paul
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Lilydale_trail_Metro-Regional_Saint-Paul")
+fxn_map(sample)  
+```
+
+Long-Lake-Connector_trail_Metro-Regional_Ramsey-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Long-Lake-Connector_trail_Metro-Regional_Ramsey-County")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(398409793, 765446551)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(751161128)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Luce-Line_trail_Metro-Regional_MPRB
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Luce-Line_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(141023536, 141023537, 6035147, 
+               653859955)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(986472294, 223462539)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Luce-Line_trail_Metro-Regional_Three-Rivers
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Luce-Line_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+```
+
+MN-River-Bluffs_trail_Metro-Regional_Three-Rivers
+
+```{r}
+sample <- filter(metro_osm, unit_id == "MN-River-Bluffs_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(707519995, 708025077)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(233591753)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Medicine-Lake_trail_Metro-Regional_Three-Rivers
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Medicine-Lake_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(184637594, 764487975, 162043620)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Mendota-Lebanon-Hills_trail_Metro-Regional_Dakota-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Mendota-Lebanon-Hills_trail_Metro-Regional_Dakota-County")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(167705818, 763008132, 350276430, 
+               186977807)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Minneapolis-Chain-of-Lakes_trail_Metro-Regional_MPRB
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Minneapolis-Chain-of-Lakes_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(917616223, 917616208, 6019397,
+               	1120427716, 927761116,	129691409)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Minnehaha-Parkway_trail_Metro-Regional_MPRB
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Minnehaha-Parkway_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(39563244, 83570474, 144047478, 
+               159382267, 405513159, 903901465, 
+               903901467, 927749240, 968913230, 
+               968913231, 968913232)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(904510276, 39056375, 904462639)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Minnesota-River-Bluffs_trail_Metro-Regional_Carver-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Minnesota-River-Bluffs_trail_Metro-Regional_Carver-County")
+fxn_map(sample)  
+```
+
+Minnesota-River_trail_Metro-Regional_Dakota-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Minnesota-River_trail_Metro-Regional_Dakota-County")
+fxn_map(sample)  
+```
+
+Mississippi-Gorge-East-River-Parkway_trail_Metro-Regional_MPRB
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Mississippi-Gorge-East-River-Parkway_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(704086796)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(555241971, 910125465)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Mississippi-Gorge-East-River-Parkway_trail_Metro-Regional_Saint-Paul
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Mississippi-Gorge-East-River-Parkway_trail_Metro-Regional_Saint-Paul")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(18214041, 654689782, 731393746, 
+               911569257, 1164975787, 1164975789)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Mississippi-Gorge-West-River-Parkway_trail_Metro-Regional_MPRB
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Mississippi-Gorge-West-River-Parkway_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(325986844,	625665169)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Mississippi-Gorge-West-River-Parkway_trail_Metro-Regional_Saint-Paul - very short, SKIP
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Mississippi-Gorge-West-River-Parkway_trail_Metro-Regional_Saint-Paul")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id, 
+    osm_id = sample$osm_id
+  )
+)
+```
+
+Mississippi-River-East-Bank_trail_Metro-Regional_MPRB
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Mississippi-River-East-Bank_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(1100942387)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Mississippi-River-Gorge_trail_Metro-Regional_Saint-Paul
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Mississippi-River-Gorge_trail_Metro-Regional_Saint-Paul")
+fxn_map(sample)  
+```
+
+Mississippi-River_trail_Metro-Regional_Anoka-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Mississippi-River_trail_Metro-Regional_Anoka-County")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(18004091, 18004123, 18007522, 
+               18008902, 18015704, 18015858, 
+               18018364,  158785386, 382374212,
+               163350422, 163350499, 163350528, 
+               163350549,  163350550, 163350745, 
+               183438106, 220666570, 714124316,
+               698993077, 715597516, 718224810,
+               700155619, 700981711, 382367581,
+               702576712, 702914218, 703942411, 
+               706824796
+               )
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(163350647, 793526924, 753426227)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Mississippi-River_trail_Metro-Regional_Dakota-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Mississippi-River_trail_Metro-Regional_Dakota-County")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(221295024, 819152200)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Nine-Mile-Creek_trail_Metro-Regional_Three-Rivers
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Nine-Mile-Creek_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(337103887, 141645582, 6015599, 
+               83144497)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Nokomis-Minnesota-River_trail_Metro-Regional_Bloomington
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Nokomis-Minnesota-River_trail_Metro-Regional_Bloomington")
+fxn_map(sample)  
+```
+
+Nokomis-Minnesota-River_trail_Metro-Regional_Three-Rivers
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Nokomis-Minnesota-River_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(35922860, 937420794)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(454601008, 83692603)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+North-Cedar-Lake_trail_Metro-Regional_MPRB
+
+```{r}
+sample <- filter(metro_osm, unit_id == "North-Cedar-Lake_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(129693019)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+North-Cedar-Lake_trail_Metro-Regional_Three-Rivers
+
+```{r}
+sample <- filter(metro_osm, unit_id == "North-Cedar-Lake_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(965276807, 762756797, 969921796)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+North-Creek-Greenway_trail_Metro-Regional_Dakota-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "North-Creek-Greenway_trail_Metro-Regional_Dakota-County")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(694598175, 880719472, 885241422, 
+               970808643, 971482661, 339253868, 
+               1134531063)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(319966878, 319966877, 882831641, 
+               882831642, 339253869, 339253871)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+North-Mississippi-Trail-Link_trail_Metro-Regional_MPRB
+
+```{r}
+sample <- filter(metro_osm, unit_id == "North-Mississippi-Trail-Link_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(852261573,	933383180)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+North-Mississippi_trail_Metro-Regional_MPRB
+
+```{r}
+sample <- filter(metro_osm, unit_id == "North-Mississippi_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(186188472, 194159476, 416695924)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(6042436, 194159478, 194159486, 
+               77821024,1167485879, 1082997731, 
+               163350704)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Northeast-Diagonal_trail_Metro-Regional_MPRB - SKIP
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Northeast-Diagonal_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+```
+
+Northeast-Diagonal_trail_Metro-Regional_Three-Rivers - SKIP
+```{r}
+sample <- filter(metro_osm, unit_id == "Northeast-Diagonal_trail_Metro-Regional_Three-Rivers")
+# fxn_map(sample)  
+```
+
+Phalen-Boulevard_trail_Metro-Regional_Saint-Paul
+```{r}
+sample <- filter(metro_osm, unit_id == "Phalen-Boulevard_trail_Metro-Regional_Saint-Paul")
+fxn_map(sample)  
+```
+
+Point-Douglas_trail_Metro-Regional_Washington-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Point-Douglas_trail_Metro-Regional_Washington-County")
+fxn_map(sample)  
+```
+
+Rice-Creek-North-Extension_trail_Metro-Regional_Ramsey-County - SKIP, not well-represented in OSM data
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Rice-Creek-North-Extension_trail_Metro-Regional_Ramsey-County")
+# fxn_map(sample)  
+```
+
+Rice-Creek-North_trail_Metro-Regional_Anoka-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Rice-Creek-North_trail_Metro-Regional_Anoka-County")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(767600532)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(970750027)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Rice-Creek-North_trail_Metro-Regional_Ramsey-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Rice-Creek-North_trail_Metro-Regional_Ramsey-County")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(751176565, 751171758, 781912789, 
+               157634059, 782442100)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Rice-Creek-West_trail_Metro-Regional_Anoka-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Rice-Creek-West_trail_Metro-Regional_Anoka-County")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(163350549, 163350550, 24395401, 
+               25026627, 478373208)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(157693037)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Rice-Creek-West_trail_Metro-Regional_Ramsey-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Rice-Creek-West_trail_Metro-Regional_Ramsey-County")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(18209647, 765446557, 478373210, 
+               297207213)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Ridgway-Parkway_trail_Metro-Regional_MPRB
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Ridgway-Parkway_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+```
+
+River-to-River_trail_Metro-Regional_Dakota-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "River-to-River_trail_Metro-Regional_Dakota-County")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(1073230584, 700725189, 700725190, 
+               700725193, 700731629, 700736808, 
+               988846208, 988851185)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(845458670, 60945799)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Robert-Piram_trail_Metro-Regional_Saint-Paul
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Robert-Piram_trail_Metro-Regional_Saint-Paul")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(911271093, 911271095, 911271096, 
+               911271097, 911271098, 1055518794, 
+               1055518796)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Rum-River_trail_Metro-Regional_Anoka-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Rum-River_trail_Metro-Regional_Anoka-County")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(45876615, 48562206, 137918730,
+               698990016, 703979612, 704305121, 
+               909074304)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(585784562, 17996940, 512798486, 
+               512728504)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Rush-Creek_trail_Metro-Regional_Three-Rivers
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Rush-Creek_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(672764391, 258408227, 1057994459, 
+               545486368, 948456189)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Sam-Morgan_trail_Metro-Regional_Saint-Paul
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Sam-Morgan_trail_Metro-Regional_Saint-Paul")
+fxn_map(sample)
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(62154186, 112109724)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Scott-West_trail_Metro-Regional_Scott-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Scott-West_trail_Metro-Regional_Scott-County")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(172365343, 39408350, 732101090)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(424959572, 346097738, 346097733)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Shingle-Creek_trail_Metro-Regional_MPRB
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Shingle-Creek_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(6042436, 1109650528, 126102118)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Shingle-Creek_trail_Metro-Regional_Three-Rivers
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Shingle-Creek_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(972899630, 933361035, 573693583, 
+               258342565)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Southwest_trail_Metro-Regional_Carver-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Southwest_trail_Metro-Regional_Carver-County")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(462259605)
+  )
+)
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(698362791, 731802690, 232325646, 
+               232325642, 180643845, 705542858, 
+               501047466)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Spring-Lake_trail_Metro-Regional_Scott-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Spring-Lake_trail_Metro-Regional_Scott-County")
+fxn_map(sample)  
+```
+
+St-Anthony-Parkway_trail_Metro-Regional_MPRB
+
+```{r}
+sample <- filter(metro_osm, unit_id == "St-Anthony-Parkway_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(129730573)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Stinson-Parkway_trail_Metro-Regional_MPRB
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Stinson-Parkway_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+
+metro_add <- metro_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(116766482,  203047360)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Sugar-Hills_trail_Metro-Regional_Anoka-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Sugar-Hills_trail_Metro-Regional_Anoka-County")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(512782095)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Theodore-Wirth-Parkway_trail_Metro-Regional_MPRB
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Theodore-Wirth-Parkway_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(985680177, 357893623, 175919632)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Trout-Brook_trail_Metro-Regional_Ramsey-County
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Trout-Brook_trail_Metro-Regional_Ramsey-County")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(289968397)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Trout-Brook_trail_Metro-Regional_Saint-Paul
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Trout-Brook_trail_Metro-Regional_Saint-Paul")
+fxn_map(sample)  
+```
+
+Twin-Lakes_trail_Metro-Regional_Three-Rivers
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Twin-Lakes_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(652968700, 704723947)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+Victory-Memorial-Parkway_trail_Metro-Regional_MPRB
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Victory-Memorial-Parkway_trail_Metro-Regional_MPRB")
+fxn_map(sample)  
+```
+
+Victory-Memorial-Parkway_trail_Metro-Regional_Three-Rivers
+
+```{r}
+sample <- filter(metro_osm, unit_id == "Victory-Memorial-Parkway_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+
+metro_remove <- metro_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(129693806, 6027040, 6028709, 
+               44033613, 56472403, 101553248, 
+               636383845, 636383846)
+  )
+)
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+West-Mississippi_trail_Metro-Regional_Three-Rivers
+
+```{r}
+sample <- filter(metro_osm, unit_id == "West-Mississippi_trail_Metro-Regional_Three-Rivers")
+fxn_map(sample)  
+
+assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
+ms_relation <- opq_osm_id(id = 2175906, type = "relation", open_url = FALSE) %>%
+  osmdata_sf()
+
+ms_relation <- ms_relation$osm_lines
+
+ms_add <- osm_lines %>% 
+  filter(osm_id %in% ms_relation$osm_id & 
+           unit_id == "West-Mississippi_trail_Metro-Regional_Three-Rivers")
+
+metro_add <- metro_add %>%
+  rbind(ms_add %>% st_drop_geometry() %>% select(unit_id, osm_id))
+
+fxn_map_edits(sample, metro_add, metro_remove)
+```
+
+# Save all edits
+
+```{r}
+metro_osm_edits <- metro_remove %>%
+  mutate(osm_id = as.character(osm_id)) %>%
+  mutate(action = "remove") %>%
+  bind_rows(metro_add %>%
+              mutate(action = "add", 
+                     osm_id = as.character(osm_id))) %>%
+  mutate(zone_name = paste0(unit_id, "_", osm_id)) %>%
+  filter(!is.na(osm_id)) %>%
+  unique() # a few things got added more than once
+
+save(metro_osm_edits, 
+     file = file.path(here(), "data-intermediate/trails/metro-geography-edits.rda"))
+```

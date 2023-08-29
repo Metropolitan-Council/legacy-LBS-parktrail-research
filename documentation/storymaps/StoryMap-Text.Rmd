@@ -1,0 +1,54 @@
+--- 
+title: "Statewide Park and Trail Research - Summary"
+subtitle: "A joint research project between Minnesota Department of Natural Resources, Greater Minnesota Regional Parks and Trails Commission, and Metropolitan Council | `r Sys.Date()`"
+output:
+  bookdown::word_document2:
+    reference_docx: ../wordtemplate.docx
+    toc: true
+    toc_depth: 2
+  github_document:
+      toc: true
+      toc_depth: 2
+urlcolor: blue
+always_allow_html: yes
+---
+
+# Introduction
+
+This summary report provides a high-level overview of the Statewide Park and Trail research project. The content of this report is duplicated in an [online, interactive website](https://minnesota-parks-and-trails-metrocouncil.hub.arcgis.com/). 
+<!-- Each main section of this document (e.g., "Key Findings", "Parks," etc.) will have its own page. In sum, the contents of each component are designed to work together with minimal redundancy. Still, each component should be understandable indiv..idually for ease of finding and accessing specific information.  -->
+
+Other deliverables from this project include data summaries (spreadsheets), unit-level fact sheets for each park and trail (pdfs), a complete technical report on methods and findings (text document), and the code used to access and process all data (R scripts). All documents are accessible via the interactive website.
+
+This project was funded with Legacy Partnership Research Funds from the State of Minnesota Parks and Trails Legacy Fund. The joint research project was conducted in collaboration with the Greater Minnesota Regional Parks and Trails Commission, the Metropolitan Council Regional Parks and Trails System, and the Minnesota Department of Natural Resources. We thank staff from across the different organizations and cooperating implementing agencies for their cooperation in sharing data and providing feedback.
+
+```{r, child = c('./keyfindings.Rmd')}
+```
+
+
+```{r, child = c('./parks.Rmd')}
+```
+
+
+```{r, child = c('./trails.Rmd')}
+```
+
+
+```{r, child = c('./visitors.Rmd')}
+```
+
+
+```{r, child = c('./usecases.Rmd')}
+```
+
+
+```{r, child = c('./recs.Rmd')}
+```
+
+
+```{r, child = c('./resources.Rmd')}
+```
+
+
+```{r, child = c('./FAQ.Rmd')}
+```

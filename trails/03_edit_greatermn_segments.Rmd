@@ -1,0 +1,1384 @@
+---
+title: "Greater MN Regional Trail Segment Processing"
+output:
+  github_document:
+    toc: true
+always_allow_html: true
+urlcolor: blue
+---
+
+This Rmarkdown manually edits the OSM segments identified in `02_fetch_osm_data.R` for each Greater MN regional trail. Each trail is visually inspected and individual OSM segments are added or removed as necessary. The Rmarkdown outputs two pieces of data: `gmn_osm_edits`, a data frame documenting the osm_id for each segment to be added or removed, and `gmn_new_to_pull`, a list of osm_ids that were not captured in the original pull of OSM data. This data is saved to `data-intermediate/trails`.
+
+Rmarkdown is used for this step primarily for better legibility. Trails are accessed manually by zone name (rather than by index, for example) to ensure that edits are associated with the correct trail, and that changes to the order of trail or zone names does not introduce errors.
+
+# Setup
+
+```{r setup-gmn-segment-edits}
+# identified OSM segments
+gmn_osm <- bike_ped_osm %>%
+  filter(str_detect(unit_id, "Greater-MN")) %>%
+  st_transform(4326)
+
+# list of gmn trail names
+gmn_trails <- unique(filter(trail_lines, str_detect(unit_id, "Greater-MN"))$unit_id)
+
+# set up data frames of manually added/removed segments
+gmn_remove <- data.frame(NA_real_, NA_character_)
+names(gmn_remove) <- c("osm_id", "unit_id")
+
+gmn_add <- data.frame(NA_real_, NA_character_)
+names(gmn_add) <- c("osm_id", "unit_id")
+```
+
+Aitkin-County-Northwoods-ATV-Blind-Lake_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Aitkin-County-Northwoods-ATV-Blind-Lake_trail_Greater-MN")
+#fxn_map(sample)
+
+mapview(trail_polygons %>% filter(unit_id == "Aitkin-County-Northwoods-ATV-Blind-Lake_trail_Greater-MN"))
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = "Aitkin-County-Northwoods-ATV-Blind-Lake_trail_Greater-MN", 
+      osm_id = c(504206158, 509524268, 61047056, 
+                 509524269, 217528704, 499169037, 
+                 1128465357, 217528703, 217528705)
+    )
+  )
+
+mapview(trail_polygons %>% filter(unit_id == "Aitkin-County-Northwoods-ATV-Blind-Lake_trail_Greater-MN")) + mapview(osm_lines %>% filter(osm_id %in% c(504206158, 509524268, 61047056, 509524269, 217528704, 499169037, 1128465357, 217528703, 217528705)), color = "red")
+```
+
+Aitkin-County-Northwoods-ATV-Hill-City_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Aitkin-County-Northwoods-ATV-Hill-City_trail_Greater-MN")
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(96667959)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Aitkin-County-Northwoods-ATV-Lawler-Loops_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Aitkin-County-Northwoods-ATV-Lawler-Loops_trail_Greater-MN")
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(502730726)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Aitkin-County-Northwoods-ATV-Moose-River_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Aitkin-County-Northwoods-ATV-Moose-River_trail_Greater-MN")
+#fxn_map(sample)
+
+mapview(trail_polygons %>% filter(unit_id == "Aitkin-County-Northwoods-ATV-Moose-River_trail_Greater-MN"))
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = "Aitkin-County-Northwoods-ATV-Moose-River_trail_Greater-MN", 
+      osm_id = c(503622988, 503622987, 17988703, 
+                 17992592)
+    )
+  )
+```
+
+Aitkin-County-Northwoods-ATV-Rabey-Line_trail_Greater-M
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Aitkin-County-Northwoods-ATV-Rabey-Line_trail_Greater-MN")
+fxn_map(sample)
+
+gmn_new_to_pull <- 
+  data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(256370533)
+      )
+```
+
+Aitkin-County-Northwoods-ATV-Red-Top_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Aitkin-County-Northwoods-ATV-Red-Top_trail_Greater-MN")
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(17992839)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Aitkin-County-Northwoods-ATV-Solana-Loop_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Aitkin-County-Northwoods-ATV-Solana-Loop_trail_Greater-MN")
+fxn_map(sample)
+```
+
+Aitkin-County-Northwoods-ATV-Turnock-Loop_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Aitkin-County-Northwoods-ATV-Turnock-Loop_trail_Greater-MN")
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(17992334)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Aitkin-County-Northwoods-ATV-UPM-Blandin_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Aitkin-County-Northwoods-ATV-UPM-Blandin_trail_Greater-MN")
+#fxn_map(sample)
+
+mapview(trail_polygons %>% filter(unit_id == "Aitkin-County-Northwoods-ATV-UPM-Blandin_trail_Greater-MN"))
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = "Aitkin-County-Northwoods-ATV-UPM-Blandin_trail_Greater-MN", 
+      osm_id = c(17988894, 165271345, 165271346, 
+                 17993242, 256370527)
+    )
+  )
+```
+
+Battle-Lake-to-Ashby_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Battle-Lake-to-Ashby_trail_Greater-MN")
+#fxn_map(sample)
+
+mapview(trail_polygons %>% filter(unit_id == "Battle-Lake-to-Ashby_trail_Greater-MN"))
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = "Battle-Lake-to-Ashby_trail_Greater-MN", 
+      osm_id = c(18194835, 18200625, 18200213, 
+                 18198503, 18202499, 18190382, 
+                 18201420, 18200627, 18189089, 
+                 18200628, 18194833, 18202569, 
+                 18194832, 18193888, 18200626, 
+                 18190339, 18200629, 18198210, 
+                 18200631, 18196108, 18196827, 
+                 18094286)
+                 
+    )
+  )
+
+gmn_new_to_pull <- gmn_new_to_pull %>%
+  rbind(data.frame(unit_id = "Battle-Lake-to-Ashby_trail_Greater-MN", 
+                   osm_id = c(18190503, 18190602, 18194746, 18190617)))
+```
+
+Blue-Mounds_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Blue-Mounds_trail_Greater-MN")
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(239714251)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Camden_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Camden_trail_Greater-MN")
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(175821829, 698301689, 777538129, 
+                 771050408, 771050406, 217601904)
+    )
+  )
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(unit_id = sample$unit_id[1],
+               osm_id = c(406966465))
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Cannon-Valley_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Cannon-Valley_trail_Greater-MN")
+fxn_map(sample)
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(unit_id = sample$unit_id[1],
+               osm_id = c(148297080, 236315344, 148295417, 
+                          18089792))
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Chisago-County-Swedish-Immigrant_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Chisago-County-Swedish-Immigrant_trail_Greater-MN")
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(1154816693, 18044814, 985153278, 
+                 985153276, 18047567, 307032305)
+    )
+  )
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(unit_id = sample$unit_id[1],
+               osm_id = c(835884448))
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Cook-County-Mountain-Bike-Britton-Peak_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Cook-County-Mountain-Bike-Britton-Peak_trail_Greater-MN")
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(793102555, 875385854, 875385859, 
+                 875385849, 875385854, 875606532, 
+                 875385855, 875385858)
+    )
+  )
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(unit_id = sample$unit_id[1],
+               osm_id = c(875385849, 975834779))
+  )
+
+gmn_new_to_pull <- gmn_new_to_pull %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = 875385854
+  ))
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Cook-County-Mountain-Bike-Pincushion_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Cook-County-Mountain-Bike-Pincushion_trail_Greater-MN")
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(793102557, 793102556, 793102552, 
+                 796543281, 859029460, 859029461, 
+                 793102554, 859029463)
+    )
+  )
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(unit_id = sample$unit_id[1],
+               osm_id = c(796727420))
+  )
+
+gmn_new_to_pull <- gmn_new_to_pull %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(793102555)
+  ))
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Duluth-Traverse_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Duluth-Traverse_trail_Greater-MN")
+fxn_map(sample)
+
+assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
+
+dt_relation <- opq_osm_id(id = 8211272, type = "relation", open_url = FALSE) %>%
+  osmdata_sf()
+
+dt2_relation <- opq_osm_id(id = 11283416, type = "relation", open_url = FALSE) %>%
+  osmdata_sf()
+
+dt3_relation <- opq_osm_id(id = 946818017, type = "way", open_url = FALSE) %>%
+  osmdata_sf()
+
+dt_relation <- dt_relation$osm_lines %>%
+  bind_rows(dt2_relation$osm_lines) %>%
+  bind_rows(dt3_relation$osm_lines)
+
+dt_add <- osm_lines %>%
+  filter(osm_id %in% dt_relation$osm_id & !osm_id %in% sample$osm_id) %>%
+  mutate(unit_id = "Duluth-Traverse_trail_Greater-MN") %>%
+  st_drop_geometry()
+
+gmn_add <- gmn_add %>%
+  rbind(dt_add %>% select(osm_id, unit_id)) %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(824561810, 627622410, 1119616340, 
+               971470954, 1083023390, 1083023391, 
+               429899296, 429899295, 946818018, 
+               429897132)
+  ))
+
+gmn_remove <- gmn_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(627622404, 1104990471, 954710545, 
+               621838347, 621838339, 621838332, 
+               1008678097)
+  ))
+
+
+gmn_new_to_pull <- gmn_new_to_pull %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(824183324)
+  ))
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Fergus-Falls-Glacial-Edge_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Fergus-Falls-Glacial-Edge_trail_Greater-MN")
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(1046689879, 858296632, 18196205, 
+                 1046394138, 18202744, 809950348, 
+                 148895163, 148895160, 18190090, 
+                 18191004, 207596171)
+    )
+  )
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(unit_id = sample$unit_id[1],
+               osm_id = c(809872048, 996726997, 809952895,
+                          809872037, 858211053, 809872076, 
+                          809872080, 809950322))
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Glacial-Edge_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Glacial-Edge_trail_Greater-MN")
+#fxn_map(sample)
+
+mapview(trail_polygons %>% filter(unit_id == "Glacial-Edge_trail_Greater-MN"))
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = "Glacial-Edge_trail_Greater-MN", 
+      osm_id = c(892603678, 992972329, 1094970384, 
+                 1094970383, 18199515)
+                 
+    )
+  )
+```
+
+Great-Northern_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Great-Northern_trail_Greater-MN")
+#fxn_map(sample)
+
+#mapview(trail_polygons %>% filter(unit_id == "Great-Northern_trail_Greater-MN"))
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = "Great-Northern_trail_Greater-MN", 
+      osm_id = c(24320497, 186711298, 140318772)
+                 
+    )
+  )
+
+gmn_new_to_pull <- gmn_new_to_pull %>%
+  rbind(data.frame(
+    unit_id = "Great-Northern_trail_Greater-MN",
+    osm_id = c(138770612, 1027046763, 1027046764, 
+               138510588, 1027046769)
+  ))
+
+#fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Great-River_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Great-River_trail_Greater-MN")
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(345157878, 18296760, 53110474, 
+                 1100944084, 18294841, 40516663, 
+                 772124197, 137998435)
+                 
+    )
+  )
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(	1102962589)
+                 
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Greater-Mankato-River-Valley-Minneopa_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Greater-Mankato-River-Valley-Minneopa_trail_Greater-MN")
+
+fxn_map(sample)
+```
+
+Greater-Mankato-River-Valley-North-Minnesota-River_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Greater-Mankato-River-Valley-North-Minnesota-River_trail_Greater-MN")
+
+fxn_map(sample)
+```
+
+Greater-Mankato-River-Valley-Red-Jacket_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Greater-Mankato-River-Valley-Red-Jacket_trail_Greater-MN")
+
+fxn_map(sample)
+```
+
+Greater-Mankato-River-Valley-South-Route_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Greater-Mankato-River-Valley-South-Route_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(18017249)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Greater-Mankato-River-Valley-West-Mankato_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Greater-Mankato-River-Valley-West-Mankato_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(42002259)
+    )
+  )
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(416541399, 275379564, 381876303, 
+                 563802313)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Henderson_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Henderson_trail_Greater-MN")
+
+#fxn_map(sample)
+
+mapview(trail_polygons %>% filter(unit_id == "Henderson_trail_Greater-MN"))
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(42006107, 475919105, 475919101, 18248192, 18250432, 18250480)
+    )
+  )
+```
+
+Hermantown-Proctor-Munger-Spur_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Hermantown-Proctor-Munger-Spur_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(441088720, 18244683, 18247797, 
+                 18244675, 18246122, 782438178, 
+                 18243155, 18241951, 896873088, 
+                 460187069, 460187067, 177041558, 
+                 344529470, 131638687)
+    )
+  )
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(942312488)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Houston-Countys_trail_Greater-MN - SKIP
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Houston-Countys_trail_Greater-MN")
+
+fxn_map(sample)
+
+# remove
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id, 
+      osm_id = sample$osm_id
+    )
+  )
+```
+
+Lake-Country_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id =="Lake-Country_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(256521380, 18136653, 256521385, 
+                 256521387, 256521390, 256521381, 
+                 18138045, 256520612, 256520604, 
+                 256519219, 256519216, 256519217, 
+                 18136385, 256519212, 18137747, 
+                 213206296, 1103961460, 167850007, 
+                 167850018)
+    )
+  )
+
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(213216627, 1189226252)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Lake-Shore-Gull-Lake_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Lake-Shore-Gull-Lake_trail_Greater-MN")
+
+fxn_map(sample)
+
+backup <- osm_lines %>% 
+  filter(str_detect(unit_id, "Lake-Shore-Gull")) %>%
+  st_intersection(trail_polygons %>% st_transform(4326) %>%filter(unit_id == "Lake-Shore-Gull-Lake_trail_Greater-MN"))
+
+lsg_add <- osm_lines %>% 
+  filter(osm_id %in% backup$osm_id, 
+         highway == "tertiary", 
+         !osm_id %in% c(18035392, 18038996))
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = lsg_add$osm_id
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Lake-Vermillion_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Lake-Vermillion_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(214304095, 18249785, 18247805, 
+                 18251785, 429799618, 18246807)
+    )
+  )
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(1141856624, 1141547206, 18233799, 
+                 18252319, 214340509)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Lake-Vermillion-Cook-County_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Lake-Vermillion-Cook-County_trail_Greater-MN")
+
+#fxn_map(sample)
+
+mapview(trail_polygons %>% filter(unit_id == "Lake-Vermillion-Cook-County_trail_Greater-MN"))
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = "Lake-Vermillion-Cook-County_trail_Greater-MN", 
+      osm_id = c(18253118, 18253127)
+    )
+  )
+```
+
+Lake-Wobegon_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Lake-Wobegon_trail_Greater-MN")
+
+fxn_map(sample)
+```
+
+Luverne-Loop-and-Blue-Mounds_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Luverne-Loop-and-Blue-Mounds_trail_Greater-MN")
+
+#fxn_map(sample)
+
+mapview(trail_polygons %>% filter(unit_id == "Luverne-Loop-and-Blue-Mounds_trail_Greater-MN"))
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = "Luverne-Loop-and-Blue-Mounds_trail_Greater-MN", 
+      osm_id = c(18223627, 239712095, 239712088, 
+                 18224980)
+    )
+  )
+```
+
+Marshal-Kittson_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Marshal-Kittson_trail_Greater-MN")
+
+#fxn_map(sample)
+
+mapview(trail_polygons %>% filter(unit_id == "Marshal-Kittson_trail_Greater-MN"))
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = "Marshal-Kittson_trail_Greater-MN", 
+      osm_id = c(18126962, 8126805, 18123403, 
+                 18127367, 18128313, 18127931, 
+                 18127926, 18127396, 18126426, 
+                 18150033,  18150878, 18150881, 
+                 601770820, 601770818, 18148308, 
+                 18149655)
+    )
+  )
+```
+
+McLeod-County-Dakota-Rail_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "McLeod-County-Dakota-Rail_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_new_to_pull <- gmn_new_to_pull %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1], 
+    osm_id = c(18149508, 18149511, 45121569)
+  ))
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Mesabi-Biwabik-to-Aurora_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Mesabi-Biwabik-to-Aurora_trail_Greater-MN")
+
+fxn_map(sample)
+```
+
+Mesabi-Buhl-to-Virginia_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Mesabi-Buhl-to-Virginia_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(356944746)
+    )
+  )
+
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(936761748, 356944776)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Mesabi-Chisholm-to-Buhl_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Mesabi-Chisholm-to-Buhl_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(183026717, 356944778, 18250997)
+    )
+  )
+
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(8237963, 418288914, 18238874, 
+                 18237963)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Mesabi-Giants-Ridge-to-Hwy-135_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Mesabi-Giants-Ridge-to-Hwy-135_trail_Greater-MN")
+
+fxn_map(sample)
+```
+
+Mesabi-Gilbert-to-Eveleth_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Mesabi-Gilbert-to-Eveleth_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(396749245, 443687080)
+    )
+  )
+
+mt <- sample %>% filter(highway == "track")
+
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(18248108, 443689952, 444488364, mt$osm_id)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Mesabi-Grand-Rapids-to-Marble_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Mesabi-Grand-Rapids-to-Marble_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(175960238, 134678391, 18112544)
+    )
+  )
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(18113744, 18102140)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Mesabi-Hibbing-to-Chisholm_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Mesabi-Hibbing-to-Chisholm_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(845497796, 845497798)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Mesabi-Keewatin-to-Hibbing_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Mesabi-Keewatin-to-Hibbing_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(18116864, 118760615, 18244613, 
+                 356939512, 56356246, 18251207, 
+                 18246487, 18250022, 129179044, 
+                 18253144, 18245507)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Mesabi-Marble-to-Keewatin_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Mesabi-Marble-to-Keewatin_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(356937444, 356939519, 118634929, 
+                 356939515, 356939509)
+    )
+  )
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(18113257)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Mesabi-Unconstructed-McKinley-to-Biwabik_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Mesabi-Unconstructed-McKinley-to-Biwabik_trail_Greater-MN")
+
+#fxn_map(sample)
+
+mapview(trail_polygons %>% filter(unit_id == "Mesabi-Unconstructed-McKinley-to-Biwabik_trail_Greater-MN"))
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = "Mesabi-Unconstructed-McKinley-to-Biwabik_trail_Greater-MN", 
+      osm_id = c(845487237, 184369573)
+    )
+  )
+```
+
+Mesabi-Virginia-To-McKinley_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Mesabi-Virginia-To-McKinley_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(184253395, 184366742)
+    )
+  )
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(439250466, 441081579, 849916827, 
+                 184366758, 444504183, 445124673, 
+                 444675776)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Mille-Lacs-County-Plains-to-Port_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Mille-Lacs-County-Plains-to-Port_trail_Greater-MN")
+
+#fxn_map(sample)
+
+mapview(trail_polygons %>% filter(unit_id == "Mille-Lacs-County-Plains-to-Port_trail_Greater-MN"))
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = "Mille-Lacs-County-Plains-to-Port_trail_Greater-MN", 
+      osm_id = c(138766192)
+    )
+  )
+```
+
+Moorhead-River-Corridor_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Moorhead-River-Corridor_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(784323263, 184455202, 98243617, 
+                 18047226, 611640681, 18048097, 
+                 98641914, 18044983, 640382431)
+    )
+  )
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(185874076)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Otter-Tail-County-Perham-to-Pelican-Rapids_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Otter-Tail-County-Perham-to-Pelican-Rapids_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(992609739, 854342748, 18197309, 
+                 18200974, 18202664, 18200464, 
+                 18189564, 18200463, 18197736, 
+                 18194123, 18191553, 18202181,
+                 18202185, 18200000, 18202121, 
+                 18199992)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Prospector-Loop_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Prospector-Loop_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(173546963, 743179551, 18131189, 
+                 224492424,  18130993, 224492422, 
+                 614377510, 18138221, 18137123, 
+                 18131380, 18131032, 18136105, 
+                 360207284, 360207287, 360207281, 
+                 18133786, 18133783, 360207278, 
+                 360207288, 360207279, 18131919, 
+                 18137465, 18138226, 18138030, 
+                 256398456, 18136506, 173665078, 
+                 18131483, 18138176, 18136689, 
+                 18137237, 18131754, 18131880, 
+                 18138021,  18137142, 18137781, 
+                 18137779, 18137385, 18136127, 
+                 18137388, 1155310440, 1155310441,
+                 1155310442,  18134430, 18131073,
+                 18131067, 18136803, 974170814, 
+                 974170815, 1105524011, 973918748
+        )
+    )
+  )
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(18133621, 973918752
+        )
+    )
+  )
+
+gmn_new_to_pull <- gmn_new_to_pull %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = 18131038
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Red-Lake-River-Corridor_trail_Greater-MN - SKIP
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Red-Lake-River-Corridor_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_remove <- gmn_remove %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id, 
+    osm_id = sample$osm_id
+  ))
+```
+
+Sidewalk-Connecting-Luverne-Loop-and-Blue-Mounds_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Sidewalk-Connecting-Luverne-Loop-and-Blue-Mounds_trail_Greater-MN")
+
+#fxn_map(sample)
+
+mapview(trail_polygons %>% filter(unit_id == "Sidewalk-Connecting-Luverne-Loop-and-Blue-Mounds_trail_Greater-MN"))
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(18225194, 239695293)
+    )
+  )
+
+#fxn_map_added(sample)
+```
+
+Soo-Line-North-Aitkin-County_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Soo-Line-North-Aitkin-County_trail_Greater-MN")
+
+fxn_map(sample)
+```
+
+Soo-Line-North-Carlton-County_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Soo-Line-North-Carlton-County_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_new_to_pull <- gmn_new_to_pull %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(18024464)
+    )
+  )
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(777690977)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Soo-Line-North-Cass-County_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Soo-Line-North-Cass-County_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(362635610)
+    )
+  )
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(362635611, 174394374, 1005579018)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Soo-Line-South-Morrison-County_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Soo-Line-South-Morrison-County_trail_Greater-MN ")
+
+#fxn_map(sample)
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(59047112)
+    )
+  )
+```
+
+Soo-Line-South_trail_Greater-MN - duplicate of above, skip
+
+St-Cloud-Beaver-Island-Connection_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "St-Cloud-Beaver-Island-Connection_trail_Greater-MN")
+
+#fxn_map(sample)
+
+mapview(trail_polygons %>% filter(unit_id == "St-Cloud-Beaver-Island-Connection_trail_Greater-MN"))
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(688267291)
+    )
+  )
+```
+
+Sunrise-Prairie_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Sunrise-Prairie_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(1096866878, 486696312, 486696307)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Waabisheshikana-The-Marten_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Waabisheshikana-The-Marten_trail_Greater-MN")
+
+fxn_map(sample)
+```
+
+Wright-County-Crow-River_trail_Greater-MN
+
+```{r}
+sample <- filter(gmn_osm, unit_id == "Wright-County-Crow-River_trail_Greater-MN")
+
+fxn_map(sample)
+
+gmn_add <- gmn_add %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(18298052, 18297934, 116651860, 
+                 6007112, 18297493, 724836454, 
+                 724836452, 724836451, 724836451, 
+                 6043214, 6026864, 6040615, 
+                 6015809)
+    )
+  )
+
+gmn_remove <- gmn_remove %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1], 
+      osm_id = c(387480557)
+    )
+  )
+
+fxn_map_edits(sample, gmn_add, gmn_remove)
+```
+
+Zumbro-River_trail_Greater-MN - exclude, only 1 segment identified
+
+```{r}
+# sample <- filter(gmn_osm, unit_id == "Zumbro-River_trail_Greater-MN")
+# 
+# #fxn_map(sample)
+# 
+# mapview(trail_polygons %>% filter(unit_id == "Zumbro-River_trail_Greater-MN"))
+```
+
+# Save all edits
+
+```{r}
+gmn_osm_edits <- gmn_remove %>%
+  mutate(osm_id = as.character(osm_id)) %>%
+  mutate(action = "remove") %>%
+  bind_rows(gmn_add %>%
+              mutate(action = "add", 
+                     osm_id = as.character(osm_id))) %>%
+  mutate(zone_name = paste0(unit_id, "_", osm_id)) %>%
+  filter(!is.na(osm_id)) %>%
+  unique() %>% # a few things got added more than once
+  filter(unit_id != "Zumbro-River_trail_Greater-MN")
+
+save(gmn_new_to_pull, gmn_osm_edits, 
+     file = file.path(here(), "data-intermediate/trais/gmn-geography-edits.rda"))
+```

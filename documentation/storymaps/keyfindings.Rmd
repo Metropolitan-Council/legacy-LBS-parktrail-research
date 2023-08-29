@@ -1,0 +1,208 @@
+---
+title: "StreetLight Legacy Project Key Findings (StoryMap text)"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  bookdown::word_document2:
+    reference_docx: ../wordtemplate.docx
+    toc: yes
+    toc_depth: 1
+  word_document:
+    toc: yes
+    toc_depth: '1'
+always_allow_html: yes
+urlcolor: blue
+---
+
+
+```{r include = FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE, 
+  message = FALSE, 
+  fig.pos = "H", 
+  out.width= "65%",
+  fig.height = 4, 
+  fig.asp = 0.6,
+  dpi = 300
+)
+
+## source basic utility functions, colors for plotting, etc
+source(file.path(here::here(), "R/_load_packages.R"))
+source(file.path(here(), "R/_utility_functions.R"))
+source(file.path(here(), "R/_global_parameters.R"))
+source(file.path(here(), "R/_streetlight_credentials_parameters.R"))
+source(file.path(here(), "R/_set_aesthetics.R"))
+source(file.path(here(), "R/f_get_date_sequence.R"))
+
+legacy_dkgreen <- "#4c822e"
+
+# load(file.path(here::here(), "data-processed/trail_volume.rda"))
+# load(file.path(here::here(), "data-processed/park_volume.rda"))
+# park_zone_meta <- readRDS(file.path(here::here(), "data-processed/park_zone_metadata.RDS"))
+# trail_unit_meta <- readRDS(file.path(here::here(), "data-processed/trail_unit_metadata.RDS"))
+# trail_zone_meta <- readRDS(file.path(here::here(), "data-processed/trail_zone_metadata.RDS"))
+
+load(file.path(here::here(), "data-intermediate/processed/trail-volume.rda"))
+load(file.path(here::here(), "data-intermediate/processed/park-volume.rda"))
+load(file.path(here::here(), "data-intermediate/trails/trail-metadata.rda"))
+park_metadata <- readRDS(file.path(here::here(), "data-intermediate/parks/parks-metadata.RDS"))
+
+working_trail_volume <- annual_trail_volume %>% filter(str_detect(day_type, "All"))
+
+working_annual_volume <- annual_volume %>% filter(system != "Metro Regional Inclusive")
+working_weekly_volume <- weekly_volume %>% filter(system != "Metro Regional Inclusive")
+
+n_parks <- n_distinct(working_annual_volume$zone_name)
+
+analysis_period <- "January 2019 - April 2022"
+n_weeks <- 173
+
+load(file.path(here::here(), "data-intermediate/trails/cleaned-trail-geography.rda")) 
+
+trail_summary <- st_drop_geometry(cleaned_trail_segments) %>%
+  left_join(trail_segment_metadata) %>%
+  filter(!is.na(system_label)) %>%
+  group_by(system_label) %>%
+  summarise(Trails = n_distinct(unit_id),
+            Segments = n_distinct(zone_name),
+            Miles = round(sum(as.numeric(approx_length_miles)))) 
+
+n_trails <- sum(trail_summary$Trails)
+trail_miles <- sum(trail_summary$Miles)
+```
+
+
+# Overview
+
+Understanding visitation to Minnesota’s parks and trails is essential for planning, programming, and investment decisions. Visitation estimates generally rely on methods such as intercept surveys, in-field visitation counts, and automated trail counters. Visitation estimates using passively-generated data sources may offer opportunities to complement existing strategies. 
+
+This project used aggregated and anonymized location-based services (LBS) data to estimate and evaluate visitation to Minnesota parks and trails. LBS data gives information about when and where people travel. This approach provides unprecedented detail about how visitors use parks and trails and broadly describes who those visitors are. Visitation and use patterns can be analyzed at annual, monthly, weekly, and hourly time intervals. This data makes it possible to understand how people travel to parks and trails and where they are coming from. This data is intended to supplement, but not replace existing data used for decision making. 
+
+## Parks and trails are valuable
+
+Most broadly, this research highlighted the incredible value of Minnesota’s parks and trails. We analyzed `r n_parks` parks and `r n_trails` trails (`r prettyNum(trail_miles, big.mark = ",")`) miles of trail). During the study period (`r analysis_period`), we estimate `r round(sum(working_weekly_volume$weekly_total)/1e6, 2)` million park visits and `r round(working_trail_volume %>% ungroup() %>% summarise(sum(miles_traveled)/1e6),2)` million miles of trail use (Figure \@ref(fig:usesummaryfig)). If equally distributed across Minnesota’s [5.7 million residents](https://mn.gov/admin/demography/data-by-topic/population-data/our-estimates/), the average Minnesotan would have made `r round(sum(working_weekly_volume$weekly_total) /  5742036, 0)` visits to parks and traveled over `r round(working_trail_volume %>% ungroup() %>% summarise(sum(miles_traveled)/5742036),0)` miles of trail during this period. Park and trail use was highest in 2020, and there was an overall trend of increasing use over time. 
+
+Despite cold winters, Minnesota parks and trails are used year-round. Year-round visitation is supported by seasonal amenities, from swimming beaches to ski slopes and many others. Use in all seasons underscores the value of parks and trails. 
+
+
+```{r usesummaryfig}
+#| fig.cap = "Summation of state and regional park and trail use across all three systems for the three complete years in this study (2019, 2020, 2021). This project additionally includes partial data for 2022.",
+#| results='markup', 
+#| out.width= "4in",  
+#| out.extra='style="float:center"', 
+#| fig.asp = .8
+
+working_annual_volume %>%
+  group_by(year) %>%
+  summarise(use = sum(annual_total)/1e6) %>%
+  mutate(type = "Park use\n(millions of visitors)") %>%
+  
+  bind_rows(working_trail_volume %>%
+              group_by(year) %>%
+              summarise(use = sum(miles_traveled)/1e6) %>%
+              mutate(type = "Trail use\n(millions of miles traveled)")) %>%
+  filter(year != 2022) %>%
+
+  ggplot(aes(x = year, y = use, fill = type))+#, alpha = urban)) +
+  geom_col(color = "black", width = .93)+#, position = position_dodge(width = .9)) + 
+  # geom_linerange(aes(ymin = MEAN - SE, ymax = MEAN + SE)) +
+  # geom_label(aes(x = year, y = 40, label = use), fill = "white") +
+  # geom_text(aes(label = use), vjust = -.2) +
+    geom_label(aes(label = format(round(use, 2), nsmall = 2), y = rep(c(30.5, 49), each = 3)), fill = "white", size = 4.5) +
+  theme_council_open(base_size = 10) +
+  # theme(axis.text.x = element_text(size = 10),
+  #       strip.text = element_text(size = 11)) +
+  scale_fill_manual(values = c(legacy_blue, legacy_dkgreen)) +
+  # scale_fill_brewer(palette = "Greens") +
+  scale_y_continuous(labels = scales::label_comma(), expand = expansion(mult = c(0, .1))) +
+  labs(caption = fig_caption) +
+  facet_wrap(~type, scales = "free") +
+  theme(legend.position = "none",
+        axis.line.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.line.x = element_blank(),
+        axis.ticks.length.y = unit(0, "cm"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        plot.caption = element_text(size = 12),
+        axis.text.x = element_text(size = 12),
+        strip.text = element_text(size = 14))
+
+ggsave(file.path(here::here(), "figures/storymap/annual-park-trail-volume.png"))
+
+# metro_plot <- working_annual_volume %>%
+#   filter(str_detect(zone_name, "Metro-Regional")) %>%
+#   group_by(year) %>%
+#   summarise(use = sum(annual_total)/1e6) %>%
+#   mutate(type = "Estimated park use\n(millions of visitors)") %>%
+#   
+#   bind_rows(working_trail_volume %>%
+#               filter(str_detect(unit_name, "Metro-Regional")) %>%
+#               group_by(year) %>%
+#               summarise(use = sum(miles_traveled)/1e6) %>%
+#               mutate(type = "Estimated trail use\n(millions of miles traveled)")) %>%
+#   filter(year != 2022) %>%
+# 
+#   ggplot(aes(x = year, y = use, fill = type))+#, alpha = urban)) +
+#   geom_col(color = "black", width = .93)+#, position = position_dodge(width = .9)) + 
+#   # geom_linerange(aes(ymin = MEAN - SE, ymax = MEAN + SE)) +
+#   # geom_label(aes(x = year, y = 40, label = use), fill = "white") +
+#   # geom_text(aes(label = use), vjust = -.2) +
+#     geom_label(aes(label = format(round(use, 2), nsmall = 2), y = rep(c(18, 33), each = 3)), fill = "white", size = 4.5) +
+#   theme_council_open(base_size = 10) +
+#   # theme(axis.text.x = element_text(size = 10),
+#   #       strip.text = element_text(size = 11)) +
+#   scale_fill_manual(values = c(legacy_blue, legacy_dkgreen)) +
+#   # scale_fill_brewer(palette = "Greens") +
+#   scale_y_continuous(labels = scales::label_comma(), expand = expansion(mult = c(0, .1))) +
+#   labs(caption = fig_caption, title = "Metropolitan regional park and trail use") +
+#   facet_wrap(~type, scales = "free") +
+#   theme(legend.position = "none",
+#         axis.line.y = element_blank(),
+#         axis.text.y = element_blank(),
+#         axis.line.x = element_blank(),
+#         axis.ticks.length.y = unit(0, "cm"),
+#         axis.title.x = element_blank(),
+#         axis.title.y = element_blank(),
+#         plot.caption = element_text(size = 12),
+#         axis.text.x = element_text(size = 12),
+#         strip.text = element_text(size = 14), 
+#         plot.title = element_text(hjust = 0.5, size = 22))
+# 
+# ggsave(file.path(here::here(), "figures/slides/metro-annual-park-trail-volume.png"))
+```
+
+## State and regional systems have similarities and differences
+
+This project evaluated a variety of parks and trails, from remote parks covering thousands of acres to bike trails passing through urban and residential centers (Figure \@ref(fig:locations)). There are many similarities between the parks and trails analyzed. For example, they all draw visitors from beyond their immediate neighborhoods, and many share seasonal visitation patterns. However, this work also revealed substantial variation between parks and trails within each park system.
+
+A more complete picture of the connections and similarities across systems emerges when considering park- or trail-level data. This detail means that findings aren’t limited to broad, system-level generalizations. Instead, unique patterns can be explored for each unit to better understand the entire statewide network of parks and trails. 
+
+```{r locations}
+#| fig.cap = "Park and trail locations included within this research. To be included, parks and trails must be eligible to receive Legacy funding. Source: Minnesota Great Outdoors.", 
+#| results='markup', 
+#| out.width= "3.5in",  
+#| out.extra='style="float:center"', 
+#| fig.asp = .7
+
+# knitr::include_graphics(file.path(here::here(), "global_storymap-text/figs/mngreatoutdoors.png"))
+knitr::include_graphics(file.path(here::here(), "documentation/images/mngreatoutdoors.png"))
+
+```
+
+
+## Park and trail visitor demographics vary widely 
+
+Though we estimate high use of parks and trails across the state, the benefits accessible parks and trails are not equitably distributed among Minnesotans. Specific demographic patterns of visitors differ by individual units.
+
+This project provides the opportunity to learn more about who visits parks and trails and to guide our work toward equitable park and trail access (Figure \@ref(fig:demopic)). Location-based services data can provide inferred demographics when survey data does not exist for race and ethnicity, education, and income categories. While inferred demographics are different than intercept surveyed responses and cannot capture visitors’ lived experiences, they may provide valuable insight. For example, the findings from this work may be used to guide future outreach or survey efforts.
+
+```{r demopic}
+#| fig.cap = "Reducing barriers to access and ensuring that all Minnesotans benefit from parks and trails across the state is important.", 
+#| results='markup', 
+#| out.width= "3.5in",  
+#| out.extra='style="float:center"', 
+#| fig.asp = .7
+
+knitr::include_graphics(file.path(here::here(), "documentation/images/demo_pic.png"))
+```

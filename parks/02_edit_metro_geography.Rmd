@@ -1,0 +1,1653 @@
+---
+title: "Metro Regional Park Polygon Processing"
+output:
+  github_document:
+    toc: true
+always_allow_html: true
+urlcolor: blue
+---
+
+This Rmarkdown manually edits each Metro regional park using the polygons, water, and road features gathered in script `01_fetch_park_geography.R`. Individual parks are accessed via unique zone names. The Rmarkdown outputs two shapefiles: park polygons and park perimeters. Both shapefiles are saved in the `data-intermediate` folder of this repository. An additional `/data-temp` folder is used locally to save individual edits before combining all parks into a single shapefile. This temporary folder is not pushed to the public repository. To run this code, please create a `/data-temp/metro-park-geography` folder at the root of this directory.
+
+Rmarkdown is used for this step primarily for better legibility. Parks are accessed manually by zone name (rather than by index, for example) to ensure that edits are associated with the correct park, and that changes to the order of parks or zone names does not introduce errors. 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+## load data
+load(file.path(here(), "data-intermediate/parks/raw-metro-geography.rda"))
+
+## message
+cat(paste("processing", length(metro), "Greater MN parks"))
+
+## set mapview to pop up in browser (optional)
+options(viewer = NULL)
+```
+
+# Edit each park individually
+
+
+Above the Falls
+
+```{r}
+name <- "Above-the-Falls_park_Metro-Regional_MPRB"
+park <- metro[[name]]
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  st_buffer(5) %>%
+  summarise(do_union = TRUE)
+
+# don't drop crumbs, this unit has some very small sections
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% #mapview() 
+  saveRDS(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS"))
+```
+
+Anoka Co Riverfront 
+
+```{r}
+name <- "Anoka-Riverfront-and-Islands-of-Peace_park_Metro-Regional_Anoka-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  st_buffer(30) %>% 
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% #mapview()
+  saveRDS(paste0(here(), "/data-temp/metro-park-geography/Anoka-Co-Riverfront_Anoka-County-Parks-and-Recreation.RDS"))
+```
+
+Baker
+
+```{r}
+name <- "Baker_park_Metro-Regional_Three-Rivers"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP") 
+
+mndot_rm <-roads %>%
+  filter(!ROUTE_NAME %in% c("Orono M 20-I", "Orono M 20-D")) %>% # leads to ~3 houses and a group campsite
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Bald Eagle Otter
+
+```{r}
+name <- "Bald-Eagle-Otter-Lake_park_Metro-Regional_Ramsey-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  filter(!ROUTE_NAME %in% c("Ramsey PVT 9-I", "Ramsey PVT 9-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Battle Creek
+
+```{r}
+name <- "Battle-Creek_park_Metro-Regional_Ramsey-County"
+park <- metro[[name]]
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Baylor
+
+```{r}
+name <- "Baylor_park_Metro-Regional_Carver-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Big Marine
+
+```{r}
+name <- "Big-Marine_park_Metro-Regional_Washington-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Bryant
+
+```{r}
+name <- "Bryant-Lake_park_Metro-Regional_Three-Rivers"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Bunker Hills
+
+```{r}
+name <- "Bunker-Hills_park_Metro-Regional_Anoka-County"
+park <- metro[[name]]
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  filter(OWNERSHIP == "County Highway Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>% 
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Carver
+
+```{r}
+name <- "Carver_park_Metro-Regional_Three-Rivers"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  filter(ROUTE_NAME %in% c("Carver T 454-I", "Carver T 454-D", "Victoria M 106-I", "Victoria M 106-D") | !OWNERSHIP %in% c("Local Park, Forest, or Reservation Agency", "Town or Township Highway Agency")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Cedar Lake Farm
+
+```{r}
+name <- "Cedar-Lake-Farm_park_Metro-Regional_Scott-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Central Misissippi Riverfront
+
+```{r}
+name <- "Central-Mississippi-Riverfront_park_Metro-Regional_MPRB"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  filter(OWNERSHIP == "State Highway Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+rm2 <- roads %>%
+  filter(OWNERSHIP != "State Highway Agency") %>%
+  filter(!ROUTE_NAME %in% c("Minneapolis M 2228-I", "Minneapolis M 639-I")) %>%
+  st_buffer(5) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  st_erase(rm2) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Cleary Lake
+
+```{r}
+name <- "Cleary-Lake_park_Metro-Regional_Three-Rivers"
+park <- metro[[name]]
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+
+park %>% 
+  st_make_valid() %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Clifton E French
+
+```{r}
+name <- "Clifton-E-French_park_Metro-Regional_Three-Rivers"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  filter(OWNERSHIP != "City or Municipal Highway Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Como
+
+```{r}
+name <- "Como_park_Metro-Regional_Saint-Paul"
+park <- metro[[name]]
+ 
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  filter(OWNERSHIP != "City or Municipal Highway Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% 
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Como Zoo + Conservatory
+
+```{r}
+name <- "Como-Zoo-and-Conservatory_park_Metro-Regional_Saint-Paul"
+park <- metro[[name]]
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+
+Coon Rapids Dam
+
+```{r}
+name <- "Coon-Rapids-Dam_park_Metro-Regional_Anoka-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  filter(!ROUTE_NAME %in% c("Coon Rapids M 429-I", "Coon Rapids M 429-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Cottage Grove Ravine
+
+```{r}
+name <- "Cottage-Grove-Ravine_park_Metro-Regional_Washington-County"
+park <- metro[[name]]
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  filter(OWNERSHIP != "Local Park, Forest, or Reservation Agency") %>% 
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Crow Hassan
+
+```{r}
+name <- "Crow-Hassan_park_Metro-Regional_Three-Rivers"
+park <- addriver_fxn(metro, metro_water, name, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  filter(! ROUTE_NAME %in% c("Rogers M 264-I", "Rogers M 264-D")) %>% 
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Eagle Lake
+
+```{r}
+name <- "Eagle-Lake_park_Metro-Regional_Three-Rivers"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  filter(! ROUTE_NAME %in% c("Maple Grove M 69-I", "Maple Grove M 69-D")) %>% 
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Elm Creek
+
+```{r}
+name <- "Elm-Creek_park_Metro-Regional_Three-Rivers"
+park <- metro[[name]]
+
+roads <- metro_mndot_roads[[name]]
+
+#mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  filter(OWNERSHIP != "Private (other than Railroad)") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Fish Lake
+
+```{r}
+name <- "Fish-Lake_park_Metro-Regional_Three-Rivers"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  filter(!ROUTE_NAME %in% c("Maple Grove M 1913-I", "Maple Grove M 1913-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Gale Woods Farm
+
+```{r}
+name <- "Gale-Woods-Farm_park_Metro-Regional_Three-Rivers"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+#mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  filter(!ROUTE_NAME %in% c("Minnetrista M 139-I", "Minnetrista M 139-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Hidden Falls Crosby Farm
+
+```{r}
+name <- "Hidden-Falls-Crosby-Farm_park_Metro-Regional_Saint-Paul"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+#mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  filter(!ROUTE_NAME %in% c("Saint Paul M 645-I", "Saint Paul M 645-D", 
+                            "Saint Paul M 1764-I", "Saint Paul M 1764-D", 
+                            "Saint Paul M 2175-I", "Saint Paul M 2175-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Hyland Bush Anderson Lakes - Bloomington
+```{r}
+name <- "Hyland-Bush-Anderson-Lakes_park_Metro-Regional_Bloomington"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+rm <- roads %>%
+  filter(!ROUTE_NAME %in% c("Bloomington M 803-I", "Bloomington M 803-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+rm2 <- roads %>%
+  filter(!ROUTE_NAME %in% c("Bloomington M 803-I", "Bloomington M 803-D")) %>%
+  st_buffer(5) %>%
+  summarise(do_union = TRUE)
+
+lat = c(44.854605, 44.854033)
+lon = c(-93.392364, -93.391310)
+corners = data.frame(lon, lat)
+add <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc() %>%
+  st_transform(26915)
+
+rm3 <- roads %>%
+  filter(ROUTE_LABE %in% c("MSAS 127", "MSAS 101", "PVT 1077", "US 169", "CON 6627", "CON 4151", "MSAS 107")) %>%
+           st_buffer(30) %>%
+           summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_union(add) %>%
+  st_erase(rm) %>%
+  st_erase(rm2) %>%
+  st_erase(rm3) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Hyland - Three Rivers
+
+```{r}
+name <- "Hyland-Bush-Anderson-Lakes_park_Metro-Regional_Three-Rivers"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+# remove the same roads as above
+park %>% 
+  st_make_valid() %>%
+  st_union(add) %>%
+  st_erase(rm) %>%
+  st_erase(rm2) %>%
+  st_erase(rm3) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Indian Mounds
+
+```{r}
+name <- "Indian-Mounds_park_Metro-Regional_Saint-Paul"
+park <- metro[[name]]
+ 
+roads <- metro_mndot_roads[[name]]
+
+#mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+mndot_rm <-roads %>%
+  filter(!ROUTE_NAME %in% c("Saint Paul M 381-I", "Saint Paul M 381-D", 
+                            "Saint Paul MSAS 268-I", "Saint Paul MSAS 268-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+
+Keller
+
+```{r}
+name <- "Keller_park_Metro-Regional_Ramsey-County"
+park <- metro[[name]]
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  st_buffer(5) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% 
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Kingswood
+
+```{r}
+name <- "Kingswood_park_Metro-Regional_Three-Rivers"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Lake Byllesby
+
+```{r}
+name <- "Lake-Byllesby_park_Metro-Regional_Dakota-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  filter(OWNERSHIP != "Town or Township Highway Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# feedback: 
+
+# Within the east unit of the park, there are a few houses along the lake on Echo Point. The small slivers north of Echo Point road (between houses and the lake) should be excluded. And FYI, this is a case where these residents must commute through the park when traveling to/from home.
+# 
+# The park boundary actually extends 50' east of the Harry Ave (the north-south entrance road). There are plans to build a trail in this area, so we suggest the polygon be extended to include it.
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Lake Elmo
+
+```{r}
+name <- "Lake-Elmo_park_Metro-Regional_Washington-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  filter(OWNERSHIP != "Private (other than Railroad)") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>%# mapview() 
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Lake George
+
+```{r}
+name <- "Lake-George_park_Metro-Regional_Anoka-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+# smaller buffer to maintain parking lots
+mndot_rm <-roads %>%
+  st_buffer(5) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Lake Minnetonka
+
+```{r}
+name <- "Lake-Minnetonka_park_Metro-Regional_Three-Rivers"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  filter(!ROUTE_NAME %in% c("Minnetrista M 74-I", "Minnetrista M 74-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Lake Minnewashta
+
+```{r}
+name <- "Lake-Minnewashta_park_Metro-Regional_Carver-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  filter(OWNERSHIP != "Local Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Lake Rebecca
+
+```{r}
+name <- "Lake-Rebecca_park_Metro-Regional_Three-Rivers"
+park <- addriver_fxn(metro, metro_water, name, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  filter(OWNERSHIP != "City or Municipal Highway Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Lake Sarah
+
+```{r}
+name <- "Lake-Sarah_park_Metro-Regional_Three-Rivers"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+# smaller buffer to maintain parking lots
+mndot_rm <-roads %>%
+  st_buffer(15) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Lake Waconia
+
+```{r}
+name <- "Lake-Waconia_park_Metro-Regional_Carver-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park)
+
+# based on feedback, remove DNR boat road/parking
+mndot_rm <-roads %>%
+  filter(ROUTE_NAME %in% c("Waconia M 109-D", "Waconia M 109-I")) %>%
+  st_buffer(30)
+
+# manually remove the rest of the parking area
+lat = c(44.853107, 44.853502, 44.85467, 44.855415, 44.854348, 44.853845, 44.853594, 44.853275)
+lon = c(-93.763902, -93.765691, -93.767083, -93.765758, -93.764443, -93.765410, -93.765067, -93.763769)
+corners = data.frame(lon, lat) 
+rm2 <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  summarise(do_union = FALSE) %>%
+  st_cast("POLYGON") %>% 
+  st_transform(26915) 
+
+
+park %>% 
+  st_make_valid() %>% 
+  st_erase(mndot_rm) %>%
+  st_erase(rm2) %>% 
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Lebanon Hills 
+
+```{r}
+name <- "Lebanon-Hills_park_Metro-Regional_Dakota-County"
+park <- metro[[name]]
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  filter(OWNERSHIP == "County Highway Agency" | ROUTE_NAME %in% c("Rosemount M 81-I", "Eagan M 130-I", "Dakota PVT 2198-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# feedback: 
+# "Please be sure to exclude vehicular traffic on 120th St W. (second filter above)
+# 
+# Please remove the small slivers/polygons surrounding the park boundary. They appear to mainly be on water bodies. (drop crumbs)
+# 
+# The inholding of Camp Butwin should be excluded. See link to map provided in Q9. This is the inholding on/around O'Brien Lake and Cattail Lake. (https://www.co.dakota.mn.us/parks/Documents/LebanonHillsSummerTrailMap.pdf, manual subtraction oof)
+# 
+# Several residences are served by Carriage Hills Dr (east-west road off of Pilot Knob Rd). This is a case where some residents have to commute through the park when traveling to/from their home." removed residential part in filter
+
+# remove inholding (simplified shape)
+lat = c(44.783300, 44.779107)
+lon = c(-93.145764, -93.136762)
+corners = data.frame(lon, lat)
+inholding <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc() %>%
+  st_transform(26915)
+
+mapview(park) + mapview(inholding)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  st_erase(inholding) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+
+Lilydale-Harriet Island - St Paul
+
+```{r}
+name <- "Lilydale-Harriet-Island_park_Metro-Regional_Saint-Paul"
+park <- addshore_fxn(metro, metro_water, name, 50, 5000)
+
+roads <- metro_mndot_roads[[name]]
+
+# smaller buffer to maintain parking lots
+mndot_rm <-roads %>%
+  filter(!ROUTE_NAME %in% c("Saint Paul M 959-I", "Saint Paul M 959-D")) %>%
+  st_buffer(15) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Long Lake
+
+```{r}
+name <- "Long-Lake_park_Metro-Regional_Ramsey-County" 
+park <- metro[[name]]
+
+roads <- metro_mndot_roads[[name]]
+
+# smaller buffer to maintain parking lots
+mndot_rm <-roads %>%
+  filter(OWNERSHIP != "City or Municipal Highway Agency") %>%
+  st_buffer(15) %>% 
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Martin-Island-Linwood
+
+```{r}
+name <- "Martin-Island-Linwood_park_Metro-Regional_Anoka-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  filter(!ROUTE_NAME %in% c("Anoka T 1279-I", "Anoka T 1279-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Miesville Ravine
+
+```{r}
+name <- "Miesville-Ravine_park_Metro-Regional_Dakota-County"
+park <- metro[[name]]
+
+roads <- metro_mndot_roads[[name]]
+
+# smaller buffer to include parking lots
+mndot_rm <-roads %>%
+  st_buffer(20) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, include portion of park in goodhue county (simplified shape)
+lat = c(44.543707, 44.542185, 44.540136, 44.537596, 44.543301)
+lon = c(-92.801658, -92.808739, -92.808932, -92.804555, -92.800510)
+corners = data.frame(lon, lat)
+add <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  summarise(geometry = st_combine(geometry)) %>%
+  st_cast("POLYGON") %>%
+  st_transform(26915)
+
+mapview(park) + mapview(add)
+
+park %>% 
+  st_make_valid() %>%
+  st_union(add) %>% 
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Minneapolis Chain of Lakes
+
+```{r}
+name <- "Minneapolis-Chain-of-Lakes_park_Metro-Regional_MPRB"
+park <- metro[[name]]
+
+roads <- metro_mndot_roads[[name]]
+
+# psmaller buffer to maintain (most) parking lots
+mndot_rm <-roads %>%
+  st_buffer(15) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  mutate(zone_name = "Minneapolis-Chain-of-Lakes_park_Metro-Regional_MPRB") %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>%
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/Minneapolis-Chain-of-Lakes_park_Metro-Regional_MPRB.RDS")))
+
+# add a secondary polygon with all roads included
+added <- 1
+
+park %>% 
+  st_make_valid() %>%
+  mutate(zone_name = "Minneapolis-Chain-of-Lakes_park_Metro-Regional-Inclusive_MPRB") %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/Minneapolis-Chain-of-Lakes_park_Metro-Regional-Inclusive_MPRB.RDS")))
+```
+
+Minnehaha
+
+```{r}
+name <- "Minnehaha_park_Metro-Regional_MPRB"
+park <- metro[[name]]
+
+roads <- metro_mndot_roads[[name]]
+
+# smaller buffer to maintain parking lots
+mndot_rm <-roads %>%
+  filter(OWNERSHIP != "City or Municipal Highway Agency") %>%
+  st_buffer(15) %>%
+  summarise(do_union = TRUE)
+
+# add missing parking lot
+lat = c(44.906519, 44.905789)
+lon = c(-93.199690, -93.198274)
+corners = data.frame(lon, lat)
+add <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc() 
+
+mapview(add) 
+
+add <- add %>%
+  st_transform(26915)
+
+park %>% 
+  st_make_valid() %>%
+  st_union(add) %>%
+  st_erase(mndot_rm) %>% 
+  mutate(zone_name = "Minnehaha_park_Metro-Regional_MPRB") %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>%# mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/Minnehaha_park_Metro-Regional_MPRB.RDS")))
+
+# add a secondary polygon with all roads included
+added <- added + 1
+
+park %>% 
+  st_make_valid() %>%
+  st_union(add) %>%
+  mutate(zone_name = "Minnehaha_park_Metro-Regional-Inclusive_MPRB") %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/Minnehaha_park_Metro-Regional-Inclusive_MPRB.RDS")))
+```
+
+Mississippi Gateway
+
+```{r}
+name <- "Mississippi-Gateway_park_Metro-Regional_Three-Rivers"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+# smaller buffer to maintain parking lots
+mndot_rm <-roads %>%
+  filter(!ROUTE_NAME %in% c("Brooklyn Park M 1115-I", "Brooklyn Park M 1115-D")) %>%
+  st_buffer(15) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Mississippi Gorge - Minneapolis
+
+```{r}
+name <- "Mississippi-Gorge_park_Metro-Regional_MPRB"
+park <- metro[[name]]
+
+roads <- metro_mndot_roads[[name]]
+
+# smaller buffer to maintain parking lots
+mndot_rm <-roads %>%
+  st_buffer(5) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Mississippi Gorge - St Paul
+
+```{r}
+name <- "Mississippi-Gorge_park_Metro-Regional_Saint-Paul"
+park <- metro[[name]]
+
+roads <- metro_mndot_roads[[name]]
+
+# smaller buffer to maintain parking lots
+mndot_rm <-roads %>%
+  st_buffer(5) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", stringr::str_replace_all(park$NAME, " ", "_"), ".RDS")))
+```
+
+Mississippi West
+
+```{r}
+name <- "Mississippi-West_park_Metro-Regional_Anoka-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  filter(!ROUTE_NAME %in% c("Ramsey M 667-I", "Ramsey M 667-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Murphy Hanrehan
+
+```{r}
+name <- "Murphy-Hanrehan_park_Metro-Regional_Three-Rivers"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  filter(!ROUTE_NAME %in% c("Credit River M 35-D", "Credit River M 35-I")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Noerenberg Gardens
+
+```{r}
+name <- "Noerenberg-Gardens_park_Metro-Regional_Three-Rivers"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  st_buffer(20) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Nokomis Hiawatha
+
+```{r}
+name <- "Nokomis-Hiawatha_park_Metro-Regional_MPRB"
+park <- metro[[name]]
+
+roads <- metro_mndot_roads[[name]]
+
+# smaller buffer to maintain parking lots 
+mndot_rm <-roads %>%
+  st_buffer(20) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% #mapview()
+  mutate(zone_name = "Nokomis-Hiawatha_park_Metro-Regional_MPRB") %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>%
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/Nokomis-Hiawatha_park_Metro-Regional_MPRB.RDS")))
+
+# add a secondary polygon with all roads included
+added <- added + 1
+
+park %>% 
+  st_make_valid() %>%
+  mutate(zone_name = "Nokomis-Hiawatha_park_Metro-Regional-Inclusive_MPRB") %>%
+ # st_erase(mndot_rm) %>% #mapview()'
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/Nokomis-Hiawatha_park_Metro-Regional-Inclusive_MPRB.RDS")))
+```
+
+North Mississippi - Minneapolis
+
+```{r}
+name <- "North-Mississippi_park_Metro-Regional_MPRB"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  filter(!ROUTE_NAME %in% c("Minneapolis M 1979-I", "Minneapolis M 1979-D", 
+                            "Minneapolis M 1978-I", "Minneapolis M 1978-D")) %>%
+  st_buffer(15) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+North Misissippi - Three Rivers
+
+```{r}
+name <- "North-Mississippi_park_Metro-Regional_Three-Rivers"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+# use a smaller buffer due to very narrow park geography
+mndot_rm <-roads %>%
+  st_buffer(20) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Phalen
+
+```{r}
+name <- "Phalen_park_Metro-Regional_Saint-Paul"
+park <- metro[[name]]
+
+roads <- metro_mndot_roads[[name]]
+
+# smaller buffer to maintain parking, lake
+mndot_rm <-roads %>%
+  filter(!ROUTE_NAME %in% c("Maplewood M 520-D", "Saint Paul M 1107-D")) %>%
+  st_buffer(5) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  mutate(zone_name = "Phalen_park_Metro-Regional_Saint-Paul") %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview() 
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/Phalen_park_Metro-Regional_Saint-Paul.RDS")))
+
+# add a secondary polygon with all roads included
+added <- added + 1
+
+park %>% 
+  st_make_valid() %>%
+  mutate(zone_name = "Phalen_park_Metro-Regional-Inclusive_Saint-Paul") %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview() 
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/Phalen_park_Metro-Regional-Inclusive_Saint-Paul.RDS")))
+```
+
+Pine Point
+
+```{r}
+name <- "Pine-Point_park_Metro-Regional_Washington-County"
+park <- metro[[name]] 
+
+roads <- metro_mndot_roads[[name]]
+
+# smaller buffer to maintain parking lots
+mndot_rm <-roads %>%
+  st_buffer(15) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>%  #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Rice Creek Chain of Lakes
+
+```{r}
+name <-  "Rice-Creek-Chain-of-Lakes_park_Metro-Regional_Anoka-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mapview(park) + mapview(roads, zcol = "OWNERSHIP")
+
+# based on feedback
+# - aqua lane has 2 roadside parking lots, so that should be buffered very little or not at all. I didn't buffer it at all, revisit if we get interested in passthrough trips
+# - Lino Lakes M 395 should stay in, access to wargo nature center and ymca day camp
+# - peltier fishing launch means that 	Anoka CSAH 14-I should be buffered very little
+
+mndot_rm <-roads %>%
+  filter(!ROUTE_NAME %in% c("Lino Lakes M 395-I", "Lino Lakes M 395-D", 
+                            "Lino Lakes M 31-I", "Lino Lakes M 31-D")) %>%
+  st_buffer(15) %>%
+  summarise(do_union = TRUE)
+
+rm2 <- roads %>%
+  filter(ROUTE_NAME %in% c("Lino Lakes M 31-I", "Lino Lakes M 31-D")) %>%
+  st_buffer(5) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  st_erase(rm2) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Rum River Central
+
+```{r}
+name <- "Rum-River-Central_park_Metro-Regional_Anoka-County"
+park <- addriver_fxn(metro, metro_water, name, 5000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  filter(OWNERSHIP != "City or Municipal Highway Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Silverwood
+
+```{r}
+name <- "Silverwood_park_Metro-Regional_Three-Rivers"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  filter(!ROUTE_LABE %in% c("LOC 4", "LOC 3")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% #mapview() 
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Spring Lake Dakota County
+
+```{r}
+name <- "Spring-Lake_park_Metro-Regional_Dakota-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 10000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  filter(!OWNERSHIP %in% c("City or Municipal Highway Agency", "Town or Township Highway Agency") | (ROUTE_LABE %in% c("M 83", "T 295"))) %>% # based on feedback, remove these
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, remove this section of road
+lat = c(44.754590, 44.754021)
+lon = c(-92.938176, -92.936084)
+corners = data.frame(lon, lat)
+rm2 <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc() %>%
+  st_transform(26915)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  st_erase(rm2) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>%
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Spring Lake Scott County
+
+```{r}
+name <- "Spring-Lake_park_Metro-Regional_Scott-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, add parking
+lat = c(44.716942, 44.715946)
+lon = c(-93.473995, -93.471608)
+corners = data.frame(lon, lat)
+add1 <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc() %>%
+  st_transform(26915)
+
+lat2 = c(44.707272, 44.706778)
+lon2 = c(-93.471902, -93.471071)
+corners2 = data.frame(lon2, lat2)
+add2 <- corners2 %>%
+  st_as_sf(coords = c("lon2", "lat2"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc() %>%
+  st_transform(26915)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  st_union(add1) %>%
+  st_union(add2) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% 
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Square Lake
+
+```{r}
+name <- "Square-Lake_park_Metro-Regional_Washington-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+St Croix Bluffs
+
+```{r}
+name <- "Saint-Croix-Bluffs_park_Metro-Regional_Washington-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  filter(OWNERSHIP != "Town or Township Highway Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, add some missing land
+lat = c(44.811689, 44.803185)
+lon = c(-92.796087, -92.786303)
+corners = data.frame(lon, lat)
+add <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc() %>%
+  st_transform(26915)
+
+mapview(park) + mapview(add)
+
+lat = c(44.811591, 44.812282, 44.807808, 44.807486)
+lon = c(-92.787399, -92.783232, -92.785640, -92.791574)
+corners = data.frame(lon, lat)
+add2 <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  summarise(geometry = st_combine(geometry)) %>%
+  st_cast("POLYGON") %>%
+  st_transform(26915)
+
+park %>% 
+  st_make_valid() %>%
+  st_union(add) %>%
+  st_union(add2) %>% 
+  st_erase(mndot_rm) %>% #mapview() 
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+The Landing
+
+```{r}
+name <- "The-Landing_park_Metro-Regional_Three-Rivers"
+park <- addshore_fxn(metro, metro_water, name, 50, 10000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  filter(OWNERSHIP == "County Highway Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Theodore Wirth - Minneapolis
+
+```{r}
+name <- "Theodore-Wirth_park_Metro-Regional_MPRB"
+park <- metro[[name]] 
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  filter(!ROUTE_NAME %in% c("Minneapolis M 432-I", "Minneapolis M 432-D")) %>%
+  st_buffer(10) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Tony Schmidt
+
+```{r}
+name <- "Tony-Schmidt_park_Metro-Regional_Ramsey-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Vadnais-Snail Lake
+
+```{r}
+name <- "Vadnais-Snail-Lake_park_Metro-Regional_Ramsey-County"
+park <- addshore_fxn(metro, metro_water, name, 50, 2000)
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  filter(!ROUTE_NAME %in% c("Vadnais Heights M 229-I", "Vadnais Heights M 229-D", 
+                            "Vadnais Heights M 4-I", "Vadnais Heights M 4-D", 
+                            "Vadnais Heights M 6-I", "Vadnais Heights M 6-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>% 
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% 
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+Whitetail Woods
+
+```{r}
+name <- "Whitetail-Woods_park_Metro-Regional_Dakota-County"
+park <- metro[[name]]
+
+roads <- metro_mndot_roads[[name]]
+
+mndot_rm <-roads %>%
+  filter(!ROUTE_NAME %in% c("Dakota T 1646-D", "Dakota T 1646-I", 
+                            "Dakota T 1647-D", "Dakota T 1647-I")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, include this trail portion
+lat = c(44.690558, 44.685781)
+lon = c(-93.085584, -93.083620)
+corners = data.frame(lon, lat)
+add <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  summarise(geometry = st_combine(geometry)) %>%
+  st_cast("LINESTRING") %>%
+  st_transform(26915) %>%
+  st_buffer(30)
+
+mapview(park) + mapview(add)
+
+park %>% 
+  st_make_valid() %>%
+  st_union(add) %>%
+  st_erase(mndot_rm) %>% #mapview()
+  saveRDS(paste0(paste0(here(), "/data-temp/metro-park-geography/", park$zone_name, ".RDS")))
+```
+
+# Combine all polygons into one shapefile
+
+```{r}
+cat(paste0("added ", added, " Metro Regional parks, expect ", length(metro) + added, " zones"))
+list_of_files <- as.list(paste0(here(), "/data-temp/metro-park-geography/", 
+                                list.files(paste0(here(), "/data-temp/metro-park-geography/"), pattern = ".RDS")))
+
+list_of_parks <- list_of_files %>%
+  map(readRDS)
+
+metro_parks <- do.call(bind_rows, list_of_parks) %>%
+  select(zone_name, geom)
+
+cat(paste("found", nrow(metro_parks), "zones"))
+
+st_write(metro_parks, paste0(here(), "/data-intermediate/partial-park-zones/metro_", 
+                           park_geom_processing_date, ".shp"), append = FALSE)
+```
+
+# Convert polygons into perimerters
+
+```{r}
+metro_parks <- read_sf(paste0(here(), "/data-intermediate/partial-park-zones/metro_", 
+                           park_geom_processing_date, ".shp"))
+
+perim <- 30
+
+# buffer INSIDE polygon by 30 meters
+metro_perimeter <- metro_parks %>%
+  st_boundary() %>%
+  st_buffer(-perim, singleSide = T) %>% 
+  st_intersection(metro_parks) %>% 
+  select(-zone_name.1) %>% 
+  st_collection_extract("POLYGON") %>%
+  group_by(zone_name) %>%
+  summarise(do_union = TRUE) %>%
+  mutate(area_m2 = st_area(geometry)) 
+
+mapview(filter(metro_perimeter, str_detect(zone_name, "Whitetail")))
+
+#check to make sure all perimeters are less than 4km in area
+metro_area_test <- metro_perimeter %>% filter(as.numeric(area_m2) > 4e6)
+if(nrow(metro_area_test) > 0){
+  warning("At least 1 metro perimeter zone is greater than 4km^2")
+}
+
+st_write(metro_perimeter, paste0(here(), "/data-intermediate/partial-park-zones/metro_perim_", park_geom_processing_date, ".shp"), append = FALSE)
+```
