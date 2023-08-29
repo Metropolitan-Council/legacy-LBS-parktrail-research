@@ -100,9 +100,9 @@ Despite cold winters, Minnesota parks and trails are used year-round. Year-round
 
 ```{r usesummaryfig}
 #| fig.cap = "Summation of state and regional park and trail use across all three systems for the three complete years in this study (2019, 2020, 2021). This project additionally includes partial data for 2022.",
-#| results='markup',
-#| out.width= "4in",
-#| out.extra='style="float:center"',
+#| results = 'markup',
+#| out.width = "4in",
+#| out.extra = 'style="float:center"',
 #| fig.asp = .8
 
 working_annual_volume %>%
@@ -114,17 +114,16 @@ working_annual_volume %>%
     summarise(use = sum(miles_traveled) / 1e6, .groups = "keep") %>%
     mutate(type = "Trail use\n(millions of miles traveled)")) %>%
   filter(year != 2022) %>%
-  ggplot(aes(x = year, y = use, fill = type)) + # , alpha = urban)) +
-  geom_col(color = "black", width = .93) + # , position = position_dodge(width = .9)) +
-  # geom_linerange(aes(ymin = MEAN - SE, ymax = MEAN + SE)) +
-  # geom_label(aes(x = year, y = 40, label = use), fill = "white") +
-  # geom_text(aes(label = use), vjust = -.2) +
-  geom_label(aes(label = format(round(use, 2), nsmall = 2), y = rep(c(30.5, 49), each = 3)), fill = "white", size = 4.5) +
+  ggplot(aes(x = year, y = use, fill = type)) +
+  geom_col(color = "black", width = .93) +
+  geom_label(
+    aes(label = format(round(use, 2),
+      nsmall = 2
+    ), y = rep(c(30.5, 49), each = 3)),
+    fill = "white", size = 4.5
+  ) +
   theme_council_open(base_size = 10) +
-  # theme(axis.text.x = element_text(size = 10),
-  #       strip.text = element_text(size = 11)) +
   scale_fill_manual(values = c(legacy_blue, legacy_dkgreen)) +
-  # scale_fill_brewer(palette = "Greens") +
   scale_y_continuous(labels = scales::label_comma(), expand = expansion(mult = c(0, .1))) +
   labs(caption = fig_caption) +
   facet_wrap(~type, scales = "free") +
@@ -193,9 +192,9 @@ A more complete picture of the connections and similarities across systems emerg
 
 ```{r locations}
 #| fig.cap = "Park and trail locations included within this research. To be included, parks and trails must be eligible to receive Legacy funding. Source: Minnesota Great Outdoors.",
-#| results='markup',
-#| out.width= "3.5in",
-#| out.extra='style="float:center"',
+#| results = 'markup',
+#| out.width = "3.5in",
+#| out.extra = 'style="float:center"',
 #| fig.asp = .7
 
 # knitr::include_graphics(file.path(here::here(), "global_storymap-text/figs/mngreatoutdoors.png"))
@@ -211,9 +210,9 @@ This project provides the opportunity to learn more about who visits parks and t
 
 ```{r demopic}
 #| fig.cap = "Reducing barriers to access and ensuring that all Minnesotans benefit from parks and trails across the state is important.",
-#| results='markup',
-#| out.width= "3.5in",
-#| out.extra='style="float:center"',
+#| results = 'markup',
+#| out.width = "3.5in",
+#| out.extra = 'style="float:center"',
 #| fig.asp = .7
 
 knitr::include_graphics(file.path(here::here(), "documentation/images/demo_pic.png"))

@@ -131,22 +131,29 @@ Existing use estimates were used to validate LBS estimates. For example, the DNR
 
 ```{r dnr-validation-fig}
 #| fig.cap = "Comparison of DNR and LBS use estimates at state parks. Annual measurements of 2019 and 2020 were compared, as well as the first six months of 2021. The dashed line indicates a perfect one-to-one relationship; the solid blue line indicates the line of best fit. LBS estimates tend to be slightly higher than existing DNR estimates. Parks with the largest discrepancies are labeled.",
-#| results='markup',
-#| out.width= "6.5in",
-#| out.extra='style="float:center"',
+#| results = 'markup',
+#| out.width = "6.5in",
+#| out.extra = 'style="float:center"',
 #| fig.asp = .7
-dnr_monthly_comp %>% # filter(year != 2021) %>%
-  # filter(dnr_count != 0 & annual_total != 0) %>% #View()
-  mutate(label = if_else(abs(DNR - LBS) > 250000, paste0(str_to_title(NAME), " ", year), NA_character_)) %>%
+
+dnr_monthly_comp %>%
+  mutate(label = if_else(abs(DNR - LBS) > 250000,
+    paste0(str_to_title(NAME), " ", year),
+    NA_character_
+  )) %>%
   ggplot(aes(x = DNR, y = LBS, label = label)) +
-  # ggplot(aes(x = dnr_count, y = annual_total, label = label)) +
-  # geom_point(shape = 21) +
   geom_point(alpha = .3) +
   geom_smooth(method = "lm", formula = y ~ x + 0, se = FALSE, color = legacy_blue) +
   geom_abline(slope = 1, intercept = 0, linetype = 2) +
   theme_council_open(base_size = 10) +
-  scale_x_continuous(labels = scales::label_comma(), breaks = c(0, 250000, 500000, 750000)) +
-  scale_y_continuous(labels = scales::label_comma(), breaks = c(0, 250000, 500000, 750000, 1e6)) +
+  scale_x_continuous(
+    labels = scales::label_comma(),
+    breaks = c(0, 250000, 500000, 750000)
+  ) +
+  scale_y_continuous(
+    labels = scales::label_comma(),
+    breaks = c(0, 250000, 500000, 750000, 1e6)
+  ) +
   labs(
     x = "DNR use estimates", y = "LBS use \nestimates",
     caption = paste0(fig_caption, "\nDarin Newman personal communication.")
@@ -171,9 +178,9 @@ At the unit level, not all parks saw increased use in 2020. While `r annual_volu
 
 ```{r annual-fig}
 #| fig.cap = "Total estimated park use. Bars show the system-wide total visits to parks across the three complete years in this study (2019, 2020, 2021). Bar color indicates park system. The number of parks varies by system (DNR State = 79, Greater MN Regional = 57, Metro Regional = 67), and individual park units may show annual visitation trends which differ from the overall system trend.",
-#| results='markup',
-#| out.width= "6.5in",
-#| out.extra='style="float:center"',
+#| results = 'markup',
+#| out.width = "6.5in",
+#| out.extra = 'style="float:center"',
 #| fig.asp = .6
 
 
@@ -195,8 +202,8 @@ system_vis <- annual_volume %>%
   facet_wrap(~system_label, scales = "free_y", nrow = 1) +
   theme_council_open(base_size = 10) +
   labs(
-    x = "", caption = fig_caption, # y = "Annual\npark\nvisitation\n(millions)"
-    title = "Annual park use (millions of visits)" # ,
+    x = "", caption = fig_caption,
+    title = "Annual park use (millions of visits)"
   ) +
   scale_y_continuous(labels = scales::label_comma(), expand = expansion(mult = c(0, 0.1)), n.breaks = 4) +
   scale_fill_manual(values = system_label_cols) +
@@ -205,7 +212,6 @@ system_vis <- annual_volume %>%
     axis.title.y = element_blank(),
     axis.title.x = element_blank(),
     plot.title = element_text(size = 10)
-    # ,axis.text.x = element_text(size = 10)
   ) +
   geom_label(aes(label = format(round(system_total, 2), nsmall = 2), y = rep(c(7.5, 5, 19), each = 3)), fill = "white", size = 2.5)
 
@@ -227,9 +233,9 @@ Detailed use data for individual park units can be explored in the interactive b
 
 ```{r park-screenshot, include = T, eval = T}
 #| fig.cap = "Screenshot of the dashboard which is embedded within the interactive report. The dashboard contains interactive elements showing a timeseries of weekly park use and mode share. A summary table of use for the three complete years in this study is also included, and an outline map of the park location.",
-#| results='markup',
-#| out.width= "65%",
-#| out.extra='style="float:center"',
+#| results = 'markup',
+#| out.width = "65%",
+#| out.extra = 'style="float:center"',
 #| fig.asp = .8
 
 knitr::include_graphics(file.path(here(), "documentation/images/park_dashboard.png"))
@@ -258,13 +264,6 @@ top_season <- (monthly_volume) %>%
   summarise(MEAN = mean(percent), .groups = "keep") %>%
   ungroup() %>%
   filter(MEAN > .5)
-# group_by(season) %>%
-# top_n(MEAN, n = 5) %>% arrange(season, MEAN)
-
-# n_parks - nrow(top_season)
-# round((top_season$MEAN[top_season$season == "winter"])[2]*100,1)
-# top_season %>% arrange(-MEAN)
-# xfun::numbers_to_words(length(top_season$unit_label[top_season$season == "Summer"]))
 ```
 
 Our data shows that Minnesota’s parks are well-used in all seasons. At the system level, the summer months of June, July, and August consistently had the highest use; however, there is substantial “off-peak” park use (Figure \@ref(fig:seasonal-fig)). 
@@ -273,9 +272,9 @@ At the park level, strong seasonal patterns generally indicate the presence of s
 
 ```{r seasonal-fig}
 #| fig.cap = "Monthly park use as a percent of total annual use for each system. Points show the average monthly use across the three complete years in this study (2019, 2020, 2021). Point color indicates park system. Individual park units may show trends that differ from the overall system trend.",
-#| results='markup',
-#| out.extra='style="float:right"',
-#| out.width= "6.5in",
+#| results = 'markup',
+#| out.extra = 'style="float:right"',
+#| out.width = "6.5in",
 #| fig.asp = .6
 
 (monthly_volume) %>%
@@ -300,10 +299,8 @@ At the park level, strong seasonal patterns generally indicate the presence of s
   geom_segment(aes(x = 10, xend = 10, y = 0, yend = .085), lty = 3, color = "grey90") +
   geom_point(size = 2) +
   geom_line() +
-  # facet_wrap(~system) +
   scale_color_manual(values = system_label_cols) +
   scale_y_continuous(labels = scales::label_percent(), expand = expansion(mult = 0, 0)) +
-  # scale_x_date(date_breaks = '3 months', labels = scales::date_format("%b"),limits = c(as.Date("2020-11-1"), NA)) +
   theme_council_open() +
   scale_x_discrete(expand = expansion(mult = c(0.01, 0.35))) +
   coord_cartesian(clip = "off") +
@@ -315,7 +312,6 @@ At the park level, strong seasonal patterns generally indicate the presence of s
   theme(
     legend.position = "none",
     axis.title.y = element_blank(),
-    # panel.grid.major.x= element_line(linetype = 3),
     axis.title.x = element_blank(),
     plot.title = element_text(size = 10)
   )
@@ -332,11 +328,10 @@ On weekends (Sa-Su), all parks showed a midday peak in use (Figure \@ref(fig:hou
 
 ```{r hourly-fig}
 #| fig.cap = "Daily use patterns during summer 2021 for each system. For each system, the total number of visits across all parks is summed, from which the percent of total visits is calculated. Individual park units may show trends that differ from the overall system trend.",
-#| results='markup',
-#| out.width= "65%",
-#| out.extra='style="float:right"',
+#| results = 'markup',
+#| out.width = "65%",
+#| out.extra = 'style="float:right"',
 #| fig.asp = .6
-
 
 hourly_parks %>%
   left_join(park_metadata) %>%
@@ -354,29 +349,18 @@ hourly_parks %>%
     label = if_else(time2 == "23:00", system_label, NA_character_)
   ) %>%
   ggplot(aes(x = time, y = percent, color = system_label, group = system_label, pch = system_label)) +
-  # geom_segment(aes(x= as.POSIXct("08:00", "%H:%M"), xend = 1, y= 0, yend = .07), lty = 3, color = "grey90") +
-  # geom_segment(aes(x= 4, xend = 4, y= 0, yend = .08), lty = 3, color = "grey90") +
-  # geom_segment(aes(x= 7, xend = 7, y= 0, yend = .17), lty = 3, color = "grey90") +
-  # geom_segment(aes(x= 10, xend = 10, y= 0, yend = .085), lty = 3, color = "grey90") +
-
   geom_point() +
   geom_line() +
   facet_wrap(~day_type, nrow = 1) +
-  # geom_text(data = lab_text, aes(x = as.POSIXct("07:00", format = "%H:%M"), y = 0.9 * max_volume, label = label),
-  #         size = 4) +
-
   scale_color_manual(values = system_label_cols) +
   theme_council_open(base_size = 10) +
   scale_y_continuous(labels = scales::label_percent()) +
-  scale_x_datetime(date_breaks = "4 hours", date_labels = "%l%p", expand = expansion(mult = c(0.01, 0.01))) + # expand = expansion(mult = c(0.01, 0.4))) +
+  scale_x_datetime(date_breaks = "4 hours", date_labels = "%l%p", expand = expansion(mult = c(0.01, 0.01))) +
   labs(
     x = "", y = "System \ntotal", color = "", shape = "",
     title = "Hourly park use (summer 2021)",
-    # title = "Total arrivals to parks by system and hour",
     caption = fig_caption
   ) +
-  # geom_text(aes(x = time+2, y = percent, label = label), hjust =0) +
-  # geom_text_repel(aes(x = time+5, y = percent, label = label), hjust ="left", nudge_x = 4, direction = "y") +
   theme(
     legend.position = "bottom",
     panel.grid.major.x = element_line(linetype = 3),
@@ -397,15 +381,14 @@ At individual park units, mode share information may be helpful in identifying i
 
 ```{r modeshare-fig}
 #| fig.cap = "Mode share of trips made to parks. Bars show the average annual mode share across the three complete years in this study (2019, 2020, 2021). Bar color indicates park system. Individual park units may show trends that differ from the overall system trend.",
-#| results='markup',
-#| out.width= "65%",
-#| out.extra='style="float:right"',
+#| results = 'markup',
+#| out.width = "65%",
+#| out.extra = 'style="float:right"',
 #| fig.asp = .7
-# # this is fine but the colors are ugly, can we be consistent??
 
 annual_volume %>%
   filter(year != 2022) %>%
-  group_by(system_label, year) %>% # , season) %>%
+  group_by(system_label, year) %>%
   summarise(
     Vehicle = sum(annual_vehicle_visitors),
     Bicycle = sum(annual_bike),
@@ -431,30 +414,16 @@ annual_volume %>%
   ) %>%
   ggplot(aes(x = Mode, y = Share, fill = system_label)) +
   geom_bar(stat = "identity", color = "black", position = position_dodge(width = .9)) +
-  # geom_col(color = "black", position = position_dodge(width = .9)) +
   theme_council_open(base_size = 10) +
-  # scale_fill_brewer(palette = "Purples", direction = -1,
-  #                   guide = guide_legend(reverse = TRUE)) +
   scale_fill_manual(values = system_label_cols) +
-  # facet_wrap(~season) +
   scale_y_continuous(labels = scales::label_percent(), expand = expansion(mult = c(0.0, 0.05))) +
   labs(
     title = "Park visitor travel mode",
-    # subtitle = "Purples are random for now",
     x = "", y = "", fill = "",
     caption = fig_caption
   ) +
-  # theme(legend.position = "bottom",
-  #       axis.text = element_text(size = 12),
-  #       plot.title = element_text(size = 11),
-  #       legend.text = element_text(size = 10),
-  #       # panel.grid.major.x= element_line(linetype = 3),
-  #       panel.grid.major.y = element_blank(),
-  #       axis.title.x = element_blank(),
-  #       axis.title.y = element_blank()) +
   theme(
     legend.position = "bottom",
-    # panel.grid.major.x= element_line(linetype = 3),
     axis.title.y = element_blank(),
     axis.title.x = element_blank(),
     plot.title = element_text(size = 10)

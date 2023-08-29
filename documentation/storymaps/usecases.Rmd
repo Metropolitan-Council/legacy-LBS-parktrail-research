@@ -34,9 +34,6 @@ load(file.path(here::here(), "data-intermediate/documentation/use-case-fig-dat.r
 This project aimed to develop universal methods of park and trail analysis. Therefore, in-depth analysis of individual units was beyond the scope of this work. Still, many park- or trail-specific research questions can be addressed with LBS data provided. These analyses require substantial on-the-ground knowledge of the park or trail of interest. Possible use cases fall broadly into three categories: those that can be completed using the data provided, those that require a StreetLight license but use this project’s methods, and those that require a StreetLight license and use custom methods beyond this project’s techniques. 
 
 
-
-
-
 ## Using provided data
 
 ### Custom summaries
@@ -64,11 +61,11 @@ The provided spreadsheet titled “LBS_visitor_attribute_results_2023.07.xlsx”
 
 ```{r census-screenshot, include = FALSE, eval = FALSE}
 #| fig.cap = "Screenshot of Census Reporter statistics for Ramsey County, MN.",
-#| results='markup',
-#| out.width= "65%",
-#| out.extra='style="float:center"',
+#| results = 'markup',
+#| out.width = "65%",
+#| out.extra = 'style="float:center"',
 #| fig.asp = .5,
-#| out.width= "3.5in"
+#| out.width = "3.5in"
 
 knitr::include_graphics(file.path(here::here(), "figures/storymap/census_reporter.png"))
 ```
@@ -92,11 +89,10 @@ Other applications of hourly data include scheduling lifeguards at beaches, dete
 
 ```{r peak-hourly}
 #| fig.cap = 'Average hourly pedestrian use at the entrance of Battle Creek Regional Park off-leash dog area (Metro Regional) during the summer of 2021.',
-#| results='markup',
-#| out.width= "5in",
-#| out.extra='style="float:center"',
+#| results = 'markup',
+#| out.width = "5in",
+#| out.extra = 'style="float:center"',
 #| fig.asp = 0.5
-#|
 
 bc %>%
   filter(str_detect(zone_name, "dog")) %>%
@@ -115,23 +111,18 @@ bc %>%
     nudge_y = -0.025,
     nudge_x = -3600 * 3.5
   ) +
-  # facet_wrap(~zone_name,  nrow = 2) +
   theme_council_open(base_size = 10) +
   scale_y_continuous(labels = scales::label_percent(), limits = c(0, .16), expand = c(0, 0)) +
   scale_x_datetime(
     date_breaks = "4 hours", date_labels = "%l%p",
     limits = c(as.POSIXct("2023-08-22 06:00:00"), as.POSIXct("2023-08-22 21:15:00")),
-    #  limits = c(as.POSIXct("2023-04-21 06:00:00"), as.POSIXct("2023-04-21 22:00:00")),
     expand = c(0.01, 0)
-  ) + # , expand = expansion(mult = c(0.01, 0.01)))+# expand = expansion(mult = c(0.01, 0.4))) +
+  ) +
   labs(
     x = "", y = "System \ntotal", color = "", shape = "",
     title = "Pedestrian activity at Battle Creek Dog Park entrance (summer 2021)",
-    # title = "Total arrivals to parks by system and hour",
     caption = fig_caption
   ) +
-  # geom_text(aes(x = time+2, y = percent, label = label), hjust =0) +
-  # geom_text_repel(aes(x = time+5, y = percent, label = label), hjust ="left", nudge_x = 4, direction = "y") +
   theme(
     legend.position = "bottom",
     panel.grid.major.x = element_line(linetype = 3),
@@ -147,11 +138,11 @@ ggsave(file.path(here::here(), "figures/storymap/battle-creek-peak-hourly.png"))
 
 ```{r hourly-min}
 #| fig.cap = 'Average hourly pedestrian use near a restroom in Battle Creek Regional Park (Metro Regional) during the summer of 2021.',
-#| results='markup',
-#| out.width= "5in",
-#| out.extra='style="float:center"',
+#| results = 'markup',
+#| out.width = "5in",
+#| out.extra = 'style="float:center"',
 #| fig.asp = 0.5
-#|
+
 bc %>%
   filter(str_detect(zone_name, "restroom")) %>%
   mutate(label = ifelse(time == "2023-08-22 10:00:00", "Ideal time for cleaning \nor maintenance", NA)) %>%
@@ -169,18 +160,14 @@ bc %>%
     nudge_x = 3600 * 1.5
   ) +
   geom_line() +
-  # facet_wrap(~zone_name,  nrow = 2) +
   theme_council_open(base_size = 10) +
   scale_y_continuous(labels = scales::label_percent(), expand = c(0.01, 0), limits = c(0, .14)) +
-  scale_x_datetime(date_breaks = "4 hours", date_labels = "%l%p", expand = expansion(mult = c(0.01, -.075))) + #
+  scale_x_datetime(date_breaks = "4 hours", date_labels = "%l%p", expand = expansion(mult = c(0.01, -.075))) +
   labs(
     x = "", y = "System \ntotal", color = "", shape = "",
     title = "Pedestrian activity at Battle Creek restroom (summer 2021)",
-    # title = "Total arrivals to parks by system and hour",
     caption = fig_caption
   ) +
-  # geom_text(aes(x = time+2, y = percent, label = label), hjust =0) +
-  # geom_text_repel(aes(x = time+5, y = percent, label = label), hjust ="left", nudge_x = 4, direction = "y") +
   theme(
     legend.position = "bottom",
     panel.grid.major.x = element_line(linetype = 3),
@@ -210,9 +197,9 @@ Consider Glacial Lakes State Park (DNR). A grid of 150-meter squares was generat
 
 ```{r glacial-map, results = "hide", fig.show = "show"}
 #| fig.cap = "Map of pedestrian activity in 150-meter grid cells in Glacial Lakes State Park (DNR State). Activity in each grid cell is represented as a percentage of total activity across all grid cells. Activity is focused around Mountain Lake in the northwest region of the park, and along prominent trails within the park.",
-#| results='markup',
-#| out.width= "3.5in",
-#| out.extra='style="float:center"',
+#| results ='markup',
+#| out.width = "3.5in",
+#| out.extra ='style="float:center"',
 #| fig.asp = .7
 
 ggplot() +
@@ -274,9 +261,9 @@ The analysis could be expanded to consider bicyclists traveling in both directio
 
 ```{r traverse-map, eval = FALSE, include = FALSE}
 #| fig.cap = "Map of the Duluth Traverse passing north to south through Hartley Regional Park (Greater Minnesota) in Duluth.",
-#| results='markup',
-#| out.width= "3.5in",
-#| out.extra='style="float:center"',
+#| results = 'markup',
+#| out.width = "3.5in",
+#| out.extra ='style="float:center"',
 #| fig.asp = .7
 
 knitr::include_graphics(file.path(here::here(), "figures/storymap/duluth-traverse-map.png"))

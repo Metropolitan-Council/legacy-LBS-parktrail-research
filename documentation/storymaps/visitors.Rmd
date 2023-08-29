@@ -98,7 +98,6 @@ demo_table <- both %>%
   filter(source == "LBS") %>%
   filter(!str_detect(zone_name, "trail")) %>%
   mutate(sig = if_else(sig == "ns", "Not significantly different", "Significant")) %>%
-  # filter(str_detect(group, "High s"))
   count(category, group, sig) %>%
   pivot_wider(names_from = sig, values_from = n) %>%
   replace(is.na(.), 0) %>%
@@ -130,7 +129,6 @@ demo_tab <- flextable::regulartable(
     )
 ) %>%
   flextable::autofit(add_w = 0, add_h = 0) %>%
-  # flextable::set_table_properties(layout = "autofit", width = 1) %>%
   merge_at(i = 1:4, j = 1, part = "body") %>%
   hline(i = 4, part = "body") %>%
   merge_at(i = 5:11, j = 1, part = "body") %>%
@@ -139,7 +137,6 @@ demo_tab <- flextable::regulartable(
   fontsize(size = 8, part = "all") %>%
   autofit(add_h = 0) %>%
   line_spacing(space = .25, part = "all") %>%
-  # theme_zebra() %>%
   flextable::set_caption("Summary of validation between location based services derived demographic values and intercept survey values. Values show the number of parks with and without a statistically significant difference in demographic percentages at the 95% confidence interval.")
 
 demo_tab
@@ -150,10 +147,11 @@ demo_tab %>%
 
 ```{r simple-demo-compare}
 #| fig.cap = "Comparison of location based services (LBS) demographic values against intercept survey values where there were significant differences in percentages at the 95% confidence interval. The dashed grey line shows a perfect one-to-one relationship.",
-#| results='markup',
-#| out.width= "6.5in",
-#| out.extra='style="float:center"',
+#| results = 'markup',
+#| out.width = "6.5in",
+#| out.extra = 'style="float:center"',
 #| fig.asp = .7
+
 df <- both %>%
   select(zone_name, source, category, group, percent, moe_95, abbrsig, sig) %>%
   pivot_wider(names_from = source, values_from = c(percent, moe_95))
@@ -203,7 +201,7 @@ While visits by international residents are counted in park and trail estimates,
 
 ```{r country-map}
 #| fig.cap = "Proportion of visitors to Minnesota parks and trails in 2021 mapped by state of residence. Darker green colors indicate states with a greater share of visitors.",
-#| out.extra='style="float:right"',
+#| out.extra = 'style="float:right"',
 #| out.width = "6.5in",
 #| fig.asp = .6,
 
@@ -213,14 +211,12 @@ map_data %>%
   geom_sf(aes(fill = logp)) +
   coord_sf(crs = (3785)) +
   theme_void() +
-  # scale_fill_gradient2(low = "white", mid = "#74c476", high = "#00441b", midpoint = .3,labels = scales::comma) +
   scale_fill_gradientn(
     colours = c("white", "#238b45", "#00441b"),
     values = scales::rescale(c(min(map_data$percent_by_state), .02, max(map_data$percent_by_state))),
     guide = "colorbar", limits = c(min(map_data$percent_by_state), max(map_data$percent_by_state)),
     labels = scales::label_comma()
   ) +
-  # scale_fill_continuous(trans = "log",type = "viridis") +
   guides(fill = "none") +
   theme(legend.position = "bottom", legend.text = element_blank()) +
   labs(caption = fig_caption, fill = "Percent visitors") +

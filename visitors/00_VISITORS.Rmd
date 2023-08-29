@@ -122,7 +122,8 @@ state_pcts <- home_states %>%
 
 states <- tigris::states(cb = TRUE) %>%
   filter(!NAME %in% c(
-    "Commonwealth of the Northern Mariana Islands", "Hawaii", "United States Virgin Islands",
+    "Commonwealth of the Northern Mariana Islands",
+    "Hawaii", "United States Virgin Islands",
     "American Samoa", "Alaska", "Guam", "Puerto Rico"
   ))
 
@@ -286,7 +287,10 @@ full_ss_comp %>%
   autofit() %>%
   set_caption("Comparison of sample size at each oversampled unit. The intercept survey was administered to 0.01 - 0.09% of annual visitors (as estimated by the LBS methods described in this report). StreetLight Data sampled 1.2 - 2.64% of annual visitors.") %>%
   align(align = "center", part = "all") %>%
-  add_header_row(values = c("", "Intercept Survey", "LBS Data"), colwidths = c(1, 2, 2)) %>%
+  add_header_row(
+    values = c("", "Intercept Survey", "LBS Data"),
+    colwidths = c(1, 2, 2)
+  ) %>%
   bold(bold = TRUE, part = "header") %>%
   align(align = "center", i = 1, part = "header") %>%
   height(height = 0.4)
@@ -350,7 +354,10 @@ all_cordat %>%
   qflextable() %>%
   autofit() %>%
   set_caption("Correlation between intercept survey and LBS data visitor home locations. A correlation test was performed on the percent of visitors inferred to live in each zip code by each data source. The total number of zip codes compared for each park are shown.") %>%
-  add_header_row(values = c("", "Zip codes identified", "Correlation"), colwidths = c(1, 3, 2)) %>%
+  add_header_row(
+    values = c("", "Zip codes identified", "Correlation"),
+    colwidths = c(1, 3, 2)
+  ) %>%
   align(align = "center", i = 1, part = "header") %>%
   bold(bold = TRUE, part = "header") %>%
   align(align = "center", i = 1, part = "header")
@@ -370,13 +377,12 @@ oversample_home_wide %>%
   geom_smooth(
     method = "lm", alpha = 0.8, se = FALSE, lwd = 0.5,
     formula = y ~ x + 0
-  ) + # linetype = "88") +
+  ) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
   geom_point(aes(fill = Park, shape = Park), alpha = 0.9) +
   theme_council_open() +
   labs(
     title = "Percent of visitors from home zipcode",
-    # subtitle = "2021 intercept Survey versus LBS data",
     fill = "", color = "", shape = "",
     x = "Intercept Survey",
     y = "LBS \ndata"
@@ -488,8 +494,10 @@ There are several reasons LBS data may estimate fewer white visitors on average.
 ```{r white-table, results = "show"}
 both %>%
   filter(category == "Race/ethnicity", str_detect(group, "White")) %>%
-  mutate(datlabel = paste0(scales::percent(percent, accuracy = 0.1), " (±", scales::percent(moe_95, accuracy = 0.01), ")")) %>%
-  ## filter(str_detect(day_type, "All"), str_detect(day_part, "All")) %>%
+  mutate(datlabel = paste0(
+    scales::percent(percent, accuracy = 0.1),
+    " (±", scales::percent(moe_95, accuracy = 0.01), ")"
+  )) %>%
   select(unit_label, zone_name, datlabel, source) %>%
   pivot_wider(names_from = source, values_from = datlabel) %>%
   left_join(park_to_zone, by = "zone_name") %>%
@@ -519,9 +527,9 @@ source(file.path(here(), "R/f_demo_compare.R"))
 
 ```{r race-validation, results = "show"}
 #| fig.cap = "Validation of race/ethnicity categorys. Error bars show a 95% confidence interval. When there was no significant difference in percentages at the 95% confidence interval, LBS percentages are shown. Source: Metropolitan Council visitor study, StreetLight Data, Inc. Accessed July 2023.",
-#| results='markup',
-#| out.width= "7in",
-#| out.extra='style="float:right"',
+#| results = 'markup',
+#| out.width = "7in",
+#| out.extra = 'style="float:right"',
 #| fig.asp = 1.3
 
 both %>%
@@ -533,9 +541,9 @@ both %>%
 
 ```{r fig-survey-completion-day, results = "hide"}
 #| fig.cap = "Percent of 2021 intercept surveys completed on the weekend and percent of 2021 LBS data visits which occur on the weekends. Parks are sorted by descending order of difference between survey and LBS data percents. Source: Metropolitan Council visitor study, StreetLight Data, Inc. Accessed July 2023.",
-#| results='markup',
-#| out.width= "5.5in",
-#| out.extra='style="float:right"',
+#| results = 'markup',
+#| out.width = "5.5in",
+#| out.extra = 'style="float:right"',
 #| fig.asp = .6
 #
 
@@ -647,11 +655,11 @@ As noted above, there are several possible explanations for this pattern: LBS da
 
 ```{r edu-validation, results = "show"}
 #| fig.cap = "Validation of educational attainment. Error bars show a 95% confidence interval. When there was no significant difference in percentages at the 95% confidence interval, LBS data percentages are shown. Source: Metropolitan Council visitor study, StreetLight Data, Inc. Accessed July 2023.",
-#| results='markup',
-#| out.width= "7in",
-#| out.extra='style="float:right"',
+#| results = 'markup',
+#| out.width = "7in",
+#| out.extra = 'style="float:right"',
 #| fig.asp = 1.3
-#|
+
 both %>%
   filter(category == "Education") %>%
   mutate(group = factor(group,
@@ -671,9 +679,9 @@ There were no significant differences observed in estimated visitor household in
 
 ```{r income-validation, results = "show"}
 #| fig.cap = "Validation of visitor household income. Error bars show a 95% confidence interval. When there was no significant difference in percentages at the 95% confidence interval, LBS data percentages are shown. Source: Metropolitan Council visitor study, StreetLight Data, Inc. Accessed July 2023.",
-#| results='markup',
-#| out.width= "7in",
-#| out.extra='style="float:right"',
+#| results = 'markup',
+#| out.width = "7in",
+#| out.extra = 'style="float:right"',
 #| fig.asp = 1.3
 
 both %>%
@@ -701,7 +709,7 @@ While visits by international residents are counted in park and trail estimates,
 
 ```{r country-map}
 #| fig.cap = "Proportion of visitors to Minnesota parks and trails in 2021 mapped by state of residence. Darker green colors indicate states with a greater share of visitors.",
-#| out.extra='style="float:right"',
+#| out.extra = 'style="float:right"',
 #| out.width = "6.5in",
 #| fig.asp = .6,
 
@@ -717,14 +725,12 @@ map_data %>%
   geom_sf(aes(fill = logp)) +
   coord_sf(crs = (3785)) +
   theme_void() +
-  ## scale_fill_gradient2(low = "white", mid = "#74c476", high = "#00441b", midpoint = .3,labels = scales::comma) +
   scale_fill_gradientn(
     colours = c("white", "#238b45", "#00441b"),
     values = scales::rescale(c(min(map_data$percent_by_state), .02, max(map_data$percent_by_state))),
     guide = "colorbar", limits = c(min(map_data$percent_by_state), max(map_data$percent_by_state)),
     labels = scales::label_comma()
   ) +
-  ## scale_fill_continuous(trans = "log",type = "viridis") +
   guides(fill = "none") +
   theme(legend.position = "bottom", legend.text = element_blank()) +
   labs(caption = fig_caption, fill = "Percent visitors") +
@@ -750,6 +756,7 @@ Systems, and individual park and trail units, have unique missions and visitor p
 
 ```{r race-distribution}
 #| fig.cap = "Inferred race and ethnicity of park and trail visitors. Each point represents a single park or trail. Point color and shape indicates system."
+
 stl_dem %>%
   filter(
     label %in% c("full21", "year21"),
@@ -782,6 +789,7 @@ stl_dem %>%
 
 ```{r edu-distribution}
 #| fig.cap = "Inferred educational attainment of park and trail visitors. Each point represents a single park or trail. Point color and shape indicates system."
+
 stl_dem %>%
   filter(
     label %in% c("full21", "year21"),
@@ -814,6 +822,7 @@ stl_dem %>%
 
 ```{r income-distribution}
 #| fig.cap = "Inferred household income of park and trail visitors. Each point represents a single park or trail. Point color and shape indicates system."
+
 stl_dem %>%
   filter(
     label %in% c("full21", "year21"),

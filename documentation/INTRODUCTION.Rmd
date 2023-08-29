@@ -40,9 +40,9 @@ This project used aggregated and anonymized location-based services (LBS) data t
 
 ```{r cellphone-park-picture, results = "show"}
 #| fig.cap = "A person uses a cellphone while resting on a bench.",
-#| results='markup',
-#| out.width= "65%",
-#| out.extra='style="float:right"',
+#| results = 'markup',
+#| out.width = "65%",
+#| out.extra = 'style="float:right"',
 knitr::include_graphics(file.path(here::here(), "documentation/images/2118.png"))
 ```
 
