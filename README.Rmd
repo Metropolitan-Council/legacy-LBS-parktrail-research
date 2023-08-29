@@ -22,7 +22,7 @@ This project used aggregated and anonymized location-based services (LBS) data t
 
 This project was funded with Legacy Partnership Research Funds from the [State of Minnesota Parks and Trails Legacy Fund](https://www.legacy.mn.gov/parks-trails-fund). The joint research project was conducted in collaboration with the [Minnesota Department of Natural Resources](https://www.dnr.state.mn.us/), the [Greater Minnesota Regional Parks and Trails Commission](https://www.gmrptcommission.org/), and the [Metropolitan Council](https://metrocouncil.org/). We thank staff from across the different organizations and cooperating implementing agencies for their cooperation in sharing data and providing feedback.
 
-![Funding partner logos](img/partner-logos.png)
+![Funding partner logos](documentation/images/partner-logos.png)
 
 ## This repository
 
