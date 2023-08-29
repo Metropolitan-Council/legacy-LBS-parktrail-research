@@ -42,7 +42,7 @@ monthly_segment_volume <- monthly_trails %>%
     ped_counter_estimate = sum(ped_use),
     miles_traveled = sum(bike_miles, ped_miles),
     bike_miles_traveled = sum(bike_miles),
-    ped_miles_traveled = sum(ped_miles)
+    ped_miles_traveled = sum(ped_miles), .groups = "keep"
   ) %>%
   # fill missing values with zero
   ungroup() %>%
@@ -82,7 +82,7 @@ monthly_segment_volume %>%
     unit_label == "Paul Bunyan"
   ) %>%
   group_by(osm_id) %>%
-  summarise(annual_counter_estimate = sum(counter_estimate)) %>%
+  summarise(annual_counter_estimate = sum(counter_estimate), .groups = "keep") %>%
   arrange(-annual_counter_estimate) # 74333 at osm_id 98942505
 
 # TODO: document number of segments entirely dropped
@@ -98,7 +98,8 @@ monthly_trail_volume <- monthly_segment_volume %>%
     ped_counter_estimate = max(ped_counter_estimate),
     miles_traveled = sum(miles_traveled),
     bike_miles_traveled = sum(bike_miles_traveled),
-    ped_miles_traveled = sum(ped_miles_traveled)
+    ped_miles_traveled = sum(ped_miles_traveled),
+    .groups = "keep"
   ) %>%
   mutate(
     modeshare_bike_miles = bike_miles_traveled / miles_traveled,
@@ -114,7 +115,7 @@ monthly_trail_volume <- monthly_segment_volume %>%
 monthly_trail_volume %>%
   filter(str_detect(day_type, "All")) %>%
   group_by(year) %>%
-  summarise(total = sum(miles_traveled) / 1e6)
+  summarise(total = sum(miles_traveled) / 1e6, .groups = "keep")
 
 monthly_trail_volume %>%
   filter(
@@ -123,7 +124,7 @@ monthly_trail_volume %>%
     unit_label == "Paul Bunyan"
   ) %>%
   group_by(year) %>%
-  summarise(annual_counter_estimate = sum(counter_estimate)) # 92565
+  summarise(annual_counter_estimate = sum(counter_estimate), .groups = "keep") # 92565
 
 ##### annual trail volume #####
 annual_trail_volume <- monthly_trail_volume %>%
@@ -134,7 +135,8 @@ annual_trail_volume <- monthly_trail_volume %>%
     ped_counter_estimate = sum(ped_counter_estimate),
     miles_traveled = sum(miles_traveled),
     bike_miles_traveled = sum(bike_miles_traveled),
-    ped_miles_traveled = sum(ped_miles_traveled)
+    ped_miles_traveled = sum(ped_miles_traveled),
+    .groups = "keep"
   ) %>%
   mutate(
     modeshare_bike_miles = bike_miles_traveled / miles_traveled,
@@ -149,7 +151,7 @@ annual_trail_volume <- monthly_trail_volume %>%
 annual_trail_volume %>%
   filter(str_detect(day_type, "All")) %>%
   group_by(system, year) %>%
-  summarise(total = sum(miles_traveled) / 1e6)
+  summarise(total = sum(miles_traveled) / 1e6, .groups = "keep")
 
 annual_trail_volume %>%
   filter(
@@ -174,7 +176,8 @@ seasonal_trail_volume <- monthly_trail_volume %>%
     ped_counter_estimate = sum(ped_counter_estimate),
     miles_traveled = sum(miles_traveled),
     bike_miles_traveled = sum(bike_miles_traveled),
-    ped_miles_traveled = sum(ped_miles_traveled)
+    ped_miles_traveled = sum(ped_miles_traveled),
+    .groups = "keep"
   ) %>%
   mutate(
     modeshare_bike_miles = bike_miles_traveled / miles_traveled,
@@ -189,7 +192,7 @@ seasonal_trail_volume <- monthly_trail_volume %>%
 seasonal_trail_volume %>%
   filter(str_detect(day_type, "All")) %>%
   group_by(year) %>%
-  summarise(total = sum(miles_traveled) / 1e6)
+  summarise(total = sum(miles_traveled) / 1e6, .groups = "keep")
 
 ##### hourly trail activity #####
 hourly <- bind_rows(
@@ -218,7 +221,8 @@ hourly_trails <- hourly %>%
   summarise(
     sumbike = sum(bike),
     sumped = sum(ped),
-    sumtotal = sumbike + sumped
+    sumtotal = sumbike + sumped,
+    .groups = "keep"
   ) %>%
   ungroup() %>%
   group_by(unit_id, day_type) %>%

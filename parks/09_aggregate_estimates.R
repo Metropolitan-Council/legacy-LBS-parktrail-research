@@ -11,7 +11,8 @@ weekly_volume <- all_modes_expanded %>%
     weekly_vehicles = sum(vehicles),
     weekly_bike = sum(bike),
     weekly_ped = sum(ped),
-    weekly_total = weekly_vehicle_visitors + weekly_bike + weekly_ped
+    weekly_total = weekly_vehicle_visitors + weekly_bike + weekly_ped,
+    .groups = "keep"
   ) %>%
   mutate(
     vehicle_mode_share = weekly_vehicle_visitors / weekly_total,
@@ -31,7 +32,8 @@ monthly_volume <- all_modes_expanded %>%
     monthly_vehicles = sum(vehicles),
     monthly_bike = sum(bike),
     monthly_ped = sum(ped),
-    monthly_total = monthly_vehicle_visitors + monthly_bike + monthly_ped
+    monthly_total = monthly_vehicle_visitors + monthly_bike + monthly_ped,
+    .groups = "keep"
   ) %>%
   mutate(
     vehicle_mode_share = monthly_vehicle_visitors / monthly_total,
@@ -59,7 +61,8 @@ season_volume <- all_modes_expanded %>%
     season_vehicles = sum(vehicles),
     season_bike = sum(bike),
     season_ped = sum(ped),
-    season_total = season_vehicle_visitors + season_bike + season_ped
+    season_total = season_vehicle_visitors + season_bike + season_ped,
+    .groups = "keep"
   ) %>%
   mutate(
     vehicle_mode_share = season_vehicle_visitors / season_total,
@@ -79,7 +82,8 @@ annual_volume <- all_modes_expanded %>%
     annual_vehicles = sum(vehicles),
     annual_bike = sum(bike),
     annual_ped = sum(ped),
-    annual_total = annual_vehicle_visitors + annual_bike + annual_ped
+    annual_total = annual_vehicle_visitors + annual_bike + annual_ped,
+    .groups = "keep"
   ) %>%
   mutate(
     vehicle_mode_share = annual_vehicle_visitors / annual_total,
@@ -106,15 +110,15 @@ annual_volume[is.nan(annual_volume)] <- 0
 ## check that these are all equivalent
 # weekly_volume %>%
 #   group_by(system, year) %>%
-#   summarise(total = sum(weekly_total)/1e6)
+#   summarise(total = sum(weekly_total)/1e6, .groups = "keep")
 #
 # monthly_volume %>%
 #   group_by(system, year) %>%
-#   summarise(total = sum(monthly_total)/1e6)
+#   summarise(total = sum(monthly_total)/1e6, .groups = "keep")
 #
 # annual_volume %>%
 #   group_by(system, year) %>%
-#   summarise(total = sum(annual_total)/1e6)
+#   summarise(total = sum(annual_total)/1e6, .groups = "keep")
 
 ## and save
 save(weekly_volume, monthly_volume, season_volume, annual_volume,

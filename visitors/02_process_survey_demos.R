@@ -33,7 +33,8 @@ survey_dem <- demos_raven %>%
     totalpersons = sum(Persons),
     se = sqrt((percent * (1 - percent)) / totalpersons),
     moe_95 = se * 1.96,
-    moe_90 = se * 1.645
+    moe_90 = se * 1.645,
+    .groups = "keep"
   ) %>%
   ungroup() %>%
   # set up for comparison with StL

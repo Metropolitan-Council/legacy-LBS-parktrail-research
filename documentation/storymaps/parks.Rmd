@@ -103,14 +103,15 @@ dnr_monthly_comp <- dnr_monthly %>%
   summarise(
     LBS = sum(LBS),
     DNR = sum(DNR),
-    nmonths = n()
+    nmonths = n(),
+    .groups = "keep"
   ) %>%
   filter(!is.na(LBS), !is.na(DNR))
 
 
 dnr_annual_comp <- dnr_monthly %>%
   group_by(year, NAME) %>%
-  summarise(dnr_count = sum(dnr_count)) %>%
+  summarise(dnr_count = sum(dnr_count), .groups = "keep") %>%
   left_join(
     annual_volume %>%
       mutate(NAME = toupper(unit_label)),
@@ -186,7 +187,8 @@ system_vis <- annual_volume %>%
     system_total = sum(annual_total) / 1e6,
     system_vehicle = sum(annual_vehicle_visitors),
     system_bike = sum(annual_bike),
-    system_ped = sum(annual_ped)
+    system_ped = sum(annual_ped),
+    .groups = "keep"
   ) %>%
   ggplot(aes(x = year, y = system_total, fill = system_label)) +
   geom_col(color = "black") +
@@ -246,14 +248,14 @@ top_season <- (monthly_volume) %>%
   )) %>%
   ungroup() %>%
   group_by(system, year, season, zone_name, unit_label) %>%
-  summarise(SUM = sum(monthly_total)) %>%
+  summarise(SUM = sum(monthly_total), .groups = "keep") %>%
   ungroup() %>%
   group_by(system, year, zone_name, unit_label) %>%
   mutate(percent = SUM / sum(SUM)) %>%
   filter(year != 2022) %>%
   ungroup() %>%
   group_by(system, season, zone_name, unit_label) %>%
-  summarise(MEAN = mean(percent)) %>%
+  summarise(MEAN = mean(percent), .groups = "keep") %>%
   ungroup() %>%
   filter(MEAN > .5)
 # group_by(season) %>%
@@ -279,7 +281,7 @@ At the park level, strong seasonal patterns generally indicate the presence of s
 (monthly_volume) %>%
   ungroup() %>%
   group_by(system_label, year, month) %>%
-  summarise(SUM = sum(monthly_total)) %>%
+  summarise(SUM = sum(monthly_total), .groups = "keep") %>%
   ungroup() %>%
   group_by(system_label, year) %>%
   mutate(percent = SUM / sum(SUM)) %>%
@@ -288,7 +290,7 @@ At the park level, strong seasonal patterns generally indicate the presence of s
   group_by(system_label, month) %>%
   summarise(
     MEAN = mean(percent),
-    SE = sd(percent) / sqrt(n())
+    SE = sd(percent) / sqrt(n()), .groups = "keep"
   ) %>%
   mutate(label = if_else(month == "12", system_label, NA_character_)) %>%
   ggplot(aes(x = month, y = MEAN, group = system_label, color = system_label, pch = system_label)) +
@@ -343,7 +345,7 @@ hourly_parks %>%
   filter(!str_detect(day_type, "All")) %>%
   filter(!str_detect(day_type, "All")) %>%
   group_by(system_label, day_type, time) %>%
-  summarise(total = sum(total)) %>%
+  summarise(total = sum(total), .groups = "keep") %>%
   ungroup() %>%
   group_by(system_label, day_type) %>%
   mutate(percent = total / sum(total)) %>%
@@ -407,7 +409,7 @@ annual_volume %>%
   summarise(
     Vehicle = sum(annual_vehicle_visitors),
     Bicycle = sum(annual_bike),
-    Pedestrian = sum(annual_ped)
+    Pedestrian = sum(annual_ped), .groups = "keep"
   ) %>%
   ungroup() %>%
   mutate(
@@ -420,7 +422,7 @@ annual_volume %>%
   summarise(
     Vehicle = mean(Vehicle),
     Bicycle = mean(Bicycle),
-    Pedestrian = mean(Pedestrian)
+    Pedestrian = mean(Pedestrian), .groups = "keep"
   ) %>%
   pivot_longer(
     cols = c(Vehicle, Bicycle, Pedestrian),

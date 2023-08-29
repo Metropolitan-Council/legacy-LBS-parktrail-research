@@ -38,7 +38,7 @@ ann_seg_vol <- monthly_segment_volume %>%
     year == 2021
   ) %>%
   group_by(zone_name, osm_id, system, system_label, unit_label, short_agency) %>%
-  summarise(total_vol = sum(counter_estimate))
+  summarise(total_vol = sum(counter_estimate), .groups = "keep")
 
 cleaned_trail_segments_mapping <- cleaned_trail_segments %>%
   left_join(ann_seg_vol)

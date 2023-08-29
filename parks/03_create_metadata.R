@@ -166,7 +166,7 @@ dnr_area_county <- dnr_areas %>%
 ## check there is only 1 area per county
 dnr_area_check <- dnr_area_county %>%
   group_by(county) %>%
-  summarise(count = n()) %>%
+  summarise(count = n(), .groups = "keep") %>%
   filter(count > 1)
 
 if (nrow(dnr_area_check > 0)) {
@@ -246,11 +246,11 @@ park_metadata <- park_metadata %>%
 
 ## check for any duplicate zone names
 # park_metadata %>%
-#   group_by(zone_name) %>% summarise(count = n()) %>% filter(count > 1)
+#   group_by(zone_name) %>% summarise(count = n(), .groups = "keep") %>% filter(count > 1)
 
 ## check for any unexpected duplicate unit labels
 # park_metadata %>%
-#   group_by(unit_label) %>% summarise(count = n()) %>% filter(count > 1)
+#   group_by(unit_label) %>% summarise(count = n(), .groups = "keep") %>% filter(count > 1)
 
 ## the final output will only include a few key columns
 # keep all columns for use in future code

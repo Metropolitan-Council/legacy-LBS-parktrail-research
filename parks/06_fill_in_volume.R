@@ -110,7 +110,7 @@ pct_missing_weekly_records <- weekly_results2 %>%
   # ensures we don't end up with something like start_date = january 1, 2019, year = 2021
   complete(zone_name, nesting(start_date, end_date, label, week_of_year, year)) %>%
   group_by(zone_name) %>%
-  summarise(pct_missing = sum(is.na(volume)) / n()) %>%
+  summarise(pct_missing = sum(is.na(volume)) / n(), .groups = "keep") %>%
   arrange(-pct_missing)
 
 # parks dropped for coverage issues; use this to update metadata later
@@ -146,7 +146,7 @@ filled_weekly_results1 <- plyr::rbind.fill(weekly_results2, fillin_biweekly) %>%
 
 filled_weekly_results1 %>%
   group_by(source) %>%
-  summarise(count = n())
+  summarise(count = n(), .groups = "keep")
 
 still_missing <- filled_weekly_results1 %>%
   filter(is.na(volume))
@@ -229,7 +229,7 @@ filled_weekly_results <- plyr::rbind.fill(filled_weekly_results1, fillin_monthly
 #
 veh_records_by_source <- filled_weekly_results %>%
   group_by(source) %>%
-  summarise(count = n())
+  summarise(count = n(), .groups = "keep")
 
 save(veh_records_by_source,
   file = file.path(here(), "data-intermediate/parks/veh-records-by-source.rda")
@@ -247,13 +247,13 @@ cat(paste0(
 filled_weekly_results %>%
   filter(is.na(volume)) %>%
   group_by(zone_name) %>%
-  summarise(still_missing = n()) %>%
+  summarise(still_missing = n(), .groups = "keep") %>%
   arrange(-still_missing)
 
 ## check that all zones have the same number of records
 filled_weekly_results %>%
   group_by(zone_name) %>%
-  summarise(count = n()) %>%
+  summarise(count = n(), .groups = "keep") %>%
   arrange(-count)
 
 ## save

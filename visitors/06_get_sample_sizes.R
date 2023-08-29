@@ -182,7 +182,7 @@ sample_size <- sample_size_raw %>%
 
 sample_size %>%
   group_by(mode, less_than) %>%
-  summarise(count = n())
+  summarise(count = n(), .groups = "keep")
 
 sample_size <- sample_size %>%
   select(-c(less_than, mode_of_travel, approximate_device_count, devices)) %>%

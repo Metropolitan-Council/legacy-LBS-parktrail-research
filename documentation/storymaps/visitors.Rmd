@@ -49,7 +49,7 @@ n_trails <- distinct(filter(stl_dem, unit_type == "trail"), zone_name) %>% nrow(
 state_pcts <- home_states %>%
   filter(label %in% c("full21", "year21")) %>%
   group_by(state_name) %>%
-  summarise(total_by_state = sum(total_by_state)) %>%
+  summarise(total_by_state = sum(total_by_state), .groups = "keep") %>%
   ungroup() %>%
   mutate(percent_by_state = total_by_state / sum(total_by_state))
 

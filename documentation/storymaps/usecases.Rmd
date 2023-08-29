@@ -251,7 +251,7 @@ dt_tab <- dt %>%
   ) %>%
   filter(!is.na(Destination)) %>%
   group_by(Destination) %>%
-  summarise(pct_from_entrance = ped_use / entrance_use) %>%
+  summarise(pct_from_entrance = ped_use / entrance_use, .groups = "keep") %>%
   bind_rows(data.frame(Destination = "Alternative exit", pct_from_entrance = (1 - 0.273 - 0.182))) %>%
   mutate(
     Origin = "Entrance Gate",

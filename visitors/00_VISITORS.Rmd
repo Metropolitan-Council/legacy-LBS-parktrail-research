@@ -115,7 +115,7 @@ if (export_visitor_excel == TRUE) {
 state_pcts <- home_states %>%
   filter(label %in% c("full21", "year21")) %>%
   group_by(state_name) %>%
-  summarise(total_by_state = sum(total_by_state)) %>%
+  summarise(total_by_state = sum(total_by_state), .groups = "keep") %>%
   ungroup() %>%
   mutate(percent_by_state = total_by_state / sum(total_by_state))
 
@@ -235,7 +235,7 @@ park_to_zone <- data.frame(
 num_surveys <- raven_surveymetadata %>%
   left_join(park_to_zone, by = "PARK") %>%
   group_by(unit_name) %>%
-  summarise(count = n()) %>%
+  summarise(count = n(), .groups = "keep") %>%
   transmute(
     Unit = unit_name,
     `Completed surveys` = count

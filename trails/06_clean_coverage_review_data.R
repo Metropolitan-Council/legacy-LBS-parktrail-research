@@ -58,7 +58,8 @@ summer21_trails <- summer21_trails1 %>%
     ped_use = sum(ped_use),
     miles_used = sum(b_miles, p_miles),
     bike_miles = sum(b_miles),
-    ped_miles = sum(p_miles)
+    ped_miles = sum(p_miles),
+    .groups = "keep"
   ) %>%
   # fill in missing values with 0
   ungroup() %>%
@@ -130,7 +131,8 @@ full21_trails <- full21_trails1 %>%
     ped_use = sum(ped_use),
     miles_used = sum(b_miles, p_miles),
     bike_miles = sum(b_miles),
-    ped_miles = sum(p_miles)
+    ped_miles = sum(p_miles),
+    .groups = "keep"
   ) %>%
   # fill in missing values with 0
   ungroup() %>%

@@ -174,13 +174,13 @@ sapply(trail_metadata, function(x) sum(is.na(x)))
 ## check for any duplicate zone names
 trail_metadata %>%
   group_by(unit_id) %>%
-  summarise(count = n()) %>%
+  summarise(count = n(), .groups = "keep") %>%
   filter(count > 1)
 
 ## check for any unexpected duplicate unit labels
 trail_metadata %>%
   group_by(unit_label) %>%
-  summarise(count = n()) %>%
+  summarise(count = n(), .groups = "keep") %>%
   filter(count > 1)
 
 # the final output will only include a few key columns

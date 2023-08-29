@@ -32,7 +32,7 @@ bc <- read_csv(file.path(here::here(), "data-raw/extra-stl/1414828_rim_battle_cr
   ) %>%
   # get hourly use as %
   group_by(zone_name, time) %>%
-  summarise(hourly_ped_use = sum(ped_use)) %>%
+  summarise(hourly_ped_use = sum(ped_use), .groups = "keep") %>%
   ungroup() %>%
   group_by(zone_name) %>%
   mutate(hourly_pct = hourly_ped_use / sum(hourly_ped_use))
@@ -84,7 +84,7 @@ dt %>%
   ) %>%
   filter(!is.na(tag)) %>%
   group_by(tag) %>%
-  summarise(pct_from_entrance = ped_use / entrance_use) %>%
+  summarise(pct_from_entrance = ped_use / entrance_use, .groups = "keep") %>%
   bind_rows(data.frame(tag = "exit_elsewhere", pct_from_entrance = (1 - 0.273 - 0.182)))
 
 

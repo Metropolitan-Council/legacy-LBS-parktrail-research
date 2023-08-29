@@ -74,7 +74,7 @@ bgs <- bgs1 %>%
   filter(total_by_home_location != 0) %>%
   # and convert back to percentages
   group_by(label, day_type, day_part, zone_name, block_group_id) %>%
-  summarise(total_by_bg = sum(total_by_home_location)) %>%
+  summarise(total_by_bg = sum(total_by_home_location), .groups = "keep") %>%
   ungroup() %>%
   group_by(label, day_type, day_part, zone_name) %>%
   mutate(
@@ -86,7 +86,7 @@ bgs <- bgs1 %>%
 ## confirm percentages add up correctly
 bgs %>%
   group_by(label, day_type, day_part, zone_name) %>%
-  summarise(total = sum(percent_by_bg))
+  summarise(total = sum(percent_by_bg), .groups = "keep")
 
 zips <- zips1 %>%
   mutate(
@@ -107,7 +107,7 @@ zips <- zips1 %>%
   filter(total_by_home_location != 0) %>%
   # and convert back to percentages
   group_by(label, day_type, day_part, zone_name, zip_code) %>%
-  summarise(total_by_zip = sum(total_by_home_location)) %>%
+  summarise(total_by_zip = sum(total_by_home_location), .groups = "keep") %>%
   ungroup() %>%
   group_by(label, day_type, day_part, zone_name) %>%
   mutate(
@@ -135,7 +135,7 @@ states <- states1 %>%
   filter(total_by_home_location != 0) %>%
   # and convert back to percentages
   group_by(label, day_type, day_part, zone_name, state_name) %>%
-  summarise(total_by_state = sum(total_by_home_location)) %>%
+  summarise(total_by_state = sum(total_by_home_location), .groups = "keep") %>%
   ungroup() %>%
   group_by(label, day_type, day_part, zone_name) %>%
   mutate(

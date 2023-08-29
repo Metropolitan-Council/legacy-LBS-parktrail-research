@@ -134,7 +134,7 @@ demo_stats <- combo_stl_surv %>%
 
 demo_stats %>%
   group_by(sig) %>%
-  summarise(count = n())
+  summarise(count = n(), .groups = "keep")
 
 both <- combo_stl_surv %>%
   inner_join(demo_stats)

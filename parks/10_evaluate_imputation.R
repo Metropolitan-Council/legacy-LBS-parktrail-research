@@ -15,7 +15,7 @@ no_missing_names <- week_vehicle %>%
     mode_of_travel == "All Vehicles LBS Plus - StL All Vehicles Volume"
   ) %>%
   group_by(zone_name) %>%
-  summarise(count = n()) %>%
+  summarise(count = n(), .groups = "keep") %>%
   filter(count == n_weeks)
 
 no_missing <- week_vehicle %>%
@@ -59,7 +59,8 @@ err <- ar %>%
   group_by(zone_name) %>%
   summarise(
     RMSE = sqrt(mean(weekly_vehicles - filled)^2),
-    MAPE = mean(abs((weekly_vehicles - filled) / weekly_vehicles)) * 100
+    MAPE = mean(abs((weekly_vehicles - filled) / weekly_vehicles)) * 100,
+    .groups = "keep"
   )
 
 eval_dat <- purrr:::map_dfr(.x = c(1:500), .f = function(rep) {
@@ -100,7 +101,7 @@ eval <- eval_dat %>%
   summarise(
     RMSE = sqrt(mean(weekly_vehicles - value)^2),
     MAPE = mean(abs((weekly_vehicles - value) / weekly_vehicles)) * 100,
-    MAE = mean(abs(weekly_vehicles - value))
+    MAE = mean(abs(weekly_vehicles - value)), .groups = "keep"
   ) %>%
   ungroup() %>%
   group_by(rep_number) %>%
@@ -127,11 +128,11 @@ eval <- eval_dat %>%
 # within each trial, which method had the smallest RMSE?
 best_MAPE <- eval %>%
   group_by(best_MAPE) %>%
-  summarise(pct = n() / nrow(eval)) %>%
+  summarise(pct = n() / nrow(eval), .groups = "keep") %>%
   arrange(-pct)
 best_RMSE <- eval %>%
   group_by(best_RMSE) %>%
-  summarise(pct = n() / nrow(eval)) %>%
+  summarise(pct = n() / nrow(eval), .groups = "keep") %>%
   arrange(-pct)
 rmse_pct <- best_RMSE %>%
   filter(best_RMSE == "ma") %>%
@@ -146,14 +147,14 @@ avgs <- eval_dat %>%
   summarise(
     RMSE = sqrt(mean(weekly_vehicles - value)^2),
     MAPE = mean(abs((weekly_vehicles - value) / weekly_vehicles)) * 100,
-    MAE = mean(abs(weekly_vehicles - value))
+    MAE = mean(abs(weekly_vehicles - value)), .groups = "keep"
   ) %>%
   ungroup() %>%
   group_by(method) %>%
   select(-MAE) %>%
   summarise(
     mean_RMSE = mean(RMSE),
-    mean_MAPE = mean(MAPE)
+    mean_MAPE = mean(MAPE), .groups = "keep"
   )
 avgs_tab <- avgs %>%
   arrange(mean_RMSE) %>%

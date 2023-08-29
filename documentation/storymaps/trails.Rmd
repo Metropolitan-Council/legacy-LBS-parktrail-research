@@ -47,7 +47,7 @@ trail_summary <- sf::st_drop_geometry(cleaned_trail_segments) %>%
   summarise(
     Trails = n_distinct(unit_id),
     Segments = n_distinct(osm_id),
-    Miles = sum(round(as.numeric(approx_length_miles)))
+    Miles = sum(round(as.numeric(approx_length_miles)), .groups = "keep")
   )
 
 n_trails <- sum(trail_summary$Trails)
@@ -136,7 +136,7 @@ cor_eq <- lm(miles_used ~ 0 + max_use, data = cor_user_travel)
 
 cor_user_travel_unit <- cor_user_travel %>%
   group_by(unit_label, unit_id, year) %>%
-  summarise(miles_per_user = miles_used / max_use) %>%
+  summarise(miles_per_user = miles_used / max_use, .groups = "keep") %>%
   filter(!is.nan(miles_per_user)) %>%
   left_join(trail_metadata)
 
@@ -148,7 +148,7 @@ tmt_counter_cor <- cor.test(cor_user_travel$max_use, cor_user_travel$miles_used)
 #               filter(unit_label == "Paul Bunyan",
 #                      str_detect(day_type, "All")) %>%
 #               group_by(unit_label, osm_id, year) %>%
-#               summarise(annual_total = sum(counter_estimate))) %>%
+#               summarise(annual_total = sum(counter_estimate), .groups = "keep")) %>%
 #   filter(year == 2020) %>%
 #   mapview(zcol = "annual_total")
 ```
@@ -219,7 +219,7 @@ At the unit level, not all trails had increased use in 2020. Year 2020 had the h
 annual_alldays %>%
   filter(year != 2022) %>%
   group_by(year, system_label) %>%
-  summarise(miles = sum(miles_traveled) / 1e6) %>%
+  summarise(miles = sum(miles_traveled) / 1e6, .groups = "keep") %>%
   #  pivot_longer(names_to = "names", values_to = "values", -c(system_label, year)) %>%
   #  mutate(values = values / 1e6) %>%
   ggplot(aes(x = year, y = miles, fill = system_label)) +
@@ -282,7 +282,7 @@ Using LBS data to estimate trail use over a year shows that Minnesota’s trails
 (monthly_alldays) %>%
   filter(year != 2022) %>%
   group_by(system_label, year, month) %>%
-  summarise(SUM = sum(miles_traveled)) %>%
+  summarise(SUM = sum(miles_traveled), .groups = "keep") %>%
   ungroup() %>%
   group_by(system_label, year) %>%
   mutate(percent = SUM / sum(SUM)) %>%
@@ -290,7 +290,7 @@ Using LBS data to estimate trail use over a year shows that Minnesota’s trails
   group_by(system_label, month) %>%
   summarise(
     MEAN = mean(percent),
-    SE = sd(percent) / sqrt(n())
+    SE = sd(percent) / sqrt(n()), .groups = "keep"
   ) %>%
   mutate(label = if_else(month == "Dec", system_label, NA_character_)) %>%
   ggplot(aes(x = month, y = MEAN, group = system_label, color = system_label, pch = system_label)) +
@@ -344,7 +344,7 @@ hourly_trails %>%
   mutate(day_type = str_remove_all(day_type, "1: Average |2: Average | Day")) %>%
   filter(!str_detect(day_type, "All")) %>%
   group_by(system_label, day_type, time) %>%
-  summarise(total = sum(sumtotal)) %>%
+  summarise(total = sum(sumtotal), .groups = "keep") %>%
   ungroup() %>%
   group_by(system_label, day_type) %>%
   mutate(percent = total / sum(total)) %>%
@@ -404,7 +404,7 @@ monthly_alldays %>%
   group_by(system_label, season) %>%
   summarise( # Vehicle = sum(monthly_vehicle_visitors),
     Bicycle = sum(bike_miles_traveled),
-    Pedestrian = sum(ped_miles_traveled)
+    Pedestrian = sum(ped_miles_traveled), .groups = "keep"
   ) %>%
   ungroup() %>%
   mutate(

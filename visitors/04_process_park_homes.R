@@ -55,7 +55,7 @@ bgs <- bgs1 %>%
   filter(total_by_home_location != 0) %>%
   # and convert back to percentages
   group_by(label, day_type, day_part, zone_name, block_group_id) %>%
-  summarise(total_by_bg = sum(total_by_home_location)) %>%
+  summarise(total_by_bg = sum(total_by_home_location), .groups = "keep") %>%
   ungroup() %>%
   group_by(label, day_type, day_part, zone_name) %>%
   mutate(
@@ -67,4 +67,4 @@ bgs <- bgs1 %>%
 ## confirm percentages add up correctly
 bgs %>%
   group_by(label, day_type, day_part, zone_name) %>%
-  summarise(total = sum(percent_by_bg))
+  summarise(total = sum(percent_by_bg), .groups = "keep")

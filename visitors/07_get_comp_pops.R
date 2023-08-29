@@ -98,7 +98,8 @@ census_race_1 <- mncountyrace %>%
   group_by(county, variable) %>%
   summarise(
     numerator = sum(value),
-    denom = sum(summary_value)
+    denom = sum(summary_value),
+    .groups = "keep"
   ) %>%
   mutate(race = case_when(
     variable == "P2_007N" ~ "American Indian",
@@ -123,7 +124,8 @@ census_income_1 <- mncountyincome %>%
   group_by(county, variable) %>%
   summarise(
     numerator = sum(estimate),
-    denom = sum(summary_est)
+    denom = sum(summary_est),
+    .groups = "keep"
   ) %>%
   mutate(income = case_when(
     variable == "B19001_002" ~ "inc10",
@@ -156,7 +158,8 @@ census_income_1 <- mncountyincome %>%
   summarise(
     category = "Income",
     numerator = sum(numerator),
-    denom = unique(denom)
+    denom = unique(denom),
+    .groups = "keep"
   ) %>%
   rename(group = income) %>%
   mutate(group = factor(group, levels = c(
@@ -170,7 +173,8 @@ census_edu_1 <- mncountyedu %>%
   group_by(county, variable) %>%
   summarise(
     numerator = sum(estimate),
-    denom = sum(summary_est)
+    denom = sum(summary_est),
+    .groups = "keep"
   ) %>%
   mutate(education = case_when(
     variable %in% c(
@@ -187,7 +191,8 @@ census_edu_1 <- mncountyedu %>%
   summarise(
     category = "Education",
     numerator = sum(numerator),
-    denom = unique(denom)
+    denom = unique(denom),
+    .groups = "keep"
   ) %>%
   rename(group = education) %>%
   mutate(group = factor(group, levels = c(
@@ -202,7 +207,8 @@ state_race <- census_race_1 %>%
   group_by(category, group) %>%
   summarise(
     numerator = sum(numerator),
-    denominator = sum(denom)
+    denominator = sum(denom),
+    .groups = "keep"
   ) %>%
   mutate(percent = numerator / denominator)
 
@@ -210,7 +216,8 @@ state_income <- census_income_1 %>%
   group_by(category, group) %>%
   summarise(
     numerator = sum(numerator),
-    denominator = sum(denom)
+    denominator = sum(denom),
+    .groups = "keep"
   ) %>%
   mutate(percent = numerator / denominator)
 
@@ -218,7 +225,8 @@ state_education <- census_edu_1 %>%
   group_by(category, group) %>%
   summarise(
     numerator = sum(numerator),
-    denominator = sum(denom)
+    denominator = sum(denom),
+    .groups = "keep"
   ) %>%
   mutate(percent = numerator / denominator)
 
@@ -230,7 +238,8 @@ metro_race <- census_race_1 %>%
   group_by(category, group) %>%
   summarise(
     numerator = sum(numerator),
-    denominator = sum(denom)
+    denominator = sum(denom),
+    .groups = "keep"
   ) %>%
   mutate(percent = numerator / denominator)
 
@@ -239,7 +248,8 @@ metro_income <- census_income_1 %>%
   group_by(category, group) %>%
   summarise(
     numerator = sum(numerator),
-    denominator = sum(denom)
+    denominator = sum(denom),
+    .groups = "keep"
   ) %>%
   mutate(percent = numerator / denominator)
 
@@ -248,7 +258,8 @@ metro_education <- census_edu_1 %>%
   group_by(category, group) %>%
   summarise(
     numerator = sum(numerator),
-    denominator = sum(denom)
+    denominator = sum(denom),
+    .groups = "keep"
   ) %>%
   mutate(percent = numerator / denominator)
 
@@ -258,7 +269,8 @@ greater_mn_race <- census_race_1 %>%
   group_by(category, group) %>%
   summarise(
     numerator = sum(numerator),
-    denominator = sum(denom)
+    denominator = sum(denom),
+    .groups = "keep"
   ) %>%
   mutate(percent = numerator / denominator)
 
@@ -267,7 +279,8 @@ greater_mn_income <- census_income_1 %>%
   group_by(category, group) %>%
   summarise(
     numerator = sum(numerator),
-    denominator = sum(denom)
+    denominator = sum(denom),
+    .groups = "keep"
   ) %>%
   mutate(percent = numerator / denominator)
 
@@ -276,7 +289,8 @@ greater_mn_education <- census_edu_1 %>%
   group_by(category, group) %>%
   summarise(
     numerator = sum(numerator),
-    denominator = sum(denom)
+    denominator = sum(denom),
+    .groups = "keep"
   ) %>%
   mutate(percent = numerator / denominator)
 

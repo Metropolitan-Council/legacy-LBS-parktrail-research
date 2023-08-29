@@ -59,7 +59,7 @@ monthly_vehicle <- veh_expanded %>%
   summarise(
     monthly_vehicles = sum(vehicles),
     removed_monthly_intrapark_vehicles = sum(removed_daily_intrapark_trips),
-    vehicle_source = max(vehicle_source)
+    vehicle_source = max(vehicle_source), .groups = "keep"
   ) %>%
   mutate(label = paste0(month, ".", year))
 
@@ -77,7 +77,7 @@ scaling_factors <- all_monthly %>%
   group_by(zone_name, month, year) %>%
   summarise(
     bike_scaling_factor = monthly_bike_volume / monthly_vehicles,
-    ped_scaling_factor = monthly_ped_volume / monthly_vehicles
+    ped_scaling_factor = monthly_ped_volume / monthly_vehicles, .groups = "keep"
   )
 
 ## use scaling factors to convert monthly bike/ped data to daily/weekly
@@ -123,7 +123,7 @@ hourly_parks <- do.call(bind_rows, hourly) %>%
     total = sum(vehicle_visitors + bike + ped),
     vehicle_visitors = sum(vehicle_visitors),
     bike = sum(bike),
-    ped = sum(ped)
+    ped = sum(ped), .groups = "keep"
   ) %>%
   mutate(
     vehicle_share = vehicle_visitors / total,

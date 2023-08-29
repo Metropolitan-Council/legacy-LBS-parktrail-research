@@ -131,6 +131,7 @@ if (initiate_park_coverage_review == TRUE) {
   )
 }
 ```
+
 ```{r run-parks}
 # run weekly volume & index (for comparison)
 run_weekly <- FALSE
@@ -554,12 +555,12 @@ A "moving average" simply means that each missing value is estimated based on su
 ```{r}
 bike_imputed <- filled_monthly_bike %>%
   group_by(source) %>%
-  summarise(count = n()) %>%
+  summarise(count = n(), .groups = "keep") %>%
   mutate(pct = count / sum(count))
 
 ped_imputed <- filled_monthly_ped %>%
   group_by(source) %>%
-  summarise(count = n()) %>%
+  summarise(count = n(), .groups = "keep") %>%
   mutate(pct = count / sum(count))
 ```
 
@@ -592,7 +593,8 @@ ggplot_na_imputations(
 #| results='markup',
 #| tidy = FALSE
 
-regulartable(avgs_tab %>% mutate_if(is.numeric, prettyNum, digits = 2)) %>%
+regulartable(avgs_tab %>%
+  mutate_if(is.numeric, prettyNum, digits = 2)) %>%
   autofit(add_w = 0, add_h = 0) %>%
   set_table_properties(layout = "autofit") %>%
   set_caption("Root mean squared error (RMSE) and mean absolute percent error (MAPE) for three imputation methods.")
@@ -616,7 +618,7 @@ stl_with_intrapark <- all_monthly %>%
     total = sum(monthly_vehicles * 3.2 + monthly_bike_volume + monthly_ped_volume),
     total_raw = total + sum(removed_monthly_intrapark_vehicles * 3.2 +
       removed_monthly_bike_intrapark_trips +
-      removed_monthly_ped_intrapark_trips)
+      removed_monthly_ped_intrapark_trips), .groups = "keep"
   ) %>%
   mutate(
     NAME = toupper(unit_label),
@@ -643,7 +645,7 @@ dnr_monthly <- dnr_raw %>%
 
 dnr_annual <- dnr_monthly %>%
   group_by(NAME, year) %>%
-  summarise(dnr_count = sum(dnr_count))
+  summarise(dnr_count = sum(dnr_count), .groups = "keep")
 
 both <- dnr_annual %>% # DON'T INCLUDE 2021, DNR estimate is only for part of year
   filter(year %in% c(2019, 2020)) %>%
@@ -685,13 +687,15 @@ all_monthly %>%
     veh_intra = sum(removed_monthly_intrapark_vehicles, na.rm = TRUE),
     pct_veh_intra = veh_intra / sum(monthly_vehicles + removed_monthly_intrapark_vehicles),
     pct_bike_intra = bike_intra / sum(monthly_bike_volume + removed_monthly_bike_intrapark_trips, na.rm = TRUE),
-    pct_ped_intra = ped_intra / sum(monthly_ped_volume + removed_monthly_ped_intrapark_trips, na.rm = TRUE)
+    pct_ped_intra = ped_intra / sum(monthly_ped_volume + removed_monthly_ped_intrapark_trips, na.rm = TRUE),
+    .groups = "keep"
   ) %>%
   transmute(
     System = system_label,
     Vehicle = scales::percent(pct_veh_intra, accuracy = 1),
     Bicycle = scales::percent(pct_bike_intra, accuracy = 1),
-    Pedestrian = scales::percent(pct_ped_intra, accuracy = 1)
+    Pedestrian = scales::percent(pct_ped_intra, accuracy = 1),
+    .groups = "keep"
   ) %>%
   flextable() %>%
   autofit() %>%
@@ -724,8 +728,14 @@ both %>%
   geom_abline(slope = 1, intercept = 0, linetype = 2) +
   facet_wrap(~Type) +
   theme_council_open(base_size = 10) +
-  scale_x_continuous(labels = scales::label_comma(scale = .001), expand = expansion(mult = c(0, 0.01))) +
-  scale_y_continuous(labels = scales::label_comma(scale = .001), expand = expansion(mult = c(0, 0.01))) +
+  scale_x_continuous(
+    labels = scales::label_comma(scale = .001),
+    expand = expansion(mult = c(0, 0.01))
+  ) +
+  scale_y_continuous(
+    labels = scales::label_comma(scale = .001),
+    expand = expansion(mult = c(0, 0.01))
+  ) +
   geom_text_repel(aes(label = label),
     segment.color = "grey50", min.segment.length = 0,
     size = 3, box.padding = 0.7, point.padding = 0.3, segment.square = TRUE,
@@ -800,20 +810,22 @@ dnr_monthly_comp <- dnr_monthly %>%
   group_by(NAME, month, year) %>%
   summarise(
     LBS = sum(monthly_total),
-    DNR = sum(dnr_count)
+    DNR = sum(dnr_count),
+    .groups = "keep"
   ) %>%
   ungroup() %>%
   group_by(NAME, year) %>%
   summarise(
     LBS = sum(LBS),
     DNR = sum(DNR),
-    nmonths = n()
+    nmonths = n(),
+    .groups = "keep"
   ) %>%
   filter(!is.na(LBS), !is.na(DNR))
 
 dnr_annual_comp <- dnr_monthly %>%
   group_by(year, NAME) %>%
-  summarise(dnr_count = sum(dnr_count)) %>%
+  summarise(dnr_count = sum(dnr_count), .groups = "keep") %>%
   left_join(
     annual_volume %>%
       mutate(NAME = toupper(unit_label)),
@@ -1035,7 +1047,8 @@ both_monthly2 %>%
   group_by(label_name, facet_name) %>%
   summarise(
     `Count-based estimate` = mean(dnr_count, na.rm = TRUE), SE_DNR = sd(dnr_count, na.rm = TRUE) / sqrt(n()),
-    `LBS estimate` = mean(monthly_total), SE_STL = sd(monthly_total) / sqrt(n())
+    `LBS estimate` = mean(monthly_total), SE_STL = sd(monthly_total) / sqrt(n()),
+    .groups = "keep"
   ) %>%
   tidyr::pivot_longer(cols = c(`Count-based estimate`, `LBS estimate`), names_to = "SOURCE", values_to = "MEAN") %>%
   tidyr::pivot_longer(cols = c(SE_DNR, SE_STL), names_to = "SOURCE_SE", values_to = "SE") %>%
@@ -1089,7 +1102,8 @@ annual_volume %>%
     system_total = sum(annual_total) / 1e6,
     system_vehicle = sum(annual_vehicle_visitors),
     system_bike = sum(annual_bike),
-    system_ped = sum(annual_ped)
+    system_ped = sum(annual_ped),
+    .groups = "keep"
   ) %>%
   ggplot(aes(x = year, y = system_total, fill = system_label)) +
   geom_col(color = "black") +
@@ -1099,7 +1113,10 @@ annual_volume %>%
     x = "", caption = fig_caption,
     title = "Annual park use (millions of visits)" # ,
   ) +
-  scale_y_continuous(labels = scales::label_comma(), expand = expansion(mult = c(0, 0.1)), n.breaks = 4) +
+  scale_y_continuous(
+    labels = scales::label_comma(),
+    expand = expansion(mult = c(0, 0.1)), n.breaks = 4
+  ) +
   scale_fill_manual(values = system_label_cols) +
   theme(
     legend.position = "none",
@@ -1139,7 +1156,7 @@ month_labs <- data.frame(month = 1:12, month_lab = month.abb) %>%
   filter(system != "Metro Regional Inclusive") %>%
   ungroup() %>%
   group_by(system_label, year, month) %>%
-  summarise(SUM = sum(monthly_total)) %>%
+  summarise(SUM = sum(monthly_total), .groups = "keep") %>%
   ungroup() %>%
   group_by(system_label, year) %>%
   mutate(percent = SUM / sum(SUM)) %>%
@@ -1148,7 +1165,7 @@ month_labs <- data.frame(month = 1:12, month_lab = month.abb) %>%
   group_by(system_label, month) %>%
   summarise(
     MEAN = mean(percent),
-    SE = sd(percent) / sqrt(n())
+    SE = sd(percent) / sqrt(n()), .groups = "keep"
   ) %>%
   mutate(label = if_else(month == "12", system_label, NA_character_)) %>%
   left_join(month_labs, by = "month") %>%
@@ -1160,7 +1177,10 @@ month_labs <- data.frame(month = 1:12, month_lab = month.abb) %>%
   geom_point(size = 2) +
   geom_line() +
   scale_color_manual(values = system_label_cols) +
-  scale_y_continuous(labels = scales::label_percent(), expand = expansion(mult = 0, 0)) +
+  scale_y_continuous(
+    labels = scales::label_percent(),
+    expand = expansion(mult = 0, 0)
+  ) +
   theme_council_open(base_size = 10) +
   scale_x_discrete(expand = expansion(mult = c(0.01, 0.3))) +
   coord_cartesian(clip = "off") +
@@ -1189,7 +1209,7 @@ monthly_volume %>%
   filter(system != "Metro Regional Inclusive") %>%
   ungroup() %>%
   group_by(unit_label, year, month) %>%
-  summarise(SUM = sum(monthly_total)) %>%
+  summarise(SUM = sum(monthly_total), .groups = "keep") %>%
   ungroup() %>%
   group_by(unit_label, year) %>%
   mutate(percent = SUM / sum(SUM)) %>%
@@ -1198,7 +1218,7 @@ monthly_volume %>%
   group_by(unit_label, month) %>%
   summarise(
     MEAN = mean(percent),
-    SE = sd(percent) / sqrt(n())
+    SE = sd(percent) / sqrt(n()), .groups = "keep"
   ) %>%
   mutate(
     label = ifelse(month == 12 & str_detect(unit_label, "Spirit Mountain|Detroit Mountain"), unit_label, NA_character_),
@@ -1234,7 +1254,10 @@ monthly_volume %>%
     "yes" = 1,
     "no" = 0.5
   )) +
-  scale_y_continuous(labels = scales::label_percent(), expand = expansion(mult = 0, 0)) +
+  scale_y_continuous(
+    labels = scales::label_percent(),
+    expand = expansion(mult = 0, 0)
+  ) +
   theme_council_open(base_size = 10) +
   scale_x_discrete(expand = expansion(mult = c(0.01, 0.4))) +
   coord_cartesian(clip = "off") +
@@ -1266,14 +1289,23 @@ For instance, some units closed facilities during the spring and summer of 2020 
 
 a <- weekly_volume %>%
   filter(str_detect(unit_label, "Spirit"), year == 2020) %>%
-  mutate(label = ifelse(start_date == "2020-03-10", "COVID-19 \nstay-at-home \norder announced", NA_character_)) %>%
+  mutate(label = ifelse(start_date == "2020-03-10", "COVID-19 \nstay-at-home \norder announced",
+    NA_character_
+  )) %>%
   ggplot(aes(x = start_date, y = weekly_total)) +
   geom_point() +
   geom_line() +
   theme_council_open(base_size = 10) +
   labs(title = "Spirit Mountain Recreation Area, 2020", x = "", y = "") +
-  scale_y_continuous(labels = scales::label_comma(), expand = expansion(mult = c(0.0, 0.1)), limits = c(0, 44000)) +
-  scale_x_date(date_breaks = "1 month", date_labels = "%b", expand = c(0, 0), limits = c(as.Date("2020-01-07"), as.Date("2020-12-29"))) +
+  scale_y_continuous(
+    labels = scales::label_comma(),
+    expand = expansion(mult = c(0.0, 0.1)), limits = c(0, 44000)
+  ) +
+  scale_x_date(
+    date_breaks = "1 month", date_labels = "%b",
+    expand = c(0, 0),
+    limits = c(as.Date("2020-01-07"), as.Date("2020-12-29"))
+  ) +
   theme(legend.position = "none") +
   geom_text_repel(aes(label = label),
     segment.color = "grey50", min.segment.length = 0,
@@ -1286,14 +1318,26 @@ a <- weekly_volume %>%
 b <- weekly_volume %>%
   filter(system != "Metro Regional Inclusive") %>%
   filter(str_detect(unit_label, "Nokomis"), year == 2020) %>%
-  mutate(label = ifelse(start_date == "2020-01-21", "US Pond Hocky \nChampionships", NA_character_)) %>%
+  mutate(label = ifelse(start_date == "2020-01-21",
+    "US Pond Hocky \nChampionships", NA_character_
+  )) %>%
   ggplot(aes(x = start_date, y = weekly_total)) +
   geom_point() +
   geom_line() +
   theme_council_open(base_size = 10) +
   labs(title = "Nokomis-Hiawatha Regional Park, 2020", x = "", y = "") +
-  scale_y_continuous(labels = scales::label_comma(), expand = expansion(mult = c(0.0, 0.1)), limits = c(0, 70000)) +
-  scale_x_date(date_breaks = "1 month", date_labels = "%b", expand = c(0, 0), limits = c(as.Date("2020-01-07"), as.Date("2020-12-29"))) +
+  scale_y_continuous(
+    labels = scales::label_comma(),
+    expand = expansion(mult = c(0.0, 0.1)),
+    limits = c(0, 70000)
+  ) +
+  scale_x_date(
+    date_breaks = "1 month", date_labels = "%b",
+    expand = c(0, 0), limits = c(
+      as.Date("2020-01-07"),
+      as.Date("2020-12-29")
+    )
+  ) +
   theme(legend.position = "none") +
   geom_text_repel(aes(label = label),
     segment.color = "grey50", min.segment.length = 0,
@@ -1305,14 +1349,28 @@ b <- weekly_volume %>%
 c <- weekly_volume %>%
   filter(system != "Metro Regional Inclusive") %>%
   filter(str_detect(unit_label, "Waconia"), year == 2021) %>%
-  mutate(label = ifelse(start_date == "2021-06-29", "Lola's Lake 10 \nMile & 5k race", NA_character_)) %>%
+  mutate(label = ifelse(start_date == "2021-06-29",
+    "Lola's Lake 10 \nMile & 5k race", NA_character_
+  )) %>%
   ggplot(aes(x = start_date, y = weekly_total)) +
   geom_point() +
   geom_line() +
   theme_council_open(base_size = 10) +
-  labs(title = "Lake Waconia Regional Park, 2021", x = "", y = "", caption = fig_caption) +
-  scale_y_continuous(labels = scales::label_comma(), expand = expansion(mult = c(0.0, 0.1)), ) +
-  scale_x_date(date_breaks = "1 month", date_labels = "%b", expand = c(0, 0), limits = c(as.Date("2021-01-05"), as.Date("2021-12-28"))) +
+  labs(
+    title = "Lake Waconia Regional Park, 2021", x = "", y = "",
+    caption = fig_caption
+  ) +
+  scale_y_continuous(
+    labels = scales::label_comma(),
+    expand = expansion(mult = c(0.0, 0.1)),
+  ) +
+  scale_x_date(
+    date_breaks = "1 month", date_labels = "%b",
+    expand = c(0, 0), limits = c(
+      as.Date("2021-01-05"),
+      as.Date("2021-12-28")
+    )
+  ) +
   theme(legend.position = "none") +
   geom_text_repel(aes(label = label),
     segment.color = "grey50", min.segment.length = 0,
@@ -1356,7 +1414,7 @@ hourly_parks %>%
   filter(!str_detect(day_type, "All")) %>%
   filter(!str_detect(day_type, "All")) %>%
   group_by(system_label, day_type, time) %>%
-  summarise(total = sum(total)) %>%
+  summarise(total = sum(total), .groups = "keep") %>%
   ungroup() %>%
   group_by(system_label, day_type) %>%
   mutate(percent = total / sum(total)) %>%
@@ -1371,7 +1429,10 @@ hourly_parks %>%
   scale_color_manual(values = system_label_cols) +
   theme_council_open(base_size = 10) +
   scale_y_continuous(labels = scales::label_percent()) +
-  scale_x_datetime(date_breaks = "4 hours", date_labels = "%l%p", expand = expansion(mult = c(0.01, 0.01))) +
+  scale_x_datetime(
+    date_breaks = "4 hours", date_labels = "%l%p",
+    expand = expansion(mult = c(0.01, 0.01))
+  ) +
   labs(
     x = "", y = "System \ntotal", color = "", shape = "",
     title = "Hourly park use (summer 2021)",
@@ -1402,7 +1463,7 @@ annual_volume %>%
   summarise(
     Vehicle = sum(annual_vehicle_visitors),
     Bicycle = sum(annual_bike),
-    Pedestrian = sum(annual_ped)
+    Pedestrian = sum(annual_ped), .groups = "keep"
   ) %>%
   ungroup() %>%
   mutate(
@@ -1415,7 +1476,7 @@ annual_volume %>%
   summarise(
     Vehicle = mean(Vehicle),
     Bicycle = mean(Bicycle),
-    Pedestrian = mean(Pedestrian)
+    Pedestrian = mean(Pedestrian), .groups = "keep"
   ) %>%
   pivot_longer(
     cols = c(Vehicle, Bicycle, Pedestrian),
@@ -1423,10 +1484,16 @@ annual_volume %>%
     values_to = "Share"
   ) %>%
   ggplot(aes(x = Mode, y = Share, fill = system_label)) +
-  geom_bar(stat = "identity", color = "black", position = position_dodge(width = .9)) +
+  geom_bar(
+    stat = "identity", color = "black",
+    position = position_dodge(width = .9)
+  ) +
   theme_council_open(base_size = 10) +
   scale_fill_manual(values = system_label_cols) +
-  scale_y_continuous(labels = scales::label_percent(), expand = expansion(mult = c(0.0, 0.05))) +
+  scale_y_continuous(
+    labels = scales::label_percent(),
+    expand = expansion(mult = c(0.0, 0.05))
+  ) +
   labs(
     title = "Park visitor travel mode",
     x = "", y = "", fill = "",
@@ -1439,7 +1506,8 @@ annual_volume %>%
     plot.title = element_text(size = 10)
   ) +
   geom_label(aes(
-    label = paste0(format(round(Share * 100, 1), nsmall = 1), "%"), group = system_label,
+    label = paste0(format(round(Share * 100, 1), nsmall = 1), "%"),
+    group = system_label,
     y = rep(c(.14, .14, .14), 3)
   ), fill = "white", size = 2.5, position = position_dodge(width = .9))
 ```

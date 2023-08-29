@@ -31,13 +31,13 @@ raw_monthly_segments$zone_name %>% n_distinct()
 dropped_segments <- all_segment_metadata %>%
   filter(!zone_name %in% raw_monthly_segments$zone_name) %>%
   group_by(system, unit_label) %>%
-  summarise(dropped_segments = n()) %>%
+  summarise(dropped_segments = n(), .groups = "keep") %>%
   mutate(reason = "No LBS data returned")
 
 dropped_for_length <- all_segment_metadata %>%
   filter(as.numeric(approx_length_feet) < 50) %>%
   group_by(system, unit_label) %>%
-  summarise(dropped_segments = n()) %>%
+  summarise(dropped_segments = n(), .groups = "keep") %>%
   mutate(reason = "Less than 50ft")
 
 save(dropped_pre_LBS, dropped_entirely, dropped_segments, dropped_for_length,

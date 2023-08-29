@@ -54,7 +54,7 @@ dnr_trails <- dnr_trails %>%
 ## check for duplicate unit_ids
 dnr_dups <- dnr_trails %>%
   group_by(unit_id) %>%
-  summarise(count = n()) %>%
+  summarise(count = n(), .groups = "keep") %>%
   filter(count > 1)
 
 if (nrow(dnr_dups) > 0) {
@@ -161,7 +161,7 @@ gmn_trails <- gmn_trails %>%
 ## check for duplicate unit_ids
 gmn_dups <- gmn_trails %>%
   group_by(unit_id) %>%
-  summarise(count = n()) %>%
+  summarise(count = n(), .groups = "keep") %>%
   filter(count > 1)
 
 if (nrow(gmn_dups) > 0) {
@@ -252,7 +252,7 @@ metro_trails <- metro_trails %>%
 ## check for duplicate unit_ids
 metro_dups <- metro_trails %>%
   group_by(unit_id) %>%
-  summarise(count = n()) %>%
+  summarise(count = n(), .groups = "keep") %>%
   filter(count > 1)
 
 if (nrow(metro_dups) > 0) {

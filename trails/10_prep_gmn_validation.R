@@ -119,7 +119,7 @@ if (fetch_greatermn_validation == TRUE) {
       )
     ) %>%
     group_by(zone_name, day_type) %>%
-    summarise(Volume = sum(Volume)) %>%
+    summarise(Volume = sum(Volume), .groups = "keep") %>%
     left_join(
       gmn_sadt %>%
         group_by(zone_name) %>%
@@ -170,7 +170,7 @@ if (fetch_greatermn_validation == TRUE) {
     group_by(zone_name, day_type) %>%
     summarise(
       Volume = sum(Volume, na.rm = TRUE),
-      Bike = sum(Bike, na.rm = TRUE)
+      Bike = sum(Bike, na.rm = TRUE), .groups = "keep"
     )
 
   dt_sadt <- data.frame(

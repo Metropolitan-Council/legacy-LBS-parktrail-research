@@ -268,7 +268,7 @@ hourly_timeseries_plot_fxn <- function(x) {
     mutate(day_type = str_remove_all(day_type, "1: Average |2: Average | Day")) %>%
     filter(!str_detect(day_type, "All")) %>%
     group_by(day_type, time) %>%
-    summarise(total = sum(sumtotal)) %>%
+    summarise(total = sum(sumtotal), .groups = "keep") %>%
     ungroup() %>%
     group_by(day_type) %>%
     mutate(percent = total / sum(total)) %>%

@@ -155,7 +155,7 @@ stl_all <- mndot_trails_monthly_za %>%
     type == "full osm segment"
   ) %>%
   group_by(zone_name, year, month, day_type) %>%
-  summarise(LBS = sum(visitors)) %>%
+  summarise(LBS = sum(visitors), .groups = "keep") %>%
   ungroup() %>%
   complete(zone_name, year, month, day_type)
 
@@ -180,7 +180,8 @@ stl_missing <- stl_all %>%
   summarise(
     missing = sum(is.na(LBS)),
     total = n(),
-    pct_missing = 100 * missing / n()
+    pct_missing = 100 * missing / n(),
+    .groups = "keep"
   )
 
 stl_remove <- stl_missing %>%
@@ -214,13 +215,14 @@ mndot_all <- mndot %>%
   ) %>%
   group_by(site, weekend, year, month, date_day) %>%
   # get total of bike + ped
-  summarise(total = sum(total)) %>%
+  summarise(total = sum(total), .groups = "keep") %>%
   # get monthly average
   ungroup() %>%
   group_by(site, weekend, year, month) %>%
   summarise(
     MNDOTavg = mean(total),
     MNDOTse = sd(total) / sqrt(n()),
+    .groups = "keep"
   ) %>%
   mutate(day_type = if_else(weekend == "weekend", "Weekend Day (Sa-Su)", "Weekday (M-F)")) %>%
   ungroup()
@@ -247,6 +249,7 @@ mndot_all_mode <- mndot %>%
   summarise(
     MNDOTavg = mean(total),
     MNDOTse = sd(total) / sqrt(n()),
+    .groups = "keep"
   ) %>%
   mutate(day_type = if_else(weekend == "weekend", "Weekend Day (Sa-Su)", "Weekday (M-F)")) %>%
   ungroup()
@@ -333,7 +336,10 @@ compare_all_mode <- mndot_all_mode %>%
 pct_imputed_data <- mndot %>%
   filter(site %in% mndot_all$site) %>%
   group_by(site) %>%
-  summarise(mndot_pct_imputed = 100 * sum(imputed) / n()) %>%
+  summarise(
+    mndot_pct_imputed = 100 * sum(imputed) / n(),
+    .groups = "keep"
+  ) %>%
   left_join(zone_names) %>%
   left_join(stl_missing %>% select(zone_name, lbs_pct_missing = pct_missing)) %>%
   filter(!zone_name %in% stl_remove)
@@ -342,19 +348,19 @@ pct_imputed_data <- mndot %>%
 ### create correlation table ###
 cor_tab_dat <- compare_all_mode %>%
   group_by(year, mode) %>%
-  summarise(cor = round(cor(LBS, MNDOTavg), 2)) %>%
+  summarise(cor = round(cor(LBS, MNDOTavg), 2), .groups = "keep") %>%
   pivot_wider(names_from = "mode", values_from = "cor") %>%
   mutate(year = as.character(year))
 
 total_mode_cor <- compare_all_mode %>%
   group_by(mode) %>%
-  summarise(cor = round(cor(LBS, MNDOTavg), 2)) %>%
+  summarise(cor = round(cor(LBS, MNDOTavg), 2), .groups = "keep") %>%
   pivot_wider(names_from = "mode", values_from = "cor") %>%
   mutate(year = "Total")
 
 total_ann_cor <- compare_all_mode %>%
   group_by(year) %>%
-  summarise(cor = round(cor(LBS, MNDOTavg), 2)) %>%
+  summarise(cor = round(cor(LBS, MNDOTavg), 2), .groups = "keep") %>%
   pivot_wider(names_from = "year", values_from = "cor")
 
 total_cor <- round(cor(compare_all$LBS, compare_all$MNDOTavg), 2)

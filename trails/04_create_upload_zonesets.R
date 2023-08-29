@@ -120,7 +120,7 @@ dnr_cleaned_segments <-
 ## check for unique zones
 dnr_check_unique <- dnr_cleaned_segments %>%
   group_by(zone_name) %>%
-  summarise(count = n()) %>%
+  summarise(count = n(), .groups = "keep") %>%
   filter(count != 1)
 
 if (nrow(dnr_check_unique) > 0) {
@@ -181,7 +181,7 @@ gmn_cleaned_segments <-
 ## check for unique zones
 gmn_check_unique <- gmn_cleaned_segments %>%
   group_by(zone_name) %>%
-  summarise(count = n()) %>%
+  summarise(count = n(), .groups = "keep") %>%
   filter(count != 1)
 
 if (nrow(gmn_check_unique) > 0) {
@@ -238,7 +238,7 @@ metro_cleaned_segments <-
 ## check for unique zones
 metro_check_unique <- metro_cleaned_segments %>%
   group_by(zone_name) %>%
-  summarise(count = n()) %>%
+  summarise(count = n(), .groups = "keep") %>%
   filter(count != 1)
 
 if (nrow(metro_check_unique) > 0) {

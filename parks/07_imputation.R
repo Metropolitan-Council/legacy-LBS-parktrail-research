@@ -69,7 +69,7 @@ weekly <- filled_weekly_results %>%
 
 summarytab <- weekly %>%
   group_by(source) %>%
-  summarise(count = n()) %>%
+  summarise(count = n(), .groups = "keep") %>%
   as.data.table()
 
 print(summarytab)
@@ -157,7 +157,7 @@ no_bike_imputation <- bike_monthly_expanded %>%
   summarise(
     missing = sum(is.na(bike_volume)),
     count = n(),
-    pct_missing = sum(is.na(bike_volume) / n())
+    pct_missing = sum(is.na(bike_volume) / n()), .groups = "keep"
   ) %>%
   arrange(-pct_missing) %>%
   filter(pct_missing >= 0.5)
@@ -297,7 +297,7 @@ no_ped_imputation <- ped_monthly_expanded %>%
   summarise(
     missing = sum(is.na(ped_volume)),
     count = n(),
-    pct_missing = sum(is.na(ped_volume) / n())
+    pct_missing = sum(is.na(ped_volume) / n()), .groups = "keep"
   ) %>%
   arrange(-pct_missing) %>%
   filter(pct_missing >= 0.5)

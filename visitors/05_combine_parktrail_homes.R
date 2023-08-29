@@ -125,7 +125,7 @@ oversample_home_wide <- oversample_home %>%
 
 oversample_zip_count <- oversample_home %>%
   group_by(unit_name, source) %>%
-  summarise(count = n_distinct(zip_code)) %>%
+  summarise(count = n_distinct(zip_code), .groups = "keep") %>%
   pivot_wider(names_from = "source", values_from = "count")
 
 ##### save everything together #####

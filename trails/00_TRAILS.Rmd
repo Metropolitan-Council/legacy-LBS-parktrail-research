@@ -295,13 +295,17 @@ In order to conduct detailed analyses, trails were decomposed into [OpenStreetMa
 In some cases, OSM "relations" were used to retrieve all segments related to a given trail by name (for example, querying OSM for all segments tagged "Duluth Traverse"). OSM relations were not available for the majority of trails in the project sample, hence the methods described above. Relations were used to query geographies for the Duluth Traverse (Greater MN Regional), the Luce Line (DNR State), the Paul Bunyan trail (DNR State), and the Sakatah Singing Hills trail (DNR State). 
 
 ```{r segment-medians}
-median_n_segments <- median((st_drop_geometry(cleaned_trail_segments) %>% group_by(unit_label) %>% summarise(count = n()))$count)
+median_n_segments <- median((st_drop_geometry(cleaned_trail_segments) %>%
+  group_by(unit_label) %>%
+  summarise(count = n(), .groups = "keep"))$count)
 
-max_n_segments <- max((st_drop_geometry(cleaned_trail_segments) %>% group_by(unit_label) %>% summarise(count = n()))$count)
+max_n_segments <- max((st_drop_geometry(cleaned_trail_segments) %>%
+  group_by(unit_label) %>%
+  summarise(count = n(), .groups = "keep"))$count)
 
 max_segments_unit_label <- st_drop_geometry(cleaned_trail_segments) %>%
   group_by(unit_label) %>%
-  summarise(count = n()) %>%
+  summarise(count = n(), .groups = "keep") %>%
   filter(count == max_n_segments) %>%
   select(unit_label)
 
@@ -314,10 +318,23 @@ max_segments_trail_length <- trail_metadata %>%
   mutate(miles = approx_length_miles) %>%
   select(miles)
 
-med_seg_length <- prettyNum(as.numeric(median(cleaned_trail_segments$approx_length_miles)), digits = 2)
-med_dnr_length <- prettyNum(as.numeric(median(filter(cleaned_trail_segments, str_detect(zone_name, "_DNR"))$approx_length_miles)), digits = 2)
-med_gmn_length <- prettyNum(as.numeric(median(filter(cleaned_trail_segments, str_detect(zone_name, "_Greater-MN"))$approx_length_miles)), digits = 2)
-med_metro_length <- prettyNum(as.numeric(median(filter(cleaned_trail_segments, str_detect(zone_name, "_Metro-Regional"))$approx_length_miles)), digits = 2)
+med_seg_length <- prettyNum(as.numeric(
+  median(cleaned_trail_segments$approx_length_miles)
+), digits = 2)
+med_dnr_length <- prettyNum(as.numeric(
+  median(filter(
+    cleaned_trail_segments,
+    str_detect(zone_name, "_DNR")
+  )$approx_length_miles)
+), digits = 2)
+med_gmn_length <- prettyNum(as.numeric(
+  median(filter(
+    cleaned_trail_segments,
+    str_detect(zone_name, "_Greater-MN")
+  )$approx_length_miles)
+), digits = 2)
+med_metro_length <- prettyNum(as.numeric
+(median(filter(cleaned_trail_segments, str_detect(zone_name, "_Metro-Regional"))$approx_length_miles)), digits = 2)
 ``` 
 
 A total of `r prettyNum(n_segments, big.mark = ",")` distinct trails segments totaling over `r prettyNum(plyr::round_any(trail_miles, 100, f = floor), big.mark = ",")` miles were identified (Table \@ref(tab:trail-count-tab)). Please note that the identified trail segments may not reflect official trail alignments. This is for several reasons: some trails are not documented (or documented well) in OSM data; OSM data is not real-time and therefore will not reflect recent on-the-ground changes; some OSM segments follow trail alignments but extend beyond the trail's end; and short segments such as road intersections or bridge crossings were discarded. Recall that the goal of the geography editing in this project is to improve compatibility with LBS methods, not to reflect official management boundaries or alignments. 
@@ -332,7 +349,7 @@ trail_summary <- st_drop_geometry(cleaned_trail_segments) %>%
   summarise(
     Trails = n_distinct(unit_id),
     Segments = n_distinct(zone_name),
-    Miles = round(sum(as.numeric(approx_length_miles)))
+    Miles = round(sum(as.numeric(approx_length_miles))), .groups = "keep"
   )
 
 summary_tab <- regulartable(
@@ -587,7 +604,7 @@ mndot_modeshare_dat <- compare_all_mode %>%
   # mode share by month/year
   summarise(
     mndot_share = MNDOTavg / mndot_total,
-    lbs_share = LBS / lbs_total
+    lbs_share = LBS / lbs_total, .groups = "keep"
   )
 ```
 
@@ -601,7 +618,7 @@ mndot_modeshare_dat %>%
     `MnDOT counter` = mean(mndot_share),
     mndot_se = sd(mndot_share) / sqrt(n()),
     LBS = mean(lbs_share, na.rm = TRUE),
-    lbs_se = sd(lbs_share, na.rm = TRUE) / sqrt(n())
+    lbs_se = sd(lbs_share, na.rm = TRUE) / sqrt(n()), .groups = "keep"
   ) %>%
   pivot_longer(cols = c(`MnDOT counter`, LBS)) %>%
   pivot_longer(cols = c(mndot_se, lbs_se), names_to = "se_name", values_to = "se") %>%
@@ -657,7 +674,7 @@ compare_all %>%
   group_by(short_site) %>%
   summarise(
     r = cor.test(MNDOTavg, LBS)$estimate,
-    p = cor.test(MNDOTavg, LBS)$p.value
+    p = cor.test(MNDOTavg, LBS)$p.value, .groups = "keep"
   ) %>%
   transmute(
     Site = short_site,
@@ -693,7 +710,7 @@ metc_trailuse_21 <- 17965.4 * 1000
 annual_counter_ests <- annual_trail_volume %>%
   filter(str_detect(day_type, "All")) %>%
   group_by(system, year) %>%
-  summarise(total_counter_estimate = sum(counter_estimate))
+  summarise(total_counter_estimate = sum(counter_estimate), .groups = "keep")
 
 lbs_counter_trailuse_21 <- annual_counter_ests %>%
   ungroup() %>%
@@ -752,7 +769,7 @@ pct_diff_by_unit <- summer_metro_comp %>%
     LBS = LBS,
     diff = count_est - LBS,
     pct = diff / count_est,
-    abs_pct = abs(pct)
+    abs_pct = abs(pct), .groups = "keep"
   )
 ```
 
@@ -827,7 +844,7 @@ mes_lbs <- annual_trail_volume %>%
   ) %>%
   mutate(unit_label = "Mesabi Trail, all sections") %>%
   group_by(year) %>%
-  summarise(counter_estimate = max(counter_estimate))
+  summarise(counter_estimate = max(counter_estimate), .groups = "keep")
 
 gmn_most_used_comp <- left_join(cvt_renee, cvt_lbs) %>%
   mutate(unit_label = "Cannon Valley") %>%
@@ -854,7 +871,7 @@ cor_eq <- lm(miles_used ~ 0 + max_use, data = cor_user_travel)
 
 cor_user_travel_unit <- cor_user_travel %>%
   group_by(unit_label, unit_id, year) %>%
-  summarise(miles_per_user = miles_used / max_use) %>%
+  summarise(miles_per_user = miles_used / max_use, .groups = "keep") %>%
   filter(!is.nan(miles_per_user)) %>%
   left_join(trail_metadata)
 
@@ -886,7 +903,7 @@ pb_ests1 <- monthly_segment_volume %>%
     ped_counter_estimate = max(ped_counter_estimate),
     miles_traveled = sum(miles_traveled),
     bike_miles_traveled = sum(bike_miles_traveled),
-    ped_miles_traveled = sum(ped_miles_traveled)
+    ped_miles_traveled = sum(ped_miles_traveled), .groups = "keep"
   ) %>%
   mutate(
     modeshare_bike_miles = bike_miles_traveled / miles_traveled,
@@ -906,7 +923,7 @@ pb_ests1 <- monthly_segment_volume %>%
   group_by(year) %>%
   summarise(
     annual_count_estimate = sum(counter_estimate),
-    annual_tmt = sum(miles_traveled)
+    annual_tmt = sum(miles_traveled), .groups = "keep"
   )
 
 pb_ests2 <- monthly_segment_volume %>%
@@ -921,7 +938,7 @@ pb_ests2 <- monthly_segment_volume %>%
     ped_counter_estimate = max(ped_counter_estimate),
     miles_traveled = sum(miles_traveled),
     bike_miles_traveled = sum(bike_miles_traveled),
-    ped_miles_traveled = sum(ped_miles_traveled)
+    ped_miles_traveled = sum(ped_miles_traveled), .groups = "keep"
   ) %>%
   mutate(
     modeshare_bike_miles = bike_miles_traveled / miles_traveled,
@@ -941,7 +958,7 @@ pb_ests2 <- monthly_segment_volume %>%
   group_by(year) %>%
   summarise(
     annual_count_estimate = sum(counter_estimate),
-    annual_tmt = sum(miles_traveled)
+    annual_tmt = sum(miles_traveled), .groups = "keep"
   )
 ```
 
@@ -1217,7 +1234,7 @@ In addition to overall use, visitor travel mode was found to vary by trail segme
 #               filter(unit_label == "Central Lakes", year == 2021)  %>%
 #               group_by(unit_label, osm_id) %>%
 #               summarise(bike = sum(bike_counter_estimate),
-#                         ped = sum(ped_counter_estimate)) %>%
+#                         ped = sum(ped_counter_estimate), .groups = "keep") %>%
 #               mutate(bike_modeshare = 100*bike/(bike+ped),
 #                      `Pedestrian mode share (%)` = 100*ped/(bike+ped))) %>%
 #   filter(!is.na(`Pedestrian mode share (%)`)) %>%
@@ -1248,7 +1265,7 @@ Using LBS data to estimate trail use over a year shows that Minnesota’s trails
 (monthly_alldays) %>%
   filter(year != 2022) %>%
   group_by(system_label, year, month) %>%
-  summarise(SUM = sum(miles_traveled)) %>%
+  summarise(SUM = sum(miles_traveled), .groups = "keep") %>%
   ungroup() %>%
   group_by(system_label, year) %>%
   mutate(percent = SUM / sum(SUM)) %>%
@@ -1256,7 +1273,7 @@ Using LBS data to estimate trail use over a year shows that Minnesota’s trails
   group_by(system_label, month) %>%
   summarise(
     MEAN = mean(percent),
-    SE = sd(percent) / sqrt(n())
+    SE = sd(percent) / sqrt(n()), .groups = "keep"
   ) %>%
   mutate(label = if_else(month == "Dec", system_label, NA_character_)) %>%
   ggplot(aes(x = month, y = MEAN, group = system_label, color = system_label, pch = system_label)) +
@@ -1310,7 +1327,7 @@ hourly_trails %>%
   mutate(day_type = str_remove_all(day_type, "1: Average |2: Average | Day")) %>%
   filter(!str_detect(day_type, "All")) %>%
   group_by(system_label, day_type, time) %>%
-  summarise(total = sum(sumtotal)) %>%
+  summarise(total = sum(sumtotal), .groups = "keep") %>%
   ungroup() %>%
   group_by(system_label, day_type) %>%
   mutate(percent = total / sum(total)) %>%
@@ -1367,7 +1384,7 @@ monthly_trail_volume %>%
   group_by(system_label, season) %>%
   summarise( # Vehicle = sum(monthly_vehicle_visitors),
     Bicycle = sum(bike_miles_traveled),
-    Pedestrian = sum(ped_miles_traveled)
+    Pedestrian = sum(ped_miles_traveled), .groups = "keep"
   ) %>%
   ungroup() %>%
   mutate(
