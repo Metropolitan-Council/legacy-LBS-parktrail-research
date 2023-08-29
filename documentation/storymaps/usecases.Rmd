@@ -217,8 +217,7 @@ The analysis could be expanded to consider bicyclists traveling in both directio
 
 
 ```{r duluth-table}
-library(flextable)
-dt_tab <- dt %>%
+dt %>%
   mutate(entrance_use = 11,
          Destination = case_when(
            origin == "entrance" & destination == "exit" ~ "Exit Gate",
@@ -234,28 +233,7 @@ dt_tab <- dt %>%
   regulartable() %>%
   autofit() %>%
   set_caption("Portion of southbound Duluth Traverse bicyclists who pass through the defined exit gate, stop in Hartley Park, or exit the park elsewhere")
-
-dt_tab
-
-dt_tab %>%
-  save_as_image(file.path(here::here(), "figures/storymap/duluth-traverse-table.png"))
-
-
 ```
 
 
 The analysis could be expanded to consider bicyclists traveling in both directions. The same approach could be used to evaluate pedestrians or vehicles passing through parks or other geographic areas. 
-
-
-```{r traverse-map, eval = FALSE, include = FALSE}
-#| fig.cap = "Map of the Duluth Traverse passing north to south through Hartley Regional Park (Greater Minnesota) in Duluth.", 
-#| results='markup', 
-#| out.width= "3.5in",  
-#| out.extra='style="float:center"', 
-#| fig.asp = .7
-
-knitr::include_graphics(file.path(here::here(), "figures/storymap/duluth-traverse-map.png"))
-```
-
-
-
