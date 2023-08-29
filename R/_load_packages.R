@@ -6,6 +6,7 @@ suppressMessages(library(streetlightR, quietly = TRUE))
 suppressMessages(library(keyring, quietly = TRUE))
 suppressMessages(library(here, quietly = TRUE))
 suppressMessages(library(docstring, quietly = TRUE))
+suppressMessages(library(beepr, quietly = TRUE))
 
 ##### general cleaning/manipulation/etc #####
 suppressMessages(library(data.table, quietly = TRUE))
