@@ -588,7 +588,6 @@ luce_line_add <- osm_lines %>%
   mutate(unit_id = "Luce-Line_trail_DNR") %>%
   st_drop_geometry()
 
-# I don't see a reason this doesn't work
 dnr_add <- dnr_add %>%
   rbind(luce_line_add %>% select(osm_id, unit_id))
 
@@ -608,7 +607,7 @@ matthew <- c(
   18191171, 698113046, 18191275, 480480650, # mostly good
   18191050, 740047118, 695874922, 295767730, 788085444, 788086685,
   788086837, 18195183, 480503354, 450388474, 480480646
-) # all good?
+) # all good
 
 dnr_add <- dnr_add %>%
   rbind(data.frame(
