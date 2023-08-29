@@ -17,11 +17,11 @@ urlcolor: blue
 ```{r include = FALSE}
 knitr::opts_chunk$set(
   echo = FALSE,
-  warning = FALSE, 
-  message = FALSE, 
-  fig.pos = "H", 
-  out.width= "65%",
-  fig.height = 4, 
+  warning = FALSE,
+  message = FALSE,
+  fig.pos = "H",
+  out.width = "65%",
+  fig.height = 4,
   fig.asp = 0.6,
   dpi = 300
 )
@@ -68,15 +68,17 @@ analysis_period <- "January 2019 - April 2022"
 n_weeks <- 173
 
 # cleaned_trail_segments and trail_buffer_zones
-load(file.path(here::here(), "data-intermediate/trails/cleaned-trail-geography.rda")) 
+load(file.path(here::here(), "data-intermediate/trails/cleaned-trail-geography.rda"))
 
 trail_summary <- st_drop_geometry(cleaned_trail_segments) %>%
   left_join(trail_segment_metadata) %>%
   filter(!is.na(system_label)) %>%
   group_by(system_label) %>%
-  summarise(Trails = n_distinct(unit_id),
-            Segments = n_distinct(zone_name),
-            Miles = round(sum(as.numeric(approx_length_miles)))) 
+  summarise(
+    Trails = n_distinct(unit_id),
+    Segments = n_distinct(zone_name),
+    Miles = round(sum(as.numeric(approx_length_miles)))
+  )
 
 n_trails <- sum(trail_summary$Trails)
 trail_miles <- sum(trail_summary$Miles)
@@ -98,28 +100,26 @@ Despite cold winters, Minnesota parks and trails are used year-round. Year-round
 
 ```{r usesummaryfig}
 #| fig.cap = "Summation of state and regional park and trail use across all three systems for the three complete years in this study (2019, 2020, 2021). This project additionally includes partial data for 2022.",
-#| results='markup', 
-#| out.width= "4in",  
-#| out.extra='style="float:center"', 
+#| results='markup',
+#| out.width= "4in",
+#| out.extra='style="float:center"',
 #| fig.asp = .8
 
 working_annual_volume %>%
   group_by(year) %>%
-  summarise(use = sum(annual_total)/1e6) %>%
+  summarise(use = sum(annual_total) / 1e6) %>%
   mutate(type = "Park use\n(millions of visitors)") %>%
-  
   bind_rows(working_trail_volume %>%
-              group_by(year) %>%
-              summarise(use = sum(miles_traveled)/1e6) %>%
-              mutate(type = "Trail use\n(millions of miles traveled)")) %>%
+    group_by(year) %>%
+    summarise(use = sum(miles_traveled) / 1e6) %>%
+    mutate(type = "Trail use\n(millions of miles traveled)")) %>%
   filter(year != 2022) %>%
-
-  ggplot(aes(x = year, y = use, fill = type))+#, alpha = urban)) +
-  geom_col(color = "black", width = .93)+#, position = position_dodge(width = .9)) + 
+  ggplot(aes(x = year, y = use, fill = type)) + # , alpha = urban)) +
+  geom_col(color = "black", width = .93) + # , position = position_dodge(width = .9)) +
   # geom_linerange(aes(ymin = MEAN - SE, ymax = MEAN + SE)) +
   # geom_label(aes(x = year, y = 40, label = use), fill = "white") +
   # geom_text(aes(label = use), vjust = -.2) +
-    geom_label(aes(label = format(round(use, 2), nsmall = 2), y = rep(c(30.5, 49), each = 3)), fill = "white", size = 4.5) +
+  geom_label(aes(label = format(round(use, 2), nsmall = 2), y = rep(c(30.5, 49), each = 3)), fill = "white", size = 4.5) +
   theme_council_open(base_size = 10) +
   # theme(axis.text.x = element_text(size = 10),
   #       strip.text = element_text(size = 11)) +
@@ -128,16 +128,18 @@ working_annual_volume %>%
   scale_y_continuous(labels = scales::label_comma(), expand = expansion(mult = c(0, .1))) +
   labs(caption = fig_caption) +
   facet_wrap(~type, scales = "free") +
-  theme(legend.position = "none",
-        axis.line.y = element_blank(),
-        axis.text.y = element_blank(),
-        axis.line.x = element_blank(),
-        axis.ticks.length.y = unit(0, "cm"),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        plot.caption = element_text(size = 12),
-        axis.text.x = element_text(size = 12),
-        strip.text = element_text(size = 14))
+  theme(
+    legend.position = "none",
+    axis.line.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.line.x = element_blank(),
+    axis.ticks.length.y = unit(0, "cm"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    plot.caption = element_text(size = 12),
+    axis.text.x = element_text(size = 12),
+    strip.text = element_text(size = 14)
+  )
 
 ggsave(file.path(here::here(), "figures/storymap/annual-park-trail-volume.png"))
 
@@ -146,16 +148,16 @@ ggsave(file.path(here::here(), "figures/storymap/annual-park-trail-volume.png"))
 #   group_by(year) %>%
 #   summarise(use = sum(annual_total)/1e6) %>%
 #   mutate(type = "Estimated park use\n(millions of visitors)") %>%
-#   
+#
 #   bind_rows(working_trail_volume %>%
 #               filter(str_detect(unit_name, "Metro-Regional")) %>%
 #               group_by(year) %>%
 #               summarise(use = sum(miles_traveled)/1e6) %>%
 #               mutate(type = "Estimated trail use\n(millions of miles traveled)")) %>%
 #   filter(year != 2022) %>%
-# 
+#
 #   ggplot(aes(x = year, y = use, fill = type))+#, alpha = urban)) +
-#   geom_col(color = "black", width = .93)+#, position = position_dodge(width = .9)) + 
+#   geom_col(color = "black", width = .93)+#, position = position_dodge(width = .9)) +
 #   # geom_linerange(aes(ymin = MEAN - SE, ymax = MEAN + SE)) +
 #   # geom_label(aes(x = year, y = 40, label = use), fill = "white") +
 #   # geom_text(aes(label = use), vjust = -.2) +
@@ -177,9 +179,9 @@ ggsave(file.path(here::here(), "figures/storymap/annual-park-trail-volume.png"))
 #         axis.title.y = element_blank(),
 #         plot.caption = element_text(size = 12),
 #         axis.text.x = element_text(size = 12),
-#         strip.text = element_text(size = 14), 
+#         strip.text = element_text(size = 14),
 #         plot.title = element_text(hjust = 0.5, size = 22))
-# 
+#
 # ggsave(file.path(here::here(), "figures/slides/metro-annual-park-trail-volume.png"))
 ```
 
@@ -190,15 +192,14 @@ This project evaluated a variety of parks and trails, from remote parks covering
 A more complete picture of the connections and similarities across systems emerges when considering park- or trail-level data. This detail means that findings aren’t limited to broad, system-level generalizations. Instead, unique patterns can be explored for each unit to better understand the entire statewide network of parks and trails. 
 
 ```{r locations}
-#| fig.cap = "Park and trail locations included within this research. To be included, parks and trails must be eligible to receive Legacy funding. Source: Minnesota Great Outdoors.", 
-#| results='markup', 
-#| out.width= "3.5in",  
-#| out.extra='style="float:center"', 
+#| fig.cap = "Park and trail locations included within this research. To be included, parks and trails must be eligible to receive Legacy funding. Source: Minnesota Great Outdoors.",
+#| results='markup',
+#| out.width= "3.5in",
+#| out.extra='style="float:center"',
 #| fig.asp = .7
 
 # knitr::include_graphics(file.path(here::here(), "global_storymap-text/figs/mngreatoutdoors.png"))
 knitr::include_graphics(file.path(here::here(), "documentation/images/mngreatoutdoors.png"))
-
 ```
 
 
@@ -209,10 +210,10 @@ Though we estimate high use of parks and trails across the state, the benefits a
 This project provides the opportunity to learn more about who visits parks and trails and to guide our work toward equitable park and trail access (Figure \@ref(fig:demopic)). Location-based services data can provide inferred demographics when survey data does not exist for race and ethnicity, education, and income categories. While inferred demographics are different than intercept surveyed responses and cannot capture visitors’ lived experiences, they may provide valuable insight. For example, the findings from this work may be used to guide future outreach or survey efforts.
 
 ```{r demopic}
-#| fig.cap = "Reducing barriers to access and ensuring that all Minnesotans benefit from parks and trails across the state is important.", 
-#| results='markup', 
-#| out.width= "3.5in",  
-#| out.extra='style="float:center"', 
+#| fig.cap = "Reducing barriers to access and ensuring that all Minnesotans benefit from parks and trails across the state is important.",
+#| results='markup',
+#| out.width= "3.5in",
+#| out.extra='style="float:center"',
 #| fig.asp = .7
 
 knitr::include_graphics(file.path(here::here(), "documentation/images/demo_pic.png"))

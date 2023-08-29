@@ -55,10 +55,12 @@ The use of LBS data in this project has suggested several avenues for future res
 ## Additional use cases
 
 ```{r include = FALSE}
-knitr::opts_chunk$set(cache = FALSE, echo = FALSE, warning = FALSE, message = FALSE
-                      ,fig.pos = "H"
-                      ,fig.height = 4
-                      , dpi = 300)
+knitr::opts_chunk$set(
+  cache = FALSE, echo = FALSE, warning = FALSE, message = FALSE,
+  fig.pos = "H",
+  fig.height = 4,
+  dpi = 300
+)
 
 library(tidyverse)
 library(councilR)
@@ -100,7 +102,7 @@ Park staff may be interested in comparing the demographic estimates of specific 
 The provided spreadsheet titled “LBS_visitor_attribute_results_2023.07.xlsx” contains estimated demographic characteristics for each park and trail unit. Existing, online tools such as  [Census Reporter](https://censusreporter.org/)  can be used to help access census demographics for a [range of geographies](https://censusreporter.org/topics/geography/) (e.g., state, county, census tracts and block groups, zip codes, metropolitan areas, and others). Note that LBS data only provides selected demographic categories (race, income, education), while census data contains many more demographic axes. Comparing individual park- or trail-level demographics to bespoke reference populations may provide insights for park staff.  
 
 ```{r census-screenshot, include = FALSE, eval = FALSE}
-#| fig.cap = "Screenshot of Census Reporter statistics for Ramsey County, MN.", 
+#| fig.cap = "Screenshot of Census Reporter statistics for Ramsey County, MN.",
 #| results='markup',
 #| out.width= "65%",
 #| out.extra='style="float:center"',
@@ -126,12 +128,12 @@ Other applications of hourly data include scheduling lifeguards at beaches, dete
 
 
 ```{r peak-hourly}
-#| fig.cap = 'Average hourly pedestrian use at the entrance of Battle Creek Regional Park off-leash dog area (Metro Regional) during the summer of 2021.', 
-#| results='markup', 
-#| out.width= "5in",  
-#| out.extra='style="float:center"', 
+#| fig.cap = 'Average hourly pedestrian use at the entrance of Battle Creek Regional Park off-leash dog area (Metro Regional) during the summer of 2021.',
+#| results='markup',
+#| out.width= "5in",
+#| out.extra='style="float:center"',
 #| fig.asp = 0.5
-#| 
+#|
 
 bc %>%
   filter(str_detect(zone_name, "dog")) %>%
@@ -139,30 +141,41 @@ bc %>%
   ggplot(aes(x = time, y = hourly_pct)) +
   geom_point() +
   geom_line() +
-  geom_segment(aes(x = as.POSIXct("2023-08-22 18:00:00"), y = 0.14478958, 
-                   xend = as.POSIXct("2023-08-22 15:00:00"), yend = 0.14478958 - 0.025), 
-               linetype = "dotted") +
-  geom_label(aes(label = label), 
-            nudge_y = -0.025, 
-            nudge_x = -3600*3.5) +
- # facet_wrap(~zone_name,  nrow = 2) +
+  geom_segment(
+    aes(
+      x = as.POSIXct("2023-08-22 18:00:00"), y = 0.14478958,
+      xend = as.POSIXct("2023-08-22 15:00:00"), yend = 0.14478958 - 0.025
+    ),
+    linetype = "dotted"
+  ) +
+  geom_label(aes(label = label),
+    nudge_y = -0.025,
+    nudge_x = -3600 * 3.5
+  ) +
+  # facet_wrap(~zone_name,  nrow = 2) +
   theme_council_open(base_size = 10) +
   scale_y_continuous(labels = scales::label_percent(), limits = c(0, .16), expand = c(0, 0)) +
-  scale_x_datetime(date_breaks = "4 hours", date_labels = "%l%p", 
-                   limits = c(as.POSIXct("2023-08-22 06:00:00"), as.POSIXct("2023-08-22 21:15:00")),
-                 #  limits = c(as.POSIXct("2023-04-21 06:00:00"), as.POSIXct("2023-04-21 22:00:00")), 
-                   expand = c(0.01, 0)) + #, expand = expansion(mult = c(0.01, 0.01)))+# expand = expansion(mult = c(0.01, 0.4))) +
-  labs(x = "", y = "System \ntotal",  color = "", shape = "",
-       title = "Pedestrian activity at Battle Creek Dog Park entrance (summer 2021)",
-       # title = "Total arrivals to parks by system and hour",
-       caption = fig_caption)  +
+  scale_x_datetime(
+    date_breaks = "4 hours", date_labels = "%l%p",
+    limits = c(as.POSIXct("2023-08-22 06:00:00"), as.POSIXct("2023-08-22 21:15:00")),
+    #  limits = c(as.POSIXct("2023-04-21 06:00:00"), as.POSIXct("2023-04-21 22:00:00")),
+    expand = c(0.01, 0)
+  ) + # , expand = expansion(mult = c(0.01, 0.01)))+# expand = expansion(mult = c(0.01, 0.4))) +
+  labs(
+    x = "", y = "System \ntotal", color = "", shape = "",
+    title = "Pedestrian activity at Battle Creek Dog Park entrance (summer 2021)",
+    # title = "Total arrivals to parks by system and hour",
+    caption = fig_caption
+  ) +
   # geom_text(aes(x = time+2, y = percent, label = label), hjust =0) +
   # geom_text_repel(aes(x = time+5, y = percent, label = label), hjust ="left", nudge_x = 4, direction = "y") +
-    theme(legend.position = "bottom",
-                  panel.grid.major.x= element_line(linetype = 3),
-          axis.title.y = element_blank(),
-          axis.title.x = element_blank(),
-          plot.title = element_text(size = 10)) 
+  theme(
+    legend.position = "bottom",
+    panel.grid.major.x = element_line(linetype = 3),
+    axis.title.y = element_blank(),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 10)
+  )
 
 ggsave(file.path(here::here(), "figures/storymap/battle-creek-peak-hourly.png"))
 ```

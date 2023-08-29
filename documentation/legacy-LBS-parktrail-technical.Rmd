@@ -16,11 +16,11 @@ always_allow_html: yes
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   echo = FALSE,
-  warning = FALSE, 
-  message = FALSE, 
-  fig.pos = "H", 
-  out.width= "65%",
-  fig.height = 4, 
+  warning = FALSE,
+  message = FALSE,
+  fig.pos = "H",
+  out.width = "65%",
+  fig.height = 4,
   fig.asp = 0.6,
   dpi = 300
 )

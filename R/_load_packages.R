@@ -58,4 +58,3 @@ cli::cli_inform(
   .frequency = "once",
   .frequency_id = "load_packages"
 )
-

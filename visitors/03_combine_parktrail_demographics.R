@@ -1,5 +1,5 @@
-## This script simply combines the park demographics processed in `02_process_trail_demos` 
-## and `02_process_trail_demos`. This data, along with surveyed demographics, is saved to 
+## This script simply combines the park demographics processed in `02_process_trail_demos`
+## and `02_process_trail_demos`. This data, along with surveyed demographics, is saved to
 ## `data-intermediate/processed`.
 
 ##### setup #####
@@ -20,74 +20,90 @@ stl_dem <- park_stl_dem %>%
   ) %>%
   filter(!is.na(unit_type)) %>%
   # fill trail zone names with unit ids
-  mutate(zone_name = ifelse(unit_type == "trail", 
-                            unit_id, 
-                            zone_name)) %>%
+  mutate(zone_name = ifelse(unit_type == "trail",
+    unit_id,
+    zone_name
+  )) %>%
   # make education & income ordered factors
-  mutate(group = factor(group, 
-                        levels = c("American Indian", "Asian", "Black", 
-                                   "Hispanic or Latinx", "More than one race", 
-                                   "Native Hawaiian and other Pacific Islander", 
-                                   "Some other race", "White", 
-                                   "High school", "Associate degree or some college", 
-                                   "4-year degree", "Graduate or professional degree", 
-                                   "Less than $25,000", "$25,000 - 39,999", 
-                                   "$40,000 - 59,999", "$60,000 - 74/79,999", 
-                                   "$75/80,000 - 99,999", "$100,000 - 149,999", 
-                                   "$150,000 or higher"))) %>%
+  mutate(group = factor(group,
+    levels = c(
+      "American Indian", "Asian", "Black",
+      "Hispanic or Latinx", "More than one race",
+      "Native Hawaiian and other Pacific Islander",
+      "Some other race", "White",
+      "High school", "Associate degree or some college",
+      "4-year degree", "Graduate or professional degree",
+      "Less than $25,000", "$25,000 - 39,999",
+      "$40,000 - 59,999", "$60,000 - 74/79,999",
+      "$75/80,000 - 99,999", "$100,000 - 149,999",
+      "$150,000 or higher"
+    )
+  )) %>%
   filter(!is.na(percent))
 
 all_metadata <- bind_rows(park_metadata, trail_metadata %>% mutate(zone_name = unit_id))
-  
+
 
 ### prep to combine with survey ####
-unit_to_zone_name <- data.frame(unit = c("Battle Creek",
-                                         "Cleary Lake",
-                                         "Como Zoo and Conservatory",
-                                         "Hyland Bush Anderson Lakes",
-                                         "Lake Elmo",
-                                         "Lake Minnetonka LRT",
-                                         "Lake Minnewashta",
-                                         "Lebanon Hills",
-                                         "North Mississippi",
-                                         "Rice Creek West"),
-                                zone_name = c("Battle-Creek_park_Metro-Regional_Ramsey-County",
-                                              "Cleary-Lake_park_Metro-Regional_Three-Rivers",
-                                              "Como-Zoo-and-Conservatory_park_Metro-Regional_Saint-Paul",
-                                              "Hyland-Bush-Anderson-Lakes_park_Metro-Regional_Bloomington",
-                                              "Lake-Elmo_park_Metro-Regional_Washington-County",
-                                              "Lake-Minnetonka-LRT_trail_Metro-Regional_Three-Rivers",
-                                              "Lake-Minnewashta_park_Metro-Regional_Carver-County",
-                                              "Lebanon-Hills_park_Metro-Regional_Dakota-County",
-                                              "North-Mississippi_park_Metro-Regional_MPRB",
-                                              "Rice-Creek-West_trail_Metro-Regional_Anoka-County"), 
-                                unit_id = c("Battle-Creek_park_Metro-Regional_Ramsey-County", 
-                                            "Cleary-Lake_park_Metro-Regional_Three-Rivers", 
-                                            "Como-Zoo-and-Conservatory_park_Metro-Regional_Saint-Paul", 
-                                            "Hyland-Bush-Anderson-Lakes_park_Metro-Regional_Bloomington", 
-                                            "Lake-Elmo_park_Metro-Regional_Washington-County", 
-                                            "Lake-Minnetonka-LRT_trail_Metro-Regional_Three-Rivers", 
-                                            "Lake-Minnewashta_park_Metro-Regional_Carver-County", 
-                                            "Lebanon-Hills_park_Metro-Regional_Dakota-County", 
-                                            "North-Mississippi_park_Metro-Regional_MPRB", 
-                                            "Rice-Creek-West_trail_Metro-Regional_Anoka-County"))
+unit_to_zone_name <- data.frame(
+  unit = c(
+    "Battle Creek",
+    "Cleary Lake",
+    "Como Zoo and Conservatory",
+    "Hyland Bush Anderson Lakes",
+    "Lake Elmo",
+    "Lake Minnetonka LRT",
+    "Lake Minnewashta",
+    "Lebanon Hills",
+    "North Mississippi",
+    "Rice Creek West"
+  ),
+  zone_name = c(
+    "Battle-Creek_park_Metro-Regional_Ramsey-County",
+    "Cleary-Lake_park_Metro-Regional_Three-Rivers",
+    "Como-Zoo-and-Conservatory_park_Metro-Regional_Saint-Paul",
+    "Hyland-Bush-Anderson-Lakes_park_Metro-Regional_Bloomington",
+    "Lake-Elmo_park_Metro-Regional_Washington-County",
+    "Lake-Minnetonka-LRT_trail_Metro-Regional_Three-Rivers",
+    "Lake-Minnewashta_park_Metro-Regional_Carver-County",
+    "Lebanon-Hills_park_Metro-Regional_Dakota-County",
+    "North-Mississippi_park_Metro-Regional_MPRB",
+    "Rice-Creek-West_trail_Metro-Regional_Anoka-County"
+  ),
+  unit_id = c(
+    "Battle-Creek_park_Metro-Regional_Ramsey-County",
+    "Cleary-Lake_park_Metro-Regional_Three-Rivers",
+    "Como-Zoo-and-Conservatory_park_Metro-Regional_Saint-Paul",
+    "Hyland-Bush-Anderson-Lakes_park_Metro-Regional_Bloomington",
+    "Lake-Elmo_park_Metro-Regional_Washington-County",
+    "Lake-Minnetonka-LRT_trail_Metro-Regional_Three-Rivers",
+    "Lake-Minnewashta_park_Metro-Regional_Carver-County",
+    "Lebanon-Hills_park_Metro-Regional_Dakota-County",
+    "North-Mississippi_park_Metro-Regional_MPRB",
+    "Rice-Creek-West_trail_Metro-Regional_Anoka-County"
+  )
+)
 
 
 
 ### combine ###
 combo_stl_surv <- stl_dem %>%
-  filter(label == "summer21", 
-         str_detect(day_type, "All"), 
-         str_detect(day_part, "All")) %>%
+  filter(
+    label == "summer21",
+    str_detect(day_type, "All"),
+    str_detect(day_part, "All")
+  ) %>%
   mutate(source = "LBS") %>%
   filter(zone_name %in% unit_to_zone_name$zone_name) %>%
   ungroup() %>%
   full_join(unit_to_zone_name) %>%
-  full_join(survey_dem %>% 
-              inner_join(unit_to_zone_name, by = "unit") %>%
-              mutate(label = "summer21", 
-                     day_type = "0: All Days (M-Su)", 
-                     day_part = "0: All Day (12am-12am)")) %>%
+  full_join(survey_dem %>%
+    inner_join(unit_to_zone_name, by = "unit") %>%
+    mutate(
+      label = "summer21",
+      day_type = "0: All Days (M-Su)",
+      day_part = "0: All Day (12am-12am)"
+    )) %>%
   filter(group != "NA", !is.na(category)) %>%
   unique()
 
@@ -121,7 +137,8 @@ demo_stats %>%
   summarise(count = n())
 
 both <- combo_stl_surv %>%
-  inner_join(demo_stats) 
+  inner_join(demo_stats)
 
-save(stl_dem, survey_dem, both, 
-     file = file.path(here(), "data-intermediate/processed/all-processed-demographics.rda"))
+save(stl_dem, survey_dem, both,
+  file = file.path(here(), "data-intermediate/processed/all-processed-demographics.rda")
+)

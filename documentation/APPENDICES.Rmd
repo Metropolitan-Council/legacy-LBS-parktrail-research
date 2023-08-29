@@ -108,7 +108,7 @@ dropped_pre_LBS %>%
   autofit(add_w = 0, add_h = 0) %>%
   set_table_properties(layout = "autofit") %>%
   set_caption("Park units excluded from all analyses due to their geography.") %>%
-  theme_zebra() 
+  theme_zebra()
 ```
 
 ### Coverage-based exclusions
@@ -172,10 +172,10 @@ The project team was not able to resolve every concern regarding park geography.
 unresolved_geography %>%
   arrange(system_label, unit_label) %>%
   mutate(concern = case_when(
-    concern %in% c("Narrow", "Complicated geography") ~ "Complex or narrow geography, difficult to isolate", 
-    concern == "Parking" ~ "Parking may lie outside of boundary", 
-    concern == "Misaligned shapefile" ~ "Original shapefile misaligned", 
-    concern == "North Shore" ~ "Difficult to isolate from Hwy 61 and/or Gitchi Gami State Trail", 
+    concern %in% c("Narrow", "Complicated geography") ~ "Complex or narrow geography, difficult to isolate",
+    concern == "Parking" ~ "Parking may lie outside of boundary",
+    concern == "Misaligned shapefile" ~ "Original shapefile misaligned",
+    concern == "North Shore" ~ "Difficult to isolate from Hwy 61 and/or Gitchi Gami State Trail",
     TRUE ~ concern
   )) %>%
   transmute(System = system_label, Unit = unit_label, Concern = concern) %>%
@@ -184,7 +184,6 @@ unresolved_geography %>%
   set_table_properties(layout = "autofit") %>%
   set_caption("Parks with unresolved geography concerns.") %>%
   theme_zebra()
-
 ```
 
 ## Trail units/segments excluded from analysis
@@ -203,7 +202,7 @@ dropped_pre_LBS %>%
   autofit(add_w = 0, add_h = 0) %>%
   set_table_properties(layout = "autofit") %>%
   set_caption("Trails excluded from all analyses due to insufficient OSM coverage") %>%
-  theme_zebra() 
+  theme_zebra()
 ```
 
 
@@ -211,12 +210,12 @@ dropped_pre_LBS %>%
 dropped_for_length %>%
   ungroup() %>%
   transmute(System = system, Unit = unit_label, `Dropped segments` = dropped_segments) %>%
-  arrange(System, Unit) %>% 
+  arrange(System, Unit) %>%
   flextable() %>%
   autofit(add_w = 0, add_h = 0) %>%
   set_table_properties(layout = "autofit") %>%
   set_caption("Summary of OSM segments dropped from analysis due to length (<50ft)") %>%
-  theme_zebra() 
+  theme_zebra()
 ```
 
 ### Coverage-based exclusions
@@ -231,18 +230,18 @@ dropped_entirely %>%
   autofit(add_w = 0, add_h = 0) %>%
   set_table_properties(layout = "autofit") %>%
   set_caption("Trails for which no LBS data was available") %>%
-  theme_zebra() 
+  theme_zebra()
 ```
 
 ```{r dropped-segments}
 dropped_segments %>%
   ungroup() %>%
   transmute(System = system, Unit = unit_label, `Dropped segments` = dropped_segments) %>%
-  arrange(System, Unit) %>% 
+  arrange(System, Unit) %>%
   flextable() %>%
   autofit(add_w = 0, add_h = 0) %>%
   set_table_properties(layout = "autofit") %>%
   set_caption("Summary of OSM for which no LBS data was available. Use was assumed to be zero on these segments.") %>%
-  theme_zebra() 
+  theme_zebra()
 ```
 

@@ -15,11 +15,11 @@ always_allow_html: yes
 ```{r visitors-setup, include = FALSE}
 knitr::opts_chunk$set(
   echo = FALSE,
-  warning = FALSE, 
-  message = FALSE, 
-  fig.pos = "H", 
-  out.width= "65%",
-  fig.height = 4, 
+  warning = FALSE,
+  message = FALSE,
+  fig.pos = "H",
+  out.width = "65%",
+  fig.height = 4,
   fig.asp = 0.6,
   dpi = 300
 )
@@ -39,22 +39,22 @@ load(file.path(here(), "data-intermediate/trails/trail-metadata.rda"))
 ```{r process-demos}
 ### set each component to TRUE to edit corresponding demographics
 process_park_demos <- FALSE
-if(process_park_demos == TRUE){
+if (process_park_demos == TRUE) {
   source(file.path(here::here(), "visitors/01_process-park-demos.R"))
 }
 
 process_trail_demos <- FALSE
-if(process_trail_demos == TRUE){
+if (process_trail_demos == TRUE) {
   source(file.path(here::here(), "visitors/01_process-trail-demos.R"))
 }
 
 process_survey_demos <- FALSE
-if(process_survey_demos == TRUE){
+if (process_survey_demos == TRUE) {
   source(file.path(here::here(), "visitors/02_process_survey_demos.R"))
 }
 
 combine_demos <- FALSE
-if(combine_demos == TRUE){
+if (combine_demos == TRUE) {
   source(file.path(here(), "visitors/03_combine_parktrail_demographics.R"))
 }
 ```
@@ -62,26 +62,26 @@ if(combine_demos == TRUE){
 ```{r process-homes}
 ### set each component to TRUE to edit corresponding home locations
 process_park_homes <- FALSE
-if(process_park_demos == TRUE){
+if (process_park_demos == TRUE) {
   source(file.path(here::here(), "visitors/04_process_park_homes.R"))
 }
-   
+
 process_trail_homes <- FALSE
-if(process_trail_demos == TRUE){
+if (process_trail_demos == TRUE) {
   source(file.path(here::here(), "visitors/04_process_trail_homes.R"))
 }
 
 combine_homes <- FALSE
-if(combine_homes == TRUE){
+if (combine_homes == TRUE) {
   source(file.path(here::here(), "visitors/05_combine_parktrail_homes.R"))
 }
 ```
 
 ```{r get-sample-sizes}
 ### set to TRUE to get unit-level LBS sample sizes (for validation)
-get_trail_sample_sizes = FALSE
+get_trail_sample_sizes <- FALSE
 
-if(get_trail_sample_sizes == TRUE){
+if (get_trail_sample_sizes == TRUE) {
   source(file.path(here(), "visitors/06_get_sample_size.R"))
 }
 ```
@@ -90,7 +90,7 @@ if(get_trail_sample_sizes == TRUE){
 ### set to TRUE to process census data for comparison to LBS demographics
 get_comp_pops <- FALSE
 
-if(get_comp_pops == TRUE){
+if (get_comp_pops == TRUE) {
   source(file.path(here(), "visitors/07_get_comp_pops.R"))
 }
 ```
@@ -106,7 +106,7 @@ source(file.path(here(), "R/f_demo_compare.R"))
 ### set to TRUE if you want to export a new excel workbook of visitor results
 export_visitor_excel <- FALSE
 
-if(export_visitor_excel == TRUE){
+if (export_visitor_excel == TRUE) {
   source(file.path(here(), "visitors/08_export_visitor_excel.R"))
 }
 ```
@@ -117,12 +117,14 @@ state_pcts <- home_states %>%
   group_by(state_name) %>%
   summarise(total_by_state = sum(total_by_state)) %>%
   ungroup() %>%
-  mutate(percent_by_state = total_by_state/sum(total_by_state))
+  mutate(percent_by_state = total_by_state / sum(total_by_state))
 
 
 states <- tigris::states(cb = TRUE) %>%
-  filter(!NAME %in% c("Commonwealth of the Northern Mariana Islands", "Hawaii", "United States Virgin Islands", 
-                      "American Samoa", "Alaska", "Guam", "Puerto Rico"))
+  filter(!NAME %in% c(
+    "Commonwealth of the Northern Mariana Islands", "Hawaii", "United States Virgin Islands",
+    "American Samoa", "Alaska", "Guam", "Puerto Rico"
+  ))
 
 map_data <- states %>%
   left_join(state_pcts, by = c("NAME" = "state_name"))
@@ -197,42 +199,54 @@ One notable difference between intercept survey and LBS data was the associated 
 load(file.path(here(), "data-intermediate/visitors/sample-size.rda"))
 load(file.path(here(), "data-raw/intercept-survey/raven_surveymetadata.rda"))
 
-park_to_zone <- data.frame(zone_name = c("Battle-Creek_park_Metro-Regional_Ramsey-County",
-                                         "Cleary-Lake_park_Metro-Regional_Three-Rivers",
-                                         "Como-Zoo-and-Conservatory_park_Metro-Regional_Saint-Paul",
-                                        "Hyland-Bush-Anderson-Lakes_park_Metro-Regional_Bloomington",
-                                         "Lake-Elmo_park_Metro-Regional_Washington-County",
-                                         "Lake-Minnewashta_park_Metro-Regional_Carver-County",
-                                         "Lebanon-Hills_park_Metro-Regional_Dakota-County",
-                                         "North-Mississippi_park_Metro-Regional_MPRB",
-                                         "Lake-Minnetonka-LRT_trail_Metro-Regional_Three-Rivers",
-                                         "Rice-Creek-West_trail_Metro-Regional_Anoka-County"),
-                           unit_name = c("Battle Creek", "Cleary Lake",
-                                         "Como Zoo and Conservatory", "Hyland Bush Anderson Lakes",
-                                         "Lake Elmo", "Lake Minnewashta", "Lebanon Hills", "North Mississippi",
-                                         "Lake Minnetonka LRT", "Rice Creek West"),
-                           PARK = c("Battle Creek Regional Park",
-                                    "Cleary Lake Regional Park (Scott County)",
-                                    "Como Regional Zoo and Conservatory",
-                                    "Bush and Normandale Lakes Regional Park",
-                                    "Lake Elmo Park Reserve",
-                                    "Lake Minnewashta Regional Park",
-                                    "Lebanon Hills Regional Park",
-                                    "North Mississippi Regional Park (MPRB)",
-                                    "Lake Minnetonka LRT Regional Trail", 
-                                    "Rice Creek West Regional Trail (Anoka County)"))
+park_to_zone <- data.frame(
+  zone_name = c(
+    "Battle-Creek_park_Metro-Regional_Ramsey-County",
+    "Cleary-Lake_park_Metro-Regional_Three-Rivers",
+    "Como-Zoo-and-Conservatory_park_Metro-Regional_Saint-Paul",
+    "Hyland-Bush-Anderson-Lakes_park_Metro-Regional_Bloomington",
+    "Lake-Elmo_park_Metro-Regional_Washington-County",
+    "Lake-Minnewashta_park_Metro-Regional_Carver-County",
+    "Lebanon-Hills_park_Metro-Regional_Dakota-County",
+    "North-Mississippi_park_Metro-Regional_MPRB",
+    "Lake-Minnetonka-LRT_trail_Metro-Regional_Three-Rivers",
+    "Rice-Creek-West_trail_Metro-Regional_Anoka-County"
+  ),
+  unit_name = c(
+    "Battle Creek", "Cleary Lake",
+    "Como Zoo and Conservatory", "Hyland Bush Anderson Lakes",
+    "Lake Elmo", "Lake Minnewashta", "Lebanon Hills", "North Mississippi",
+    "Lake Minnetonka LRT", "Rice Creek West"
+  ),
+  PARK = c(
+    "Battle Creek Regional Park",
+    "Cleary Lake Regional Park (Scott County)",
+    "Como Regional Zoo and Conservatory",
+    "Bush and Normandale Lakes Regional Park",
+    "Lake Elmo Park Reserve",
+    "Lake Minnewashta Regional Park",
+    "Lebanon Hills Regional Park",
+    "North Mississippi Regional Park (MPRB)",
+    "Lake Minnetonka LRT Regional Trail",
+    "Rice Creek West Regional Trail (Anoka County)"
+  )
+)
 
 num_surveys <- raven_surveymetadata %>%
   left_join(park_to_zone, by = "PARK") %>%
   group_by(unit_name) %>%
   summarise(count = n()) %>%
-  transmute(Unit = unit_name, 
-            `Completed surveys` = count)
+  transmute(
+    Unit = unit_name,
+    `Completed surveys` = count
+  )
 
 num_lbs_devices <- sample_size %>%
   left_join(park_to_zone, by = "zone_name") %>%
-  transmute(Unit = unit_name, 
-            `Approximate LBS \ndevice count` = Total) 
+  transmute(
+    Unit = unit_name,
+    `Approximate LBS \ndevice count` = Total
+  )
 
 sample_size_comp <- full_join(num_surveys, num_lbs_devices)
 
@@ -243,23 +257,28 @@ annual_use_ss_comp <- annual_volume %>%
   filter(zone_name %in% park_to_zone$zone_name) %>%
   select(zone_name, year, annual_total) %>%
   bind_rows(annual_trail_volume %>%
-              filter(unit_id %in% park_to_zone$zone_name, 
-                     str_detect(day_type, "All")) %>%
-              select(zone_name = unit_id, year, annual_total = counter_estimate)) %>%
+    filter(
+      unit_id %in% park_to_zone$zone_name,
+      str_detect(day_type, "All")
+    ) %>%
+    select(zone_name = unit_id, year, annual_total = counter_estimate)) %>%
   left_join(park_to_zone)
 
 full_ss_comp <- sample_size_comp %>%
   left_join(annual_use_ss_comp %>%
-              filter(year == 2021) %>%
-              select(Unit = unit_name, annual_total)) %>%
-  mutate(`Percent surveyed` = `Completed surveys`/annual_total, 
-         `Percent sampled` = `Approximate LBS \ndevice count`/annual_total) %>%
-  transmute(Unit = Unit, 
-            `Completed surveys` = prettyNum(`Completed surveys`, big.mark = ","), 
-            `Percent surveyed` = scales::percent(`Percent surveyed`, accuracy = 0.01), 
-            `Approximate LBS \ndevice count` = prettyNum(`Approximate LBS \ndevice count`, big.mark = ","), 
-            `Percent sampled` = scales::percent(`Percent sampled`, accuracy = 0.01)
-            )
+    filter(year == 2021) %>%
+    select(Unit = unit_name, annual_total)) %>%
+  mutate(
+    `Percent surveyed` = `Completed surveys` / annual_total,
+    `Percent sampled` = `Approximate LBS \ndevice count` / annual_total
+  ) %>%
+  transmute(
+    Unit = Unit,
+    `Completed surveys` = prettyNum(`Completed surveys`, big.mark = ","),
+    `Percent surveyed` = scales::percent(`Percent surveyed`, accuracy = 0.01),
+    `Approximate LBS \ndevice count` = prettyNum(`Approximate LBS \ndevice count`, big.mark = ","),
+    `Percent sampled` = scales::percent(`Percent sampled`, accuracy = 0.01)
+  )
 
 full_ss_comp %>%
   arrange(Unit) %>%
@@ -269,8 +288,8 @@ full_ss_comp %>%
   align(align = "center", part = "all") %>%
   add_header_row(values = c("", "Intercept Survey", "LBS Data"), colwidths = c(1, 2, 2)) %>%
   bold(bold = TRUE, part = "header") %>%
-  align(align = "center", i = 1, part = "header") %>% 
-  height(height = 0.4) 
+  align(align = "center", i = 1, part = "header") %>%
+  height(height = 0.4)
 ```
 
 #### Home Locations
@@ -282,16 +301,21 @@ all_cordat <- oversample_home_wide %>%
   group_by(unit_name) %>%
   tidyr::nest() %>%
   rowwise() %>%
-  mutate(cor = cor.test(data$LBS, data$Survey)$estimate, 
-         p = cor.test(data$LBS, data$Survey)$p.value)
+  mutate(
+    cor = cor.test(data$LBS, data$Survey)$estimate,
+    p = cor.test(data$LBS, data$Survey)$p.value
+  )
 
 home_aov <- anova(lm(Survey ~ unit_name * LBS, oversample_home_wide)) %>%
   rename(f = `F value`)
 
-como_investigation <- count(oversample_home_wide, unit_name) %>% group_by(unit_name) %>%
+como_investigation <- count(oversample_home_wide, unit_name) %>%
+  group_by(unit_name) %>%
   mutate(unit_name = stringr::str_split(unit_name, " - ")[[1]][1]) %>%
-  select(`Park` = unit_name,
-         `zipcodes compared` = n)
+  select(
+    `Park` = unit_name,
+    `zipcodes compared` = n
+  )
 ```
 
 The intercept survey reports home locations at the zip code level. The strength of the relationship between the percent of visitors living in zip codes as measured via the intercept survey and LBS varied significantly by park or trail unit (F = `r round(home_aov[3,]$f, 2)` , p < 0.001; Figure \@ref(fig:home-location-summary)). However, visitor home locations were observed to have a strong, positive correlation between methods at all ten units (Table \@ref(tab:cor-by-park)). 
@@ -301,36 +325,40 @@ Lower correlation observed at units such as Como Zoo and Conservatory can be exp
 ```{r cor-by-park}
 all_cordat %>%
   group_by(unit_name) %>%
-  mutate(cor = round(cor, 2),
-         unit_name = stringr::str_split(unit_name, " - ")[[1]][1], 
-         p = ifelse(p < 0.001, "<0.001", p)) %>%
-  select(`Park` = unit_name, 
-         `p-value` = p,
-         `r-value` = cor) %>%
-  full_join(como_investigation) %>% 
+  mutate(
+    cor = round(cor, 2),
+    unit_name = stringr::str_split(unit_name, " - ")[[1]][1],
+    p = ifelse(p < 0.001, "<0.001", p)
+  ) %>%
+  select(
+    `Park` = unit_name,
+    `p-value` = p,
+    `r-value` = cor
+  ) %>%
+  full_join(como_investigation) %>%
   full_join(oversample_zip_count %>% rename(Park = unit_name)) %>%
   ungroup() %>%
   transmute(
-    Unit = Park, 
-    LBS = LBS, 
-    Survey = Survey, 
-    Shared = `zipcodes compared`, 
-    `r-value` = `r-value`, 
+    Unit = Park,
+    LBS = LBS,
+    Survey = Survey,
+    Shared = `zipcodes compared`,
+    `r-value` = `r-value`,
     `p-value` = `p-value`
   ) %>%
   arrange(Unit) %>%
   qflextable() %>%
   autofit() %>%
   set_caption("Correlation between intercept survey and LBS data visitor home locations. A correlation test was performed on the percent of visitors inferred to live in each zip code by each data source. The total number of zip codes compared for each park are shown.") %>%
-   add_header_row(values = c("", "Zip codes identified", "Correlation"), colwidths = c(1, 3, 2)) %>%
+  add_header_row(values = c("", "Zip codes identified", "Correlation"), colwidths = c(1, 3, 2)) %>%
   align(align = "center", i = 1, part = "header") %>%
-  bold(bold = TRUE, part = "header")  %>%
-  align(align = "center", i = 1, part = "header") 
+  bold(bold = TRUE, part = "header") %>%
+  align(align = "center", i = 1, part = "header")
 ```
 
 ```{r home-location-summary}
 #| fig.cap = "Comparison of intercept survey and LBS data home locations at eight oversampled metropolitan area regional parks. Each point represents one home zip code. The values on the axes indicate the percent of visitors to the indicated park estimated to live in that zip code. The lines of best fit shows a strong positive correlation between these estimates, while the black, dashed line shows a 1:1 relationship. Source: Metropolitan Council visitor Survey, StreetLight Data, Inc. Accessed July 2023.",
-#| out.width = "80%", 
+#| out.width = "80%",
 #| fig.asp = 0.7
 
 oversample_home_wide %>%
@@ -339,28 +367,32 @@ oversample_home_wide %>%
   mutate(Park = stringr::str_split(Park, " - ")[[1]][1]) %>%
   ungroup() %>%
   ggplot(aes(x = Survey, y = LBS, color = Park)) +
-  geom_smooth(method = "lm", alpha = 0.8, se = FALSE, lwd = 0.5, 
-              formula = y ~ x + 0) + #linetype = "88") +
+  geom_smooth(
+    method = "lm", alpha = 0.8, se = FALSE, lwd = 0.5,
+    formula = y ~ x + 0
+  ) + # linetype = "88") +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
-  geom_point(aes(fill = Park, shape = Park), alpha = 0.9) + 
+  geom_point(aes(fill = Park, shape = Park), alpha = 0.9) +
   theme_council_open() +
-  labs(title = "Percent of visitors from home zipcode",
-       #subtitle = "2021 intercept Survey versus LBS data",
-       fill = "", color = "", shape = "", 
-       x = "Intercept Survey", 
-       y = "LBS \ndata") +
-  scale_x_continuous(labels = scales::percent, expand = expansion(mult = c(0, 0.01))) + 
+  labs(
+    title = "Percent of visitors from home zipcode",
+    # subtitle = "2021 intercept Survey versus LBS data",
+    fill = "", color = "", shape = "",
+    x = "Intercept Survey",
+    y = "LBS \ndata"
+  ) +
+  scale_x_continuous(labels = scales::percent, expand = expansion(mult = c(0, 0.01))) +
   scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0, 0.01))) +
   scale_fill_brewer(palette = "Paired") +
   scale_color_brewer(palette = "Paired") +
-  scale_shape_manual(values = c(21,22,23,24, 25, 21, 22, 23, 24, 25)) +
+  scale_shape_manual(values = c(21, 22, 23, 24, 25, 21, 22, 23, 24, 25)) +
   theme(legend.text = element_text(size = 5)) +
   guides(shape = guide_legend(override.aes = list(size = 0.8)))
 ```
 
 
 ```{r como-investigation, results = "hide"}
-#| fig.cap = "Difference in home locations identified by the intercept survey and LBS data for Como Zoo and Conservatory. Positive values (green) indicate areas where LBS data estimates a higher percentage of visitors than the intercept survey; negative values (brown) indicate areas where the intercept survey estimates a higher percentage of visitors than LBS data. Note the negative values on the North Shore, far away from the park unit in Saint Paul.", 
+#| fig.cap = "Difference in home locations identified by the intercept survey and LBS data for Como Zoo and Conservatory. Positive values (green) indicate areas where LBS data estimates a higher percentage of visitors than the intercept survey; negative values (brown) indicate areas where the intercept survey estimates a higher percentage of visitors than LBS data. Note the negative values on the North Shore, far away from the park unit in Saint Paul.",
 #| fig.height = 6
 
 metro_counties <- tigris::counties(state = "MN", progress_bar = FALSE) %>%
@@ -375,13 +407,15 @@ oversample_home_wide %>%
   left_join(zips, by = c("zip_code" = "ZCTA5CE10")) %>%
   st_as_sf() %>%
   ggplot() +
-   geom_sf(data = mn, fill = "transparent") +
-   geom_sf(data = metro_counties, fill = "grey80") +
+  geom_sf(data = mn, fill = "transparent") +
+  geom_sf(data = metro_counties, fill = "grey80") +
   geom_sf(aes(fill = diff), alpha = 1, lwd = 0) +
   scale_fill_gradient2(low = "#8c510a", mid = "white", high = "#01665e", midpoint = 0, labels = scales::percent) +
   theme_void() +
-  labs(fill = "Difference in \n% visitors \nbetween methods \n(LBS - Survey)", 
-       title = "Visitors to Como Zoo and Conservatory \nby home zip code")
+  labs(
+    fill = "Difference in \n% visitors \nbetween methods \n(LBS - Survey)",
+    title = "Visitors to Como Zoo and Conservatory \nby home zip code"
+  )
 ```
 
 
@@ -395,14 +429,16 @@ The alignment between surveyed and inferred visitor demographics is strong (Tabl
 In sum, this validation suggests that LBS-derived demographics provide valuable views of park and trail visitor demographics, particularly when intercept survey (or similar) data is not available. The ability for LBS to record visitors spanning wider temporal and spatial dimensions than many other methods may additionally reflect a visitor sample which is likely to be more representative of the entire population of park visitors. 
 
 ```{r demo-table}
-demo_table <- both %>% 
+demo_table <- both %>%
   filter(source == "LBS") %>%
   mutate(sig = if_else(sig == "ns", "Not significantly different", "Significant")) %>%
   count(category, group, sig) %>%
   pivot_wider(names_from = sig, values_from = n) %>%
   replace(is.na(.), 0) %>%
-  mutate(group = if_else(str_detect(group, "Associate"), "Associate degree or some college", group),
-         group = if_else(str_detect(group, "High school"), "High school", group)) %>%
+  mutate(
+    group = if_else(str_detect(group, "Associate"), "Associate degree or some college", group),
+    group = if_else(str_detect(group, "High school"), "High school", group)
+  ) %>%
   mutate(group = forcats::fct_relevel(
     group,
     "High school",
@@ -416,13 +452,15 @@ demo_table <- both %>%
     "$75/80,000 - 99,999",
     "$100,000 - 149,999",
     "$150,000 or higher"
-  ))  %>%
+  )) %>%
   arrange(group)
 
 demo_tab <- regulartable(
-  demo_table %>% 
-    rename(Attribute = category,
-           Category = group)
+  demo_table %>%
+    rename(
+      Attribute = category,
+      Category = group
+    )
 ) %>%
   autofit(add_w = 0, add_h = 0) %>%
   merge_at(i = 1:4, j = 1, part = "body") %>%
@@ -432,7 +470,7 @@ demo_tab <- regulartable(
   merge_at(i = 12:19, j = 1, part = "body") %>%
   fontsize(size = 8, part = "all") %>%
   autofit(add_h = 0) %>%
-  line_spacing(space = .25, part = "all") %>% 
+  line_spacing(space = .25, part = "all") %>%
   set_caption("Summary of validation between location based services derived demographic values and intercept survey values. Values show the number of units with and without a statistically significant difference in demographic percentages at the 95% confidence interval.")
 
 demo_tab
@@ -450,29 +488,31 @@ There are several reasons LBS data may estimate fewer white visitors on average.
 ```{r white-table, results = "show"}
 both %>%
   filter(category == "Race/ethnicity", str_detect(group, "White")) %>%
-  mutate(datlabel = paste0(scales::percent(percent, accuracy = 0.1), " (±", scales::percent(moe_95, accuracy = 0.01), ")")) %>% 
- ## filter(str_detect(day_type, "All"), str_detect(day_part, "All")) %>%
+  mutate(datlabel = paste0(scales::percent(percent, accuracy = 0.1), " (±", scales::percent(moe_95, accuracy = 0.01), ")")) %>%
+  ## filter(str_detect(day_type, "All"), str_detect(day_part, "All")) %>%
   select(unit_label, zone_name, datlabel, source) %>%
   pivot_wider(names_from = source, values_from = datlabel) %>%
   left_join(park_to_zone, by = "zone_name") %>%
   group_by(zone_name) %>%
   fill(unit_label, .direction = "downup") %>%
   ungroup() %>%
-  select(`Unit` = unit_label, 
-         `Intercept survey` = survey, 
-         `LBS data` = LBS) %>%
+  select(
+    `Unit` = unit_label,
+    `Intercept survey` = survey,
+    `LBS data` = LBS
+  ) %>%
   group_by(Unit) %>%
   fill(c(`Intercept survey`, `LBS data`), .direction = "downup") %>%
   unique() %>%
   arrange(Unit) %>%
-  regulartable() %>% 
+  regulartable() %>%
   autofit(add_w = 0, add_h = 0) %>%
   set_table_properties(layout = "autofit") %>%
   set_caption("Comparing the percent of visitors identifiying as white between sampling methods during summer 2021. The 95% confidence interval is shown in parentheses.") %>%
   fontsize(size = 8, part = "all") %>%
   add_header_row(values = c("", "white visitors (%)"), colwidths = c(1, 2)) %>%
-  bold(bold = TRUE, part = "header")  %>%
-  align(align = "center", i = 1, part = "header") 
+  bold(bold = TRUE, part = "header") %>%
+  align(align = "center", i = 1, part = "header")
 
 source(file.path(here(), "R/f_demo_compare.R"))
 ```
@@ -486,7 +526,7 @@ source(file.path(here(), "R/f_demo_compare.R"))
 
 both %>%
   filter(category == "Race/ethnicity") %>%
-  demo_compare() 
+  demo_compare()
 ```
 
 
@@ -545,7 +585,7 @@ d <- stl_dem %>%
     n_stl = case_when(
       str_detect(day_type, "Weekday") ~ use * 5,
       str_detect(day_type, "Weekend") ~ use * 2
-    ), 
+    ),
     day_type = day_type
   ) %>%
   mutate(daytype = if_else(str_detect(day_type, "1"), "weekday", "weekend")) %>%
@@ -560,23 +600,31 @@ d <- stl_dem %>%
   pivot_wider(names_from = daytype, values_from = percent) %>%
   select(-weekday)
 
-## TODO: not running: 
+## TODO: not running:
 c %>%
   rename(unit_name = system) %>%
   left_join(park_to_zone) %>%
-  bind_rows(d %>% 
-              left_join(park_to_zone)) %>%
-  pivot_wider(names_from = type,
-              values_from = weekend) %>%
-  mutate(dif = `LBS data` - Survey, 
-         dif2 = abs(dif)) %>%
+  bind_rows(d %>%
+    left_join(park_to_zone)) %>%
+  pivot_wider(
+    names_from = type,
+    values_from = weekend
+  ) %>%
+  mutate(
+    dif = `LBS data` - Survey,
+    dif2 = abs(dif)
+  ) %>%
   arrange(-dif2) %>%
   pivot_longer(cols = c(Survey, `LBS data`), names_to = "type", values_to = "percent") %>%
   mutate(yend = ifelse(type == "Survey", percent + dif, NA_real_)) %>%
   ggplot(aes(x = unit_name, y = percent, color = type, shape = type, fill = type)) +
-  geom_segment(aes(x = forcats::fct_reorder(unit_name, dif2), 
-                   y = percent, yend = yend, xend = unit_name), 
-               color = "black") + 
+  geom_segment(
+    aes(
+      x = forcats::fct_reorder(unit_name, dif2),
+      y = percent, yend = yend, xend = unit_name
+    ),
+    color = "black"
+  ) +
   geom_point() +
   theme_council_open(base_size = 10) +
   coord_flip() +
@@ -603,12 +651,16 @@ As noted above, there are several possible explanations for this pattern: LBS da
 #| out.width= "7in",
 #| out.extra='style="float:right"',
 #| fig.asp = 1.3
-#| 
+#|
 both %>%
   filter(category == "Education") %>%
-  mutate(group = factor(group, levels = c("High school", "Associate degree or some college", 
-                                          "4-year degree", "Graduate or professional degree"), 
-                        ordered = TRUE)) %>%
+  mutate(group = factor(group,
+    levels = c(
+      "High school", "Associate degree or some college",
+      "4-year degree", "Graduate or professional degree"
+    ),
+    ordered = TRUE
+  )) %>%
   demo_compare()
 ```
 
@@ -626,11 +678,15 @@ There were no significant differences observed in estimated visitor household in
 
 both %>%
   filter(category == "Income") %>%
-  mutate(group = factor(group, levels = c("Less than $25,000", "$25,000 - 39,999", 
-                                          "$40,000 - 59,999", "$60,000 - 74/79,999", 
-                                          "$75/80,000 - 99,999", "$100,000 - 149,999", 
-                                          "$150,000 or higher"), 
-                        ordered = TRUE)) %>%
+  mutate(group = factor(group,
+    levels = c(
+      "Less than $25,000", "$25,000 - 39,999",
+      "$40,000 - 59,999", "$60,000 - 74/79,999",
+      "$75/80,000 - 99,999", "$100,000 - 149,999",
+      "$150,000 or higher"
+    ),
+    ordered = TRUE
+  )) %>%
   demo_compare()
 ```
 
@@ -651,26 +707,28 @@ While visits by international residents are counted in park and trail estimates,
 
 
 ## <!-- Visitors traveled to visit Minnesota's parks and trails from all lower 48 states. Overall, Minnesota residents made up approximately `r scales::percent(state_pcts$percent_by_state[state_pcts$state_name=="Minnesota"], accuracy = 0.01)` of users to parks and trails. Following Minnesota, adjacent states represent the largest portion of total use: `r state_pcts[2,]$state_name` with `r scales::percent(state_pcts[2,]$percent_by_state)`, `r state_pcts[3,]$state_name` with `r scales::percent(state_pcts[3,]$percent_by_state, accuracy = 0.01)`, `r state_pcts[4,]$state_name` with `r scales::percent(state_pcts[4,]$percent_by_state, accuracy = 0.01)`, and `r state_pcts[5,]$state_name` with `r scales::percent(state_pcts[5,]$percent_by_state, accuracy = 0.01)`. Notably, California was the 5th most common home location (outside of Minnesota), representing `r scales::percent(state_pcts[6,]$percent_by_state, accuracy = 0.01)` of total use.  -->
-## 
+##
 ## <!-- While visits by international residents are counted in park and trail estimates, LBS data does not allow for identification of home locations for international residents.  -->
 
 
 map_data %>%
   mutate(logp = (percent_by_state)) %>%
-  ggplot() + 
+  ggplot() +
   geom_sf(aes(fill = logp)) +
   coord_sf(crs = (3785)) +
   theme_void() +
   ## scale_fill_gradient2(low = "white", mid = "#74c476", high = "#00441b", midpoint = .3,labels = scales::comma) +
-      scale_fill_gradientn(colours = c("white", "#238b45", "#00441b"), 
-                         values = scales::rescale(c(min(map_data$percent_by_state), .02 , max(map_data$percent_by_state))),
-                         guide = "colorbar", limits=c(min(map_data$percent_by_state), max(map_data$percent_by_state)),
-                         labels = scales::label_comma()) +
+  scale_fill_gradientn(
+    colours = c("white", "#238b45", "#00441b"),
+    values = scales::rescale(c(min(map_data$percent_by_state), .02, max(map_data$percent_by_state))),
+    guide = "colorbar", limits = c(min(map_data$percent_by_state), max(map_data$percent_by_state)),
+    labels = scales::label_comma()
+  ) +
   ## scale_fill_continuous(trans = "log",type = "viridis") +
   guides(fill = "none") +
   theme(legend.position = "bottom", legend.text = element_blank()) +
-  labs(caption = fig_caption, fill = "Percent visitors")+
-  geom_sf_label(aes(label = paste0(round(percent_by_state*100,1), "%")),
+  labs(caption = fig_caption, fill = "Percent visitors") +
+  geom_sf_label(aes(label = paste0(round(percent_by_state * 100, 1), "%")),
     colour = "black",
     check_overlap = F,
     size = 2, data = filter(map_data, percent_by_state > .001)
@@ -693,15 +751,19 @@ Systems, and individual park and trail units, have unique missions and visitor p
 ```{r race-distribution}
 #| fig.cap = "Inferred race and ethnicity of park and trail visitors. Each point represents a single park or trail. Point color and shape indicates system."
 stl_dem %>%
-  filter(label %in% c("full21", "year21"), 
-         str_detect(day_type, "All"), 
-         category == "Race/ethnicity", 
-         system != "Metro Regional Inclusive") %>% 
+  filter(
+    label %in% c("full21", "year21"),
+    str_detect(day_type, "All"),
+    category == "Race/ethnicity",
+    system != "Metro Regional Inclusive"
+  ) %>%
   ungroup() %>%
-  select(zone_name, unit_label, system_label, unit_type, category, group, percent) %>% 
+  select(zone_name, unit_label, system_label, unit_type, category, group, percent) %>%
   ggplot(aes(x = forcats::fct_rev(group), y = percent, color = system_label, fill = system_label, pch = system_label)) +
-  ggbeeswarm::geom_quasirandom(dodge.width = 0.8, size = 0.7, 
-                               width = .15, alpha = 0.5) +
+  ggbeeswarm::geom_quasirandom(
+    dodge.width = 0.8, size = 0.7,
+    width = .15, alpha = 0.5
+  ) +
   coord_flip() +
   theme_council_open(base_size = 10) +
   scale_fill_manual(values = system_label_cols) +
@@ -709,10 +771,11 @@ stl_dem %>%
   scale_shape_manual(values = c(21, 24, 23)) +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 20)) +
   scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0, 0.05))) +
-  labs(caption = fig_caption,
-    x = "", y = "", fill = "", col = "", pch = "", 
+  labs(
+    caption = fig_caption,
+    x = "", y = "", fill = "", col = "", pch = "",
     title = "Inferred race and ethnicity"
-  ) 
+  )
 ```
 
 <br> 
@@ -720,15 +783,19 @@ stl_dem %>%
 ```{r edu-distribution}
 #| fig.cap = "Inferred educational attainment of park and trail visitors. Each point represents a single park or trail. Point color and shape indicates system."
 stl_dem %>%
-  filter(label %in% c("full21", "year21"), 
-         str_detect(day_type, "All"), 
-         category == "Education", 
-         system != "Metro Regional Inclusive") %>% 
+  filter(
+    label %in% c("full21", "year21"),
+    str_detect(day_type, "All"),
+    category == "Education",
+    system != "Metro Regional Inclusive"
+  ) %>%
   ungroup() %>%
-  select(zone_name, unit_label, system_label, unit_type, category, group, percent) %>% 
+  select(zone_name, unit_label, system_label, unit_type, category, group, percent) %>%
   ggplot(aes(x = forcats::fct_rev(group), y = percent, color = system_label, fill = system_label, pch = system_label)) +
-  ggbeeswarm::geom_quasirandom(dodge.width = 0.8, size = 0.7, 
-                               width = .15, alpha = 0.5) +
+  ggbeeswarm::geom_quasirandom(
+    dodge.width = 0.8, size = 0.7,
+    width = .15, alpha = 0.5
+  ) +
   coord_flip() +
   theme_council_open(base_size = 10) +
   scale_fill_manual(values = system_label_cols) +
@@ -736,10 +803,11 @@ stl_dem %>%
   scale_shape_manual(values = c(21, 24, 23)) +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 20)) +
   scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0, 0.05))) +
-  labs(caption = fig_caption,
-    x = "", y = "", fill = "", col = "", pch = "", 
+  labs(
+    caption = fig_caption,
+    x = "", y = "", fill = "", col = "", pch = "",
     title = "Inferred educational attainment"
-  ) 
+  )
 ```
 
 <br>
@@ -747,23 +815,31 @@ stl_dem %>%
 ```{r income-distribution}
 #| fig.cap = "Inferred household income of park and trail visitors. Each point represents a single park or trail. Point color and shape indicates system."
 stl_dem %>%
-  filter(label %in% c("full21", "year21"), 
-         str_detect(day_type, "All"), 
-         category == "Income", 
-         system != "Metro Regional Inclusive") %>% 
-  mutate(group = case_when(
-    group == "$60,000 - 74/79,999" ~ "$60,000 - 74,999", 
-    group == "$75/80,000 - 99,999" ~ "$75,000 - 99,999", 
-    TRUE ~ group
-  ), 
-  group = factor(group, levels =  c("Less than $25,000", "$25,000 - 39,999", "$40,000 - 59,999",
-                                    "$60,000 - 74,999", "$75,000 - 99,999", "$100,000 - 149,999",
-                                    "$150,000 or higher"), ordered = TRUE)) %>%
+  filter(
+    label %in% c("full21", "year21"),
+    str_detect(day_type, "All"),
+    category == "Income",
+    system != "Metro Regional Inclusive"
+  ) %>%
+  mutate(
+    group = case_when(
+      group == "$60,000 - 74/79,999" ~ "$60,000 - 74,999",
+      group == "$75/80,000 - 99,999" ~ "$75,000 - 99,999",
+      TRUE ~ group
+    ),
+    group = factor(group, levels = c(
+      "Less than $25,000", "$25,000 - 39,999", "$40,000 - 59,999",
+      "$60,000 - 74,999", "$75,000 - 99,999", "$100,000 - 149,999",
+      "$150,000 or higher"
+    ), ordered = TRUE)
+  ) %>%
   ungroup() %>%
-  select(zone_name, unit_label, system_label, unit_type, category, group, percent) %>% 
+  select(zone_name, unit_label, system_label, unit_type, category, group, percent) %>%
   ggplot(aes(x = forcats::fct_rev(group), y = percent, color = system_label, fill = system_label, pch = system_label)) +
-  ggbeeswarm::geom_quasirandom(dodge.width = 0.8, size = 0.7, 
-                               width = .15, alpha = 0.5) +
+  ggbeeswarm::geom_quasirandom(
+    dodge.width = 0.8, size = 0.7,
+    width = .15, alpha = 0.5
+  ) +
   coord_flip() +
   theme_council_open(base_size = 10) +
   scale_fill_manual(values = system_label_cols) +
@@ -771,8 +847,9 @@ stl_dem %>%
   scale_shape_manual(values = c(21, 24, 23)) +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 20)) +
   scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0, 0.05))) +
-  labs(caption = fig_caption,
-    x = "", y = "", fill = "", col = "", pch = "", 
+  labs(
+    caption = fig_caption,
+    x = "", y = "", fill = "", col = "", pch = "",
     title = "Inferred household income"
-  ) 
+  )
 ```

@@ -85,13 +85,13 @@ require(keyring)
 require(usethis)
 keyring::key_set(service = "StreetLightAPI")
 
-usethis::edit_r_environ() 
+usethis::edit_r_environ()
 # When the `.Renviron` file comes up in the editor, save the following parameters:
 
 # `STREETLIGHT_LOGIN` = "your email"
 # `STREETLIHT_API_KEY` = "your API key"
 # `CENSUS_API_KEY` = "your API key"
-# 
+#
 # Save and close the `.Renviron` file and Restart R.
 ```
 
