@@ -272,6 +272,7 @@ full_ss_comp <- sample_size_comp %>%
     `Percent surveyed` = `Completed surveys` / annual_total,
     `Percent sampled` = `Approximate LBS \ndevice count` / annual_total
   ) %>%
+  ungroup() %>%
   transmute(
     Unit = Unit,
     `Completed surveys` = prettyNum(`Completed surveys`, big.mark = ","),
