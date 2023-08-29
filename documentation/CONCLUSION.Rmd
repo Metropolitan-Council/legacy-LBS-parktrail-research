@@ -26,6 +26,7 @@ We additionally learned there is no one-size-fits-all solution for park and trai
 
 
 ### Continue exploration of novel data sources 
+
 The findings from this study were only possible due to the adoption and exploration of novel data sources (LBS data). While exploring new data sources and methods have inherent risks and challenges, the rewards may be significant. 
 
 However, no single data source can answer every research question about parks and trails. Like all data, LBS data has strengths and weaknesses. While it provides incredible spatial and temporal detail, it cannot provide information about visitor experiences or report real-time data, for example. Other data sources are needed to address such questions. LBS data may prove most insightful when combined with existing research methods. 
@@ -36,6 +37,7 @@ For this project specifically, we note that industry-wide changes to the availab
 
 
 ### Connect with park staff to explore unit-level findings 
+
 Due to this project’s scope, it was impossible to connect individually with park and trail managers, staff, or researchers at each unit. However, location-based services (LBS) data allows for highly detailed analyses and applications which may be of interest to these audiences. 
 
 Significant on-the-ground knowledge about the park or trail of interest is often required for such analyses. Connecting park managers, staff, or researchers to this detailed data may allow for deeper analysis of individual units or generate more specific research questions. See Use Cases for additional examples of questions LBS data can answer. 
@@ -73,9 +75,6 @@ load(file.path(here::here(), "data-intermediate/documentation/use-case-fig-dat.r
 This project aimed to develop universal methods of park and trail analysis. Therefore, in-depth analysis of individual units was beyond the scope of this work. Still, many park- or trail-specific research questions can be addressed with LBS data provided. These analyses require substantial on-the-ground knowledge of the park or trail of interest. Possible use cases fall broadly into three categories: those that can be completed using the data provided, those that require a StreetLight license but use this project’s methods, and those that require a StreetLight license and use custom methods beyond this project’s techniques. 
 
 
-
-
-
 ### Using provided data
 
 #### Custom summaries
@@ -103,11 +102,11 @@ The provided spreadsheet titled “LBS_visitor_attribute_results_2023.07.xlsx”
 
 ```{r census-screenshot, include = FALSE, eval = FALSE}
 #| fig.cap = "Screenshot of Census Reporter statistics for Ramsey County, MN.",
-#| results='markup',
-#| out.width= "65%",
-#| out.extra='style="float:center"',
+#| results = 'markup',
+#| out.width = "65%",
+#| out.extra = 'style="float:center"',
 #| fig.asp = .5,
-#| out.width= "3.5in"
+#| out.width = "3.5in"
 
 knitr::include_graphics(file.path(here::here(), "figures/storymap/census_reporter.png"))
 ```
@@ -129,11 +128,10 @@ Other applications of hourly data include scheduling lifeguards at beaches, dete
 
 ```{r peak-hourly}
 #| fig.cap = 'Average hourly pedestrian use at the entrance of Battle Creek Regional Park off-leash dog area (Metro Regional) during the summer of 2021.',
-#| results='markup',
-#| out.width= "5in",
-#| out.extra='style="float:center"',
+#| results = 'markup',
+#| out.width = "5in",
+#| out.extra = 'style="float:center"',
 #| fig.asp = 0.5
-#|
 
 bc %>%
   filter(str_detect(zone_name, "dog")) %>%
@@ -152,23 +150,18 @@ bc %>%
     nudge_y = -0.025,
     nudge_x = -3600 * 3.5
   ) +
-  # facet_wrap(~zone_name,  nrow = 2) +
   theme_council_open(base_size = 10) +
   scale_y_continuous(labels = scales::label_percent(), limits = c(0, .16), expand = c(0, 0)) +
   scale_x_datetime(
     date_breaks = "4 hours", date_labels = "%l%p",
     limits = c(as.POSIXct("2023-08-22 06:00:00"), as.POSIXct("2023-08-22 21:15:00")),
-    #  limits = c(as.POSIXct("2023-04-21 06:00:00"), as.POSIXct("2023-04-21 22:00:00")),
     expand = c(0.01, 0)
-  ) + # , expand = expansion(mult = c(0.01, 0.01)))+# expand = expansion(mult = c(0.01, 0.4))) +
+  ) +
   labs(
     x = "", y = "System \ntotal", color = "", shape = "",
     title = "Pedestrian activity at Battle Creek Dog Park entrance (summer 2021)",
-    # title = "Total arrivals to parks by system and hour",
     caption = fig_caption
   ) +
-  # geom_text(aes(x = time+2, y = percent, label = label), hjust =0) +
-  # geom_text_repel(aes(x = time+5, y = percent, label = label), hjust ="left", nudge_x = 4, direction = "y") +
   theme(
     legend.position = "bottom",
     panel.grid.major.x = element_line(linetype = 3),

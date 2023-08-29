@@ -590,7 +590,7 @@ ggplot_na_imputations(
 ```
 
 ```{r rmse-mape-tab}
-#| results='markup',
+#| results = 'markup',
 #| tidy = FALSE
 
 regulartable(avgs_tab %>%
@@ -676,7 +676,7 @@ This pattern was particularly evident at large, high-use state parks with many m
 
 ```{r pct-intra}
 #| fig.cap = "Percent of trips by system and mode which begin and end within the same park, 2021.",
-#| results='markup',
+#| results = 'markup',
 
 all_monthly %>%
   filter(year == 2021) %>%
@@ -790,7 +790,6 @@ The methods described in this report were found to generate reasonable use estim
 - Linear or trail-heavy parks where users may not stop within the park for five minutes.
 - Parks with islands, or parks where boat access is more common than automobile access. Such units are excluded from this analysis.
 - Low visitation units. When visitation is under a given thresshold, StreetLight filters data to protect privacy. This occurs most often at smaller units during the off-season. The threshold for reporting data is an estimated 50-100 daily trips during the analysis period (this threshold may vary based the geographic area of analysis and specific metrics requested).
-
 
 
 
@@ -930,7 +929,7 @@ summer_metro_cor <- cor.test(summer_metro_comp$LBS, summer_metro_comp$count_est)
 summer_metro_comp %>%
   mutate(label = if_else(abs(count_est - LBS) > 300000, unit_label, NA_character_)) %>%
   ggplot(aes(x = count_est, y = LBS, label = label)) +
-  geom_point( # aes(color = inclusive),
+  geom_point(
     alpha = .3
   ) +
   geom_smooth(method = "lm", formula = y ~ x + 0, se = FALSE, color = legacy_blue) +
@@ -944,8 +943,7 @@ summer_metro_comp %>%
     labels = scales::label_comma(scale = .000001),
     breaks = c(0, 500000, 1e6, 1.5e6, 2e6, 2.5e6)
   ) +
-  # scale_color_manual(values = c("black", legacy_blue)) +
-  labs( # title = "Metropolitan Regional park data validation",
+  labs(
     x = "Count-based use estimates (millions)", y = "LBS use \nestimates (millions)",
     caption = paste0("Source: StreetLight Data, Inc; Metropolitan Council Use Estimates. Accessed July 2023."),
     title = "Use estimates at Metro Regional parks \n(June - August 2021)"
@@ -1002,7 +1000,7 @@ loc_bbox %>%
 
 rm(metro)
 rm(metro_water)
-rm(metro_mndot_roads) # ; gc()
+rm(metro_mndot_roads)
 ```
 
 #### Parks with limited cell service
@@ -1046,15 +1044,25 @@ both_monthly2 %>%
   ) %>%
   group_by(label_name, facet_name) %>%
   summarise(
-    `Count-based estimate` = mean(dnr_count, na.rm = TRUE), SE_DNR = sd(dnr_count, na.rm = TRUE) / sqrt(n()),
-    `LBS estimate` = mean(monthly_total), SE_STL = sd(monthly_total) / sqrt(n()),
+    `Count-based estimate` = mean(dnr_count, na.rm = TRUE),
+    SE_DNR = sd(dnr_count, na.rm = TRUE) / sqrt(n()),
+    `LBS estimate` = mean(monthly_total),
+    SE_STL = sd(monthly_total) / sqrt(n()),
     .groups = "keep"
   ) %>%
-  tidyr::pivot_longer(cols = c(`Count-based estimate`, `LBS estimate`), names_to = "SOURCE", values_to = "MEAN") %>%
-  tidyr::pivot_longer(cols = c(SE_DNR, SE_STL), names_to = "SOURCE_SE", values_to = "SE") %>%
+  tidyr::pivot_longer(
+    cols = c(`Count-based estimate`, `LBS estimate`),
+    names_to = "SOURCE", values_to = "MEAN"
+  ) %>%
+  tidyr::pivot_longer(
+    cols = c(SE_DNR, SE_STL),
+    names_to = "SOURCE_SE", values_to = "SE"
+  ) %>%
   ggplot() +
   geom_col(aes(x = SOURCE, y = MEAN, fill = SOURCE), position = "dodge", color = "black") +
-  geom_errorbar(aes(x = SOURCE, ymin = MEAN - SE, ymax = MEAN + SE, group = SOURCE), width = 0, position = position_dodge(width = .9)) +
+  geom_errorbar(aes(x = SOURCE, ymin = MEAN - SE, ymax = MEAN + SE, group = SOURCE),
+    width = 0, position = position_dodge(width = .9)
+  ) +
   theme_council_open(base_size = 10) +
   theme(
     panel.grid.minor = element_blank(),
@@ -1111,7 +1119,7 @@ annual_volume %>%
   theme_council_open(base_size = 10) +
   labs(
     x = "", caption = fig_caption,
-    title = "Annual park use (millions of visits)" # ,
+    title = "Annual park use (millions of visits)"
   ) +
   scale_y_continuous(
     labels = scales::label_comma(),
@@ -1124,7 +1132,10 @@ annual_volume %>%
     axis.title.x = element_blank(),
     plot.title = element_text(size = 10)
   ) +
-  geom_label(aes(label = format(round(system_total, 2), nsmall = 2), y = rep(c(7.5, 5, 19), each = 3)), fill = "white", size = 2.5)
+  geom_label(aes(
+    label = format(round(system_total, 2), nsmall = 2),
+    y = rep(c(7.5, 5, 19), each = 3)
+  ), fill = "white", size = 2.5)
 ```
 
 
@@ -1169,7 +1180,10 @@ month_labs <- data.frame(month = 1:12, month_lab = month.abb) %>%
   ) %>%
   mutate(label = if_else(month == "12", system_label, NA_character_)) %>%
   left_join(month_labs, by = "month") %>%
-  ggplot(aes(x = month_lab, y = MEAN, group = system_label, color = system_label, pch = system_label)) +
+  ggplot(aes(
+    x = month_lab, y = MEAN, group = system_label,
+    color = system_label, pch = system_label
+  )) +
   geom_segment(aes(x = 1, xend = 1, y = 0, yend = .07), lty = 3, color = "grey90") +
   geom_segment(aes(x = 4, xend = 4, y = 0, yend = .08), lty = 3, color = "grey90") +
   geom_segment(aes(x = 7, xend = 7, y = 0, yend = .17), lty = 3, color = "grey90") +
@@ -1459,7 +1473,7 @@ At individual park units, mode share  mode share information may be helpful in i
 
 annual_volume %>%
   filter(year != 2022, system != "Metro Regional Inclusive") %>%
-  group_by(system_label, year) %>% # , season) %>%
+  group_by(system_label, year) %>%
   summarise(
     Vehicle = sum(annual_vehicle_visitors),
     Bicycle = sum(annual_bike),
