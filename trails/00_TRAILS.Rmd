@@ -169,15 +169,12 @@ load(file.path(here(), "data-intermediate/trails/mndot-validation-data.rda"))
 ```{r restrict-trail-metadata}
 ## restrict to trails which returned data
 load(file.path(here(), "data-intermediate/trails/trail-metadata.rda"))
-save(trail_metadata, trail_segment_metadata,
-  file = file.path(here(), "data-intermediate/trails/all-trail-metadata.rda")
-) # save for documentation purposes
 
 trail_metadata <- trail_metadata %>%
   filter(unit_id %in% annual_trail_volume$unit_id)
 
 trail_segment_metadata <- trail_segment_metadata %>%
-  filter(unit_id %in% annual_trail_volume$unit_id)
+  filter(zone_name %in% monthly_segment_volume$zone_name)
 
 save(trail_metadata, trail_segment_metadata,
   file = file.path(here(), "data-intermediate/trails/trail-metadata.rda")
@@ -769,7 +766,7 @@ pct_diff_by_unit <- summer_metro_comp %>%
     LBS = LBS,
     diff = count_est - LBS,
     pct = diff / count_est,
-    abs_pct = abs(pct), .groups = "keep"
+    abs_pct = abs(pct), .groups = "drop"
   )
 ```
 

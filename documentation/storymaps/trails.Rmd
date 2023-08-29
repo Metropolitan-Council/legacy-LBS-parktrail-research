@@ -38,16 +38,17 @@ load(file.path(here(), "data-intermediate/processed/trail-volume.rda"))
 load(file.path(here(), "data-intermediate/trails/cleaned-trail-geography.rda"))
 gmn_validation_data <- readRDS(file.path(here(), "data-intermediate/trails/gmn-validation-data.RDS"))
 
-
-trail_summary <- sf::st_drop_geometry(cleaned_trail_segments) %>%
+cleaned_trail_segments <- cleaned_trail_segments %>%
   left_join(trail_segment_metadata) %>%
-  filter(!is.na(system)) %>%
+  filter(!is.na(system))
+
+trail_summary <- st_drop_geometry(cleaned_trail_segments) %>%
   rename(System = system_label) %>%
   group_by(System) %>%
   summarise(
     Trails = n_distinct(unit_id),
-    Segments = n_distinct(osm_id),
-    Miles = sum(round(as.numeric(approx_length_miles)), .groups = "keep")
+    Segments = n_distinct(zone_name),
+    Miles = round(sum(as.numeric(approx_length_miles))), .groups = "keep"
   )
 
 n_trails <- sum(trail_summary$Trails)
