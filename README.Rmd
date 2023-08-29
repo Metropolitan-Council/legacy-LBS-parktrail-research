@@ -38,6 +38,8 @@ The `/data-raw` folder contains data obtained from external sources; `/data-inte
 
 ### Set-up
 
+Before running any code, be sure to open `R/_load_packages.R` and ensure you have all neccessary packages installed. 
+
 This project uses [`streetlightR`](https://metropolitan-council.github.io/streetlightR/) to conduct LBS analyses and [`councilR`](https://github.com/Metropolitan-Council/councilR) for plotting. Users will additionally require a StreetLight API key (request via StreetLight Support Team) and a [Census API Key](https://api.census.gov/data/key_signup.html). 
 
 Initially, you will need to save some parameters to your machine.
