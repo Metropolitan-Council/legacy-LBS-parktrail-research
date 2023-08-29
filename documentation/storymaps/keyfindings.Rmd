@@ -42,9 +42,19 @@ legacy_dkgreen <- "#4c822e"
 # trail_unit_meta <- readRDS(file.path(here::here(), "data-processed/trail_unit_metadata.RDS"))
 # trail_zone_meta <- readRDS(file.path(here::here(), "data-processed/trail_zone_metadata.RDS"))
 
+# .rda files read in multiple objects at once
+
+# annual_trail_volume, hourly_trails, monthly_segment_volume,
+# monthly_trail_volume, and seasonal_trail_volume
 load(file.path(here::here(), "data-intermediate/processed/trail-volume.rda"))
+
+# annual_volume, monthly_volume, season_volume, and weekly_volume
 load(file.path(here::here(), "data-intermediate/processed/park-volume.rda"))
+
+# trail_metadata and trail_segment_metadata
 load(file.path(here::here(), "data-intermediate/trails/trail-metadata.rda"))
+
+
 park_metadata <- readRDS(file.path(here::here(), "data-intermediate/parks/parks-metadata.RDS"))
 
 working_trail_volume <- annual_trail_volume %>% filter(str_detect(day_type, "All"))
@@ -57,6 +67,7 @@ n_parks <- n_distinct(working_annual_volume$zone_name)
 analysis_period <- "January 2019 - April 2022"
 n_weeks <- 173
 
+# cleaned_trail_segments and trail_buffer_zones
 load(file.path(here::here(), "data-intermediate/trails/cleaned-trail-geography.rda")) 
 
 trail_summary <- st_drop_geometry(cleaned_trail_segments) %>%
