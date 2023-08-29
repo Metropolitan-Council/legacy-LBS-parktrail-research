@@ -1,0 +1,9 @@
+Data Periods,Zone ID,Zone Name,Zone Is Pass-Through,Zone Direction (degrees),Zone is Bi-Direction,Fingerprint1,Fingerprint2
+"Jun 01, 2021 - Aug 31, 2021",N/A,dog-park-lot,no,N/A,no,0,747314677518770
+"Jun 01, 2021 - Aug 31, 2021",N/A,dog-park-lot-pt,yes,N/A,no,0,747314677518770
+"Jun 01, 2021 - Aug 31, 2021",N/A,parking,no,N/A,no,0,747228778156458
+"Jun 01, 2021 - Aug 31, 2021",N/A,parking-pt,yes,N/A,no,0,747228778156458
+"Jun 01, 2021 - Aug 31, 2021",N/A,rec-center,no,N/A,no,0,747213745768820
+"Jun 01, 2021 - Aug 31, 2021",N/A,rec-center-pt,yes,N/A,no,0,747213745768820
+"Jun 01, 2021 - Aug 31, 2021",N/A,restroom,no,N/A,no,0,747312530059592
+"Jun 01, 2021 - Aug 31, 2021",N/A,restroom-pt,yes,N/A,no,0,747312530059592

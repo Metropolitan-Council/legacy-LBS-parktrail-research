@@ -1,0 +1,5 @@
+Data Periods,Mode of Travel,Zone Type,Zone ID,Zone Name,Zone Is Pass-Through,Zone Direction (degrees),Zone is Bi-Direction,Day Type,Day Part,Average Daily Zone Traffic (StL Volume)
+"Jun 01, 2021 - Aug 31, 2021",Bicycle - StL Bicycle Volume,Origin,N/A,entrance,yes,269,no,0: All Days (M-Su),0: All Day (12am-12am),11
+"Jun 01, 2021 - Aug 31, 2021",Bicycle - StL Bicycle Volume,Origin,N/A,Hartley Park,no,N/A,no,0: All Days (M-Su),0: All Day (12am-12am),93
+"Jun 01, 2021 - Aug 31, 2021",Bicycle - StL Bicycle Volume,Destination,N/A,exit,yes,148,no,0: All Days (M-Su),0: All Day (12am-12am),81
+"Jun 01, 2021 - Aug 31, 2021",Bicycle - StL Bicycle Volume,Destination,N/A,Hartley Park,no,N/A,no,0: All Days (M-Su),0: All Day (12am-12am),116

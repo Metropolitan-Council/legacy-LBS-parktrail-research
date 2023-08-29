@@ -1,0 +1,5 @@
+Data Periods,Zone Type,Zone ID,Zone Name,Zone Is Pass-Through,Zone Direction (degrees),Zone is Bi-Direction,Fingerprint1,Fingerprint2
+"Jun 01, 2021 - Aug 31, 2021",Origin,N/A,entrance,yes,269,no,0,755226022844782
+"Jun 01, 2021 - Aug 31, 2021",Origin,N/A,Hartley Park,no,N/A,no,0,755170188235370
+"Jun 01, 2021 - Aug 31, 2021",Destination,N/A,exit,yes,148,no,0,755157303282000
+"Jun 01, 2021 - Aug 31, 2021",Destination,N/A,Hartley Park,no,N/A,no,0,755170188235370
