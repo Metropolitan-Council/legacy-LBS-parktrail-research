@@ -517,7 +517,7 @@ both %>%
 source(file.path(here(), "R/f_demo_compare.R"))
 ```
 
-```{r, race-validation, results = "show"}
+```{r race-validation, results = "show"}
 #| fig.cap = "Validation of race/ethnicity categorys. Error bars show a 95% confidence interval. When there was no significant difference in percentages at the 95% confidence interval, LBS percentages are shown. Source: Metropolitan Council visitor study, StreetLight Data, Inc. Accessed July 2023.",
 #| results='markup',
 #| out.width= "7in",
@@ -531,7 +531,7 @@ both %>%
 
 
 
-```{r, fig-survey-completion-day, results = "hide"}
+```{r fig-survey-completion-day, results = "hide"}
 #| fig.cap = "Percent of 2021 intercept surveys completed on the weekend and percent of 2021 LBS data visits which occur on the weekends. Parks are sorted by descending order of difference between survey and LBS data percents. Source: Metropolitan Council visitor study, StreetLight Data, Inc. Accessed July 2023.",
 #| results='markup',
 #| out.width= "5.5in",
@@ -669,7 +669,7 @@ both %>%
 
 There were no significant differences observed in estimated visitor household income for LBS and intercept survey data (Figure \@ref(fig:income-validation)). This validation suggests that LBS data income categories are reliable and can provide useful information about park and trail visitors. However, similar percentages of visitors are seen across many income categories, which may obscure larger patterns. 
 
-```{r, income-validation, results = "show"}
+```{r income-validation, results = "show"}
 #| fig.cap = "Validation of visitor household income. Error bars show a 95% confidence interval. When there was no significant difference in percentages at the 95% confidence interval, LBS data percentages are shown. Source: Metropolitan Council visitor study, StreetLight Data, Inc. Accessed July 2023.",
 #| results='markup',
 #| out.width= "7in",

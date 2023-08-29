@@ -34,5 +34,5 @@ source(file.path(here(), "R/_set_aesthetics.R"))
 
 
 
-```{r, child = c("INTRODUCTION.RMD", "../parks/00_PARKS.RMD", "../trails/00_TRAILS.RMD", "../visitors/00_VISITORS.RMD", "CONCLUSION.RMD", "APPENDICES.RMD")}
+```{r children, child = c("INTRODUCTION.RMD", "../parks/00_PARKS.RMD", "../trails/00_TRAILS.RMD", "../visitors/00_VISITORS.RMD", "CONCLUSION.RMD", "APPENDICES.RMD")}
 ```
