@@ -65,10 +65,13 @@ The `/data-raw` folder contains data obtained from external sources;
 StreetLight (LBS) analysis downloads, or other internally-produced data;
 `/data-processed` contains the final products of this research.
 
+To render plots and factsheets properly, ensure you have the Avenir font
+installed on your machine.
+
 ### Set-up
 
 Before running any code, be sure to open `R/_load_packages.R` and ensure
-you have all neccessary packages installed.
+you have all necessary packages installed.
 
 This project uses
 [`streetlightR`](https://metropolitan-council.github.io/streetlightR/)
