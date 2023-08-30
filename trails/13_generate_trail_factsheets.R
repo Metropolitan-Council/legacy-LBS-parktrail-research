@@ -148,7 +148,7 @@ create_unit_fig <- function(name) {
   )
 
   # annual bar chart
-  print("bars")
+  cli::cli_progress_message("bars")
   bars <- dat_annual %>%
     filter(str_detect(day_type, "All")) %>%
     ungroup() %>%
@@ -161,7 +161,7 @@ create_unit_fig <- function(name) {
     annual_table_fxn()
 
   # map of location (with inset of state)
-  print("location map")
+  cli::cli_progress_message("location map")
   location_map_text <- paste(
     meta$unit_label, "is part of the",
     meta$system_label, "Trail system",
@@ -176,29 +176,29 @@ create_unit_fig <- function(name) {
   loc_map <- location_map_fxn(name)
 
   # weekly timeseries
-  print("monthly")
+  cli::cli_progress_message("monthly")
   month_ts <- dat_monthly %>%
     monthly_timeseries_plot_fxn()
 
   # mode share
-  print("season modeshare")
+  cli::cli_progress_message("season modeshare")
   season_mode <- dat_monthly %>%
     seasonal_mode_share_fxn()
 
   # hourly
-  print("hourly")
+  cli::cli_progress_message("hourly")
   hour_ts <- dat_hourly %>%
     hourly_timeseries_plot_fxn()
 
   # home location map
-  print("home map")
+  cli::cli_progress_message("home map")
   home_map <- home_map_fxn(name)
 
   # demographics
   print("demos")
 
   demo_plot <- demo_table_fxn(demo)
-  print("demos done")
+  cli::cli_progress_message("demos done")
   ## PUT IT ALL TOGETHER
 
   annfigs <- plot_grid(bars,
@@ -267,6 +267,6 @@ create_unit_fig <- function(name) {
 ##### generate figures #####
 purrr::map(.x = c(1:nrow(trail_metadata)), .f = function(x) {
   trail_name <- trail_metadata[x, ]$unit_id
-  print(trail_name)
+  cli::cli_alert_info(trail_name)
   create_unit_fig(trail_name)
 })
