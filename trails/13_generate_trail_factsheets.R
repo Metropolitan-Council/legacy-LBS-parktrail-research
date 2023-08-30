@@ -3,7 +3,8 @@
 
 ### load functions ###
 source(file.path(here(), "R/_trail_factsheet_functions.R"))
-
+source(file.path(here::here(), "R/_load_packages.R"))
+source(file.path(here::here(), "R/_set_aesthetics.R"))
 
 ## load data needed for functions ###
 load(file.path(here(), "data-intermediate/processed/trail-volume.rda"))
@@ -230,6 +231,15 @@ create_unit_fig <- function(name) {
     ncol = 1, rel_heights = c(0.2, 8, 4, 5.5, 7, 0.2)
   )
 
+
+  # create folder if it doesn't already exist
+  if(!file.exists(paste0(here::here(), "/figures/factsheets/", meta$system,
+                         "-trails/"))){
+    dir.create(paste0(here::here(), "/figures/factsheets/",
+                      meta$system,
+                      "-trails/"),
+               recursive = TRUE)
+  }
   if (meta$system == "Metro Regional") {
     save_plot(figure,
       filename = paste0(here::here(), "/figures/factsheets/", meta$system, "-trails/", stringr::str_replace(meta$unit_id, "/", "-"), "_", meta$short_agency, ".pdf"),

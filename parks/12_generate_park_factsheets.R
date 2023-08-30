@@ -2,16 +2,23 @@
 ## factsheet for each park in the project sample.
 
 ### load functions ###
-source(file.path(here(), "R/_park_factsheet_functions.R"))
+source(file.path(here::here(), "R/_park_factsheet_functions.R"))
+source(file.path(here::here(), "R/_load_packages.R"))
+source(file.path(here::here(), "R/_set_aesthetics.R"))
 
 
 ### load data needed for functions ###
 ## hourly
 load(file.path(here(), "data-intermediate/processed/hourly-parks.rda"))
+park_metadata <- readRDS(file.path(here(), "data-intermediate/parks/parks-metadata.RDS"))
+
 
 ## demographics
 load(file.path(here(), "data-intermediate/visitors/census-comp-pops.rda"))
 load(file.path(here(), "data-intermediate/processed/all-processed-demographics.rda"))
+
+# annual_volume, monthly_volume, season_volume, and weekly_volume
+load(file.path(here::here(), "data-intermediate/processed/park-volume.rda"))
 
 state_demos <- data.frame(bind_rows(state_race, state_income, state_education))
 greater_mn_demos <- data.frame(bind_rows(greater_mn_race, greater_mn_income, greater_mn_education))
@@ -157,6 +164,13 @@ create_unit_fig <- function(name) {
     ncol = 1, rel_heights = c(0.2, 8, 4, 5.5, 7, 0.2)
   )
 
+  if(!file.exists(paste0(here::here(), "/figures/factsheets/", meta$system,
+                         "-parks/"))){
+    dir.create(paste0(here::here(), "/figures/factsheets/",
+                      meta$system,
+                      "-parks/"),
+               recursive = TRUE)
+  }
   if (meta$system == "Metro Regional") {
     save_plot(figure,
       filename = paste0(here::here(), "/figures/factsheets/", meta$system, "-parks/", stringr::str_replace(meta$unit_label, "/", "-"), "_", meta$short_agency, ".pdf"),
