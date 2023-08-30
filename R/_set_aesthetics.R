@@ -49,3 +49,32 @@ system_label_cols <- c(
   "Greater MN Regional" = legacy_orange,
   "Metro Regional" = councilR::colors$cdGreen
 )
+
+
+# find Avenir
+
+avenir_location <- function(){
+
+  if (grepl("mac", osVersion)) {
+    # if mac, search default font paths
+    sysfonts::font_paths()
+  } else {
+    # if windows, add the user-level font files to font paths
+    sysfonts::font_paths(
+      paste0(
+        "C:\\Users\\",
+        Sys.info()["user"],
+        "\\AppData\\Local\\Microsoft\\Windows\\Fonts"
+      )
+    )
+  }
+
+
+  font_locs <- subset(
+    sysfonts::font_files(),
+    family %in% c("Avenir",
+                  "Avenir Book")
+  )
+
+  return(here::here(font_locs$path, font_locs$file))
+}

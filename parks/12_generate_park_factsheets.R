@@ -44,7 +44,8 @@ state_abbr <- fips_codes %>%
   as_tibble()
 
 ## fonts
-sysfonts::font_add(family = "Avenir", regular = "/System/Library/Fonts/Avenir.ttc")
+sysfonts::font_add(family = "Avenir",
+                   regular = avenir_location())
 showtext::showtext_auto()
 
 ## FUNCTION TO CREATE UNIT FIG
