@@ -4,7 +4,7 @@ demo_compare <- function(x) {
     mutate(
       flag = if_else(sig == "ns" & source == "survey", 1, 0),
       source = case_when(
-        sig == "ns" ~ "no significant difference",
+        sig == "ns" ~ "No significant difference",
         source == "survey" ~ "Intercept survey",
         source == "LBS" ~ "LBS data"
       )
@@ -47,17 +47,17 @@ demo_compare <- function(x) {
       legend.key.size = unit(.1, "lines")
     ) +
     scale_colour_manual(values = c(
-      "no significant difference" = "black",
+      "No significant difference" = "black",
       "Intercept survey" = "#a6611a",
       "LBS data" = "#018571"
     )) +
     scale_fill_manual(values = c(
-      "no significant difference" = "white",
+      "No significant difference" = "white",
       "Intercept survey" = "#a6611a",
       "LBS data" = "#018571"
     )) +
     scale_shape_manual(values = c(
-      "no significant difference" = 21,
+      "No significant difference" = 21,
       "Intercept survey" = 22,
       "LBS data" = 23
     ))

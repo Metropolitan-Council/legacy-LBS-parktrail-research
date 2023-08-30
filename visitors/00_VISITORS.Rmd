@@ -519,7 +519,7 @@ both %>%
   set_table_properties(layout = "autofit") %>%
   set_caption("Comparing the percent of visitors identifiying as white between sampling methods during summer 2021. The 95% confidence interval is shown in parentheses.") %>%
   fontsize(size = 8, part = "all") %>%
-  add_header_row(values = c("", "white visitors (%)"), colwidths = c(1, 2)) %>%
+  add_header_row(values = c("", "White visitors (%)"), colwidths = c(1, 2)) %>%
   bold(bold = TRUE, part = "header") %>%
   align(align = "center", i = 1, part = "header")
 

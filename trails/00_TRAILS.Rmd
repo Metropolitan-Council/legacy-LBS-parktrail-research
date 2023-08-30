@@ -407,9 +407,9 @@ On trail polygons:
   
 <br>
 
-In total, `r prettyNum(sum(n_core_za + n_demo_analyses + n_hourly_analyses + n_hw_analyses), big.mark = ",")` StreetLight analyses were run for trails. StreetLight’s “zone activity” analysis type is used for the entirety of the trail portion of this project. Zone activity analyses capture activity passing through, or along, each trail segment in the project sample. No stoppage time is necessary for a pass-through trip to be counted. When the LBS provider did not report data for a given trail segment in a given month (due to low use), use was assumed to be zero. 
+In total, `r prettyNum(sum(n_core_za + n_demo_analyses + n_hourly_analyses + n_hw_analyses), big.mark = ",")` StreetLight analyses were run for trails. StreetLight's “zone activity” analysis type is used for the entirety of the trail portion of this project. Zone activity analyses capture activity passing through, or along, each trail segment in the project sample. No stoppage time is necessary for a pass-through trip to be counted. When the LBS provider did not report data for a given trail segment in a given month (due to low use), use was assumed to be zero. 
 
-The StreetLight application programming interface (API) was used to run each analysis. The API is accessed using [StreetlightR](https://github.com/Metropolitan-Council/streetlightR), an API wrapper written in R by Metropolitan Council staff. The resulting data consists of `r prettyNum(2 * n_segments * n_months, big.mark = ",")` monthly observations (`r prettyNum(n_segments, big.mark =",")` trail segments x `r n_months` months x 2 travel modes). In most cases, data is aggregated to the trail level, resulting in `r prettyNum(2 * n_records, big.mark = ",")` monthly observations (`r prettyNum(n_trails, big.mark =",")` trails x `r n_months` months x 2 travel modes).
+The StreetLight application programming interface (API) was used to run each analysis. The API is accessed using [streetlightR](https://github.com/Metropolitan-Council/streetlightR), an API wrapper written in R by Metropolitan Council staff. The resulting data consists of `r prettyNum(2 * n_segments * n_months, big.mark = ",")` monthly observations (`r prettyNum(n_segments, big.mark =",")` trail segments x `r n_months` months x 2 travel modes). In most cases, data is aggregated to the trail level, resulting in `r prettyNum(2 * n_records, big.mark = ",")` monthly observations (`r prettyNum(n_trails, big.mark =",")` trails x `r n_months` months x 2 travel modes).
 
 #### Segment-level gates
 
@@ -882,7 +882,7 @@ Naturally, estimated trail miles traveled will not directly correlate to existin
 
 For example, the Minneapolis Chain of Lakes trail (Metro Regional) showed more trail miles traveled relative to users counted at its most-used segment. This trail is located in a densely populated area and encircles the entirety of Lake Harriet and Bde Maka Ska and the western shore of Cedar Lake over `r round(trail_metadata %>% filter(str_detect(unit_label, "Minneapolis Chain of Lakes")) %>% transmute(approx_length_miles = as.numeric(approx_length_miles)), 2)` miles. In most places, the trail is made up of parallel walking and biking paths. The most used segment is along the western shore of Lake Harriet. Due to the popularity of circumnavigating a single lake, it logically follows that total trail miles traveled may be more than `r round(cor_eq$coefficients[1], 1)` times the use at this segment. Indeed, trail miles traveled was `r round(filter(cor_user_travel_unit, year == 2020 & unit_label == "Minneapolis Chain of Lakes, MPRB")$miles_per_user, 1)` times greater than the maximum segment use for this trail (in the year 2020).
 
-The Paul Bunyan trail (DNR STate) is another example of a trail with more trail miles traveled relative to its LBS counter estimate. This is, in large part, due to the length of the trail: `r round(trail_metadata %>% filter(str_detect(unit_label, "Paul Bunyan")) %>% transmute(approx_length_miles = as.numeric(approx_length_miles)), 1)` miles. The most-used segment of this trail was less than one mile long and ran along a residential street in Bemidji, MN. Naturally, a trail of this length will have more than one highly-used segment, meaning a single LBS counter estimate is likely to underestimate use along the entire trail. Indeed, in 2020, TMT was `r round(filter(cor_user_travel_unit, year == 2020 & unit_label == "Paul Bunyan")$miles_per_user, 1)` greater than use on the single highest-use segment in Bemidji. 
+The Paul Bunyan trail (DNR State) is another example of a trail with more trail miles traveled relative to its LBS counter estimate. This is, in large part, due to the length of the trail: `r round(trail_metadata %>% filter(str_detect(unit_label, "Paul Bunyan")) %>% transmute(approx_length_miles = as.numeric(approx_length_miles)), 1)` miles. The most-used segment of this trail was less than one mile long and ran along a residential street in Bemidji, MN. Naturally, a trail of this length will have more than one highly-used segment, meaning a single LBS counter estimate is likely to underestimate use along the entire trail. Indeed, in 2020, TMT was `r round(filter(cor_user_travel_unit, year == 2020 & unit_label == "Paul Bunyan")$miles_per_user, 1)` greater than use on the single highest-use segment in Bemidji. 
 
 Conversely, the Central Mississippi Riverfront trail (Metro Regional) showed fewer trail miles traveled relative to users counted at its most-used segment. This trail spans both banks of the Mississippi River in downtown Minneapolis, including two relatively short but high-use areas (the Hennepin Avenue bridge across the Mississippi and a trail segment bordering Mill Ruins Park and the Stone Arch Bridge). A large number of visitors may use either bridge for utilitarian purposes or attend one of several popular festivals held in Mill Ruins Park. In either of those cases, visitors may use only a short segment of the trail. In this case, TMT may be less than `r round(cor_eq$coefficients[1], 1)` times the LBS counter estimate. In 2020, trail miles traveled was `r round(filter(cor_user_travel_unit, year == 2020 & unit_label == "Central Mississippi Riverfront, MPRB")$miles_per_user, 1)` times the maximum segment use, in line with this hypothesis.
 
@@ -891,7 +891,7 @@ Cedar Lake trail (Metro Regional, Three Rivers section) also showed fewer trail 
 ```{r pb-robustness-example}
 pb_ests1 <- monthly_segment_volume %>%
   select(-modeshare_bike_miles, -modeshare_ped_miles) %>%
-  # summarise at trail level
+  # summarize at trail level
   group_by(unit_id, start_date, month, year, day_type) %>%
   summarise(
     counter_estimate = max(counter_estimate),
@@ -925,7 +925,7 @@ pb_ests1 <- monthly_segment_volume %>%
 pb_ests2 <- monthly_segment_volume %>%
   filter(as.numeric(approx_length_meters) > 200) %>%
   select(-modeshare_bike_miles, -modeshare_ped_miles) %>%
-  # summarise at trail level
+  # summarize at trail level
   group_by(unit_id, start_date, month, year, day_type) %>%
   summarise(
     counter_estimate = max(counter_estimate),
@@ -1051,7 +1051,7 @@ Similarly, trails that are primarily rural with some segments passing through po
 
 
 ```{r monthly-trail-ts}
-#| fig.cap = 'Estimated monthly segment-level trail use at two trails. For Cedar Lake Regional Trail (top panel), a segment which closed for construction in 2019 is higlighted. For Central Lakes State Trail (bottom panel), the most- and least-used segments are each higlighted. Each line corresponds to an individual OSM trail segment, therefore the values shown represent LBS counter estimates (rather than trail miles traveled). ',
+#| fig.cap = 'Estimated monthly segment-level trail use at two trails. For Cedar Lake Regional Trail (top panel), a segment which closed for construction in 2019 is highlighted. For Central Lakes State Trail (bottom panel), the most- and least-used segments are each highlighted. Each line corresponds to an individual OSM trail segment, therefore the values shown represent LBS counter estimates (rather than trail miles traveled). ',
 #| fig.asp = 1.2,
 #| out.width = "75%"
 

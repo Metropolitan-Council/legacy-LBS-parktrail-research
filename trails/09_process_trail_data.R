@@ -9,14 +9,16 @@ load(file.path(here(), "data-intermediate/trails/trail-metadata.rda"))
 ## combine all trail data
 monthly_trails <- bind_rows(dnr, gmn, metro)
 raw_monthly_segments <- monthly_trails
-save(raw_monthly_segments, file = file.path(here(), "data-intermediate/trails/raw-monthly-segments.rda"))
+save(raw_monthly_segments,
+     file = file.path(here(),
+                      "data-intermediate/trails/raw-monthly-segments.rda"))
 
 ##### segment volume #####
 
 monthly_segment_volume <- monthly_trails %>%
   mutate(volume = as.numeric(average_daily_zone_traffic_st_l_volume)) %>%
   left_join(trail_segment_metadata %>%
-    select(zone_name, approx_length_feet, approx_length_miles)) %>%
+              select(zone_name, approx_length_feet, approx_length_miles)) %>%
   # remove segments less than 50ft
   filter(approx_length_feet >= set_units(50, "ft")) %>%
   # separate bike & ped
@@ -47,10 +49,10 @@ monthly_segment_volume <- monthly_trails %>%
   # fill missing values with zero
   ungroup() %>%
   complete(start_date, day_type, zone_name,
-    fill = list(
-      counter_estimate = 0, bike_counter_estimate = 0, ped_counter_estimate = 0,
-      miles_traveled = 0, bike_miles_traveled = 0, ped_miles_traveled = 0
-    )
+           fill = list(
+             counter_estimate = 0, bike_counter_estimate = 0, ped_counter_estimate = 0,
+             miles_traveled = 0, bike_miles_traveled = 0, ped_miles_traveled = 0
+           )
   ) %>%
   # calculate mode share
   mutate(
@@ -214,7 +216,7 @@ hourly_trails <- hourly %>%
     ped = `Pedestrian - StL Pedestrian Volume`
   ) %>%
   complete(day_part, day_type, nesting(zone_name, unit_id, osm_id),
-    fill = list(bike = 0, ped = 0)
+           fill = list(bike = 0, ped = 0)
   ) %>%
   # get percent of use by hour
   group_by(unit_id, day_part, day_type) %>%
@@ -250,5 +252,5 @@ hourly_trails <- hourly %>%
 
 ##### save everything together #####
 save(monthly_segment_volume, monthly_trail_volume, seasonal_trail_volume, annual_trail_volume, hourly_trails,
-  file = file.path(here(), "data-intermediate/processed/trail-volume.rda")
+     file = file.path(here(), "data-intermediate/processed/trail-volume.rda")
 )
