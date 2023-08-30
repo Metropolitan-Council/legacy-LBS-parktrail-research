@@ -1,5 +1,6 @@
 ## This script uses several function (`R/_trail_factsheet_functions.R`) to generate a 1-page PDF
 ## factsheet for each trail in the project sample.
+## This script takes about 35 minutes to run.
 
 ### load functions ###
 source(file.path(here::here(), "R/_trail_factsheet_functions.R"))
