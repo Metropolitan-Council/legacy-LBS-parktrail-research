@@ -7,7 +7,7 @@ Understanding visitation to Minnesota’s parks and trails is essential
 for planning, programming, and investment decisions. Visitation
 estimates generally rely on methods such as intercept surveys, in-field
 visitation counts, and automated trail counters. Visitation estimates
-using passively-generated data sources may offer opportunities to
+using passively generated data sources may offer opportunities to
 complement existing strategies.
 
 This project used aggregated and anonymized location-based services

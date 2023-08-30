@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = FALSE, message = F, warning = F)
 # Minnesota Parks and Trails
 *A Minnesota Legacy research project*
 
-Understanding visitation to Minnesota’s parks and trails is essential for planning, programming, and investment decisions. Visitation estimates generally rely on methods such as intercept surveys, in-field visitation counts, and automated trail counters. Visitation estimates using passively-generated data sources may offer opportunities to complement existing strategies.
+Understanding visitation to Minnesota’s parks and trails is essential for planning, programming, and investment decisions. Visitation estimates generally rely on methods such as intercept surveys, in-field visitation counts, and automated trail counters. Visitation estimates using passively generated data sources may offer opportunities to complement existing strategies.
 
 This project used aggregated and anonymized location-based services (LBS) data to estimate and evaluate visitation to Minnesota parks and trails. LBS data gives information about when and where people travel. This approach provides unprecedented detail about how visitors use parks and trails and broadly describes who those visitors are. Visitation and use patterns can be analyzed at annual, monthly, weekly, and hourly time intervals. This data makes it possible to understand how people travel to parks and trails and where they are coming from. This data is intended to supplement, but not replace existing data used for decision making.
 
