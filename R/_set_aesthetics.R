@@ -1,6 +1,5 @@
 # ggplot theme -----
 
-# TODO: build this out as an actual theme
 legacy_theme <-
   theme_council_open() +
   theme(
