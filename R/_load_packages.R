@@ -31,6 +31,7 @@ suppressMessages(library(htmlwidgets, quietly = TRUE))
 suppressMessages(library(grid, quietly = TRUE))
 suppressMessages(library(gridtext, quietly = TRUE))
 suppressMessages(library(ggbeeswarm, quietly = TRUE))
+suppressMessages(library(magick, quietly = TRUE))
 
 ##### fonts #####
 suppressMessages(library(showtext, quietly = TRUE))
