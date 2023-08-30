@@ -302,7 +302,7 @@ demo_table_fxn <- function(x) {
     ))
 
   demo_tab <- comp %>%
-    full_join(x)
+    full_join(x, by = c("category", "group"))
 
   col_name <- ifelse(meta$system == "DNR", "State Average",
                      ifelse(meta$system == "Greater MN",
