@@ -413,7 +413,12 @@ demo_table_fxn <- function(x) {
     rename(trail_pct = percent)
 
   demo_tab1 <- comp %>%
-    full_join(x2 %>% select(zone_name, unit_id, category, group, trail_pct))
+    full_join(x2 %>%
+                select(label,
+                       day_type,
+                       zone_name, unit_id,
+                       category, group, trail_pct),
+              by = c("category", "group"))
 
   col_name <- ifelse(x$system[1] == "DNR", "State Average",
                      ifelse(x$system[1] == "Greater MN", "Greater Minnesota Average",
