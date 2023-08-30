@@ -581,7 +581,10 @@ ggplot_na_imputations(
   color_points = "black",
   shape_imputations = 24,
   color_imputations = "red",
-  ylab = "Vehicles", xlab = "Timeseries week"
+  ylab = "Vehicles", xlab = "Timeseries week",
+  label_truth = "Ground truth",
+  label_imputations = "Imputed values",
+  label_known = "Known values"
 ) +
   labs(
     title = "Imputed Values - Moving Average",
