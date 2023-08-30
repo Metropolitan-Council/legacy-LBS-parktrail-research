@@ -195,7 +195,7 @@ create_unit_fig <- function(name) {
   home_map <- home_map_fxn(name)
 
   # demographics
-  print("demos")
+  cli::cli_progress_message("demos")
 
   demo_plot <- demo_table_fxn(demo)
   cli::cli_progress_message("demos done")
