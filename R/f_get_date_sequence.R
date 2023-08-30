@@ -1,3 +1,6 @@
+library(dplyr)
+library(lubridate)
+
 get_date_sequence <- function(new_end_date) {
   #' Get date sequence for analysis
   #'
@@ -5,9 +8,6 @@ get_date_sequence <- function(new_end_date) {
   #'
   #' @param new_end_date: string in "dd-mm-yyyy" format denoting end date of analysis period
   #'
-
-  require(lubridate)
-  library(dplyr)
 
   week_sequence <- tibble(
     start_date = seq(
