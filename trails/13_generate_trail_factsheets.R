@@ -262,6 +262,8 @@ create_unit_fig <- function(name) {
               base_height = 23, base_width = 17
     )
   }
+
+  dev.off()
 }
 
 ##### generate figures #####
