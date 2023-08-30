@@ -290,7 +290,8 @@ demo_table_fxn <- function(x) {
 
   x <- x %>%
     filter(str_detect(day_type, "All")) %>%
-    select(zone_name, unit_label, category, group, label, percent) %>%
+    select(unit_id, day_type, zone_name, unit_label,
+           category, group, label, percent) %>%
     pivot_wider(names_from = label, values_from = percent) %>%
     rename(
       full_park_pct = year21
