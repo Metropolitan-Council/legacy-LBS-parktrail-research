@@ -66,7 +66,8 @@ StreetLight (LBS) analysis downloads, or other internally-produced data;
 `/data-processed` contains the final products of this research.
 
 To render plots and factsheets properly, ensure you have the Avenir font
-installed on your machine.
+installed on your machine. It is available for free in various places
+online.
 
 ### Set-up
 
