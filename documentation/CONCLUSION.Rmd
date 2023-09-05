@@ -67,7 +67,7 @@ knitr::opts_chunk$set(
 library(tidyverse)
 library(councilR)
 
-fig_caption <- "Source: StreetLight Data, Inc. Accessed April 2023."
+fig_caption <- "Source: StreetLight Data, Inc. Accessed July 2023."
 load(file.path(here::here(), "data-intermediate/documentation/use-case-fig-dat.rda"))
 ```
 
