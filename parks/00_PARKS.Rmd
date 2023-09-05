@@ -133,6 +133,8 @@ if (initiate_park_coverage_review == TRUE) {
 ```
 
 ```{r run-parks}
+## set run_ parameters to TRUE to run StreetLight analyses, set fetch_ parameters TRUE to fetch data
+## recommended to run & fetch separately
 # run weekly volume & index (for comparison)
 run_weekly <- FALSE
 fetch_weekly <- FALSE
@@ -174,19 +176,6 @@ if (isTRUE(any(run_weekly, run_biweekly, run_monthly, run_od, run_supplemental))
 ```
 
 ```{r fetch-park-data}
-run_weekly <- FALSE
-fetch_weekly <- FALSE
-run_index <- FALSE
-fetch_index <- FALSE
-run_biweekly <- FALSE
-fetch_biweekly <- FALSE
-run_monthly <- FALSE
-fetch_monthly <- FALSE
-run_od <- FALSE
-fetch_od <- FALSE
-run_supplemental <- FALSE
-fetch_supplemental <- FALSE
-
 if (isTRUE(any(fetch_weekly, fetch_biweekly, fetch_monthly, fetch_od, fetch_supplemental))) {
   load(file.path(here(), "R/_run_stl_functions.R"))
   park_stl_date <- str_replace_all(Sys.Date(), "-", ".")
