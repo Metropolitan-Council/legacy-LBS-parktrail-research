@@ -118,21 +118,12 @@ if (update_trail_metadata == TRUE) {
 ```
 
 ```{r run-core-trails}
-## set run_trails to TRUE to run new LBS analyses for trails
+## set run_trails to TRUE to run new LBS analyses for trails; set fetch_trails to TRUE to pull LBS data from StreetLight
+## reccomended to run & fetch separately
 run_trails <- FALSE
 fetch_trails <- FALSE
 
 if (run_trails == TRUE) {
-  source(file.path(here(), "trails_08_run_core_trails.R"))
-}
-```
-
-```{r fetch-trail-data}
-# set fetch_trails to TRUE to pull LBS data from StreetLight
-run_trails <- FALSE
-fetch_trails <- FALSE
-
-if (fetch_trails == TRUE) {
   source(file.path(here(), "trails_08_run_core_trails.R"))
 }
 ```
