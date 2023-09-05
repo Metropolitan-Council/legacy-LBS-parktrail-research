@@ -609,7 +609,6 @@ d <- stl_dem %>%
   pivot_wider(names_from = daytype, values_from = percent) %>%
   select(-weekday)
 
-## TODO: not running:
 c %>%
   rename(unit_name = system) %>%
   left_join(park_to_zone) %>%

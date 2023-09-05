@@ -28,8 +28,6 @@ no_missing <- week_vehicle %>%
   left_join(week_sequence, by = "label") %>%
   mutate(weekly_vehicles = as.numeric(average_daily_zone_traffic_st_l_volume))
 
-# TODO: make it clear what we're imputing
-
 # manually remove records to impute
 manual_missing1 <- no_missing %>%
   arrange(start_date) %>%

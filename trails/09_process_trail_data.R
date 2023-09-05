@@ -87,8 +87,6 @@ monthly_segment_volume %>%
   summarise(annual_counter_estimate = sum(counter_estimate), .groups = "keep") %>%
   arrange(-annual_counter_estimate) # 74333 at osm_id 98942505
 
-# TODO: document number of segments entirely dropped
-
 ##### monthly trail volume #####
 monthly_trail_volume <- monthly_segment_volume %>%
   select(-modeshare_bike_miles, -modeshare_ped_miles) %>%

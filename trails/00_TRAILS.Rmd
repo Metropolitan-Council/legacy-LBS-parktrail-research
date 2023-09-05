@@ -67,7 +67,6 @@ edit_osm_segments <- FALSE
 map_issues <- FALSE
 
 if (edit_osm_segments == TRUE) {
-  # TODO: re-run all of these once metro is fixed
   source(file.path(here(), "R/_trail_geography_functions.R"))
   source_rmd(file.path(here(), "trails/03_edit_dnr_segments.Rmd"))
   source_rmd(file.path(here(), "trails/03_edit_greatermn_segments.Rmd"))

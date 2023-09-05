@@ -44,7 +44,6 @@ survey_dem <- demos_raven %>%
   select(-other) %>%
   transmute(
     unit = case_when(
-      # TODO: correct these to be the right unit_labels
       str_detect(system, "Bush") ~ "Hyland Bush Anderson Lakes",
       str_detect(system, "Como") ~ "Como Zoo and Conservatory",
       str_detect(system, "Rice Creek") ~ "Rice Creek West",
