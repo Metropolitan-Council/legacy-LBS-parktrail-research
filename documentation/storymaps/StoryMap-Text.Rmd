@@ -16,7 +16,7 @@ always_allow_html: yes
 # Introduction
 
 This summary report provides a high-level overview of the Statewide Park and Trail research project. The content of this report is duplicated in an [online, interactive website](https://minnesota-parks-and-trails-metrocouncil.hub.arcgis.com/). 
-<!-- Each main section of this document (e.g., "Key Findings", "Parks," etc.) will have its own page. In sum, the contents of each component are designed to work together with minimal redundancy. Still, each component should be understandable indiv..idually for ease of finding and accessing specific information.  -->
+<!-- Each main section of this document (e.g., "Key Findings", "Parks," etc.) will have its own page. In sum, the contents of each component are designed to work together with minimal redundancy. Still, each component should be understandable individually for ease of finding and accessing specific information.  -->
 
 Other deliverables from this project include data summaries (spreadsheets), unit-level fact sheets for each park and trail (pngs), a complete technical report on methods and findings (text document), and the code used to access and process all data (R scripts). All documents are accessible via the interactive website.
 
