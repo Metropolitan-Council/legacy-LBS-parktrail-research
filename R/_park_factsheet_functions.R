@@ -380,7 +380,7 @@ home_map_fxn <- function(name) {
   meta <- park_metadata %>%
     filter(zone_name == name)
   park_location <- locations %>%
-    filter(name == meta$zone_name)
+    filter(zone_id == meta$zone_name)
 
 
   home <- home_bgs %>%

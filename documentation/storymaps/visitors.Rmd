@@ -182,9 +182,9 @@ filter(df, sig != "ns") %>%
     legend.key.size = unit(.1, "lines")
   ) +
   guides(
-    col = guide_legend(nrow = 2, byrow = TRUE),
-    fill = guide_legend(nrow = 2, byrow = TRUE),
-    shape = guide_legend(nrow = 2, byrow = TRUE)
+    col = guide_legend(nrow = 3, byrow = TRUE),
+    fill = guide_legend(nrow = 3, byrow = TRUE),
+    shape = guide_legend(nrow = 3, byrow = TRUE)
   )
 
 ggsave(file.path(here::here(), "figures/storymap/demographic-validation.png"))
