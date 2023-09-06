@@ -170,7 +170,7 @@ create_unit_fig <- function(name) {
     "Park boundaries were accessed via",
     ifelse(meta$system == "Greater MN",
            "personal communication in July, 2021",
-           "the Minnesota Geospatial Commons in July 2023"),
+           "Minnesota Geospatial Commons in July 2023"),
     "and may have been edited to improve LBS data performance."
   )
 
