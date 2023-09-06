@@ -1,0 +1,81 @@
+---
+title: "Introduction"
+output:
+  bookdown::word_document2:
+    reference_docx: ../documentation/wordtemplate.docx
+    toc: true
+    toc_depth: 6
+  github_document:
+      toc: true
+      toc_depth: 6
+urlcolor: blue
+always_allow_html: yes
+---
+```{r introduction-setup, include = FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.pos = "H",
+  out.width = "65%",
+  dpi = 300
+)
+## source basic utility functions, colors for plotting, etc
+source(file.path(here::here(), "R/_load_packages.R"))
+source(file.path(here(), "R/_utility_functions.R"))
+source(file.path(here(), "R/_global_parameters.R"))
+source(file.path(here(), "R/_streetlight_credentials_parameters.R"))
+source(file.path(here(), "R/_set_aesthetics.R"))
+```
+# Introduction
+
+Understanding visitation to Minnesota’s parks and trails is essential for planning, programming, and investment decisions. Visitation estimates generally rely on methods such as intercept surveys, in-field visitation counts, and automated trail counters. Visitation estimates using passively generated data sources may offer opportunities to complement existing strategies.
+
+In many cases, there is limited (or no) information on park or trail visitation at the individual unit level. 
+Existing strategies such as intercept surveys or trail counters are often prohibitively expensive. For example [Metropolitan Council staff estimate](https://metrocouncil.org/Council-Meetings/Committees/Community-Development-Committee/2020/May-4,-2020/2020-136.aspx) that it costs approximately $15,000 per park or trail to collect representative intercept survey data for one summer. Implementing an intercept survey to collect unit-level data for all state and regional parks and trails across the state of Minnesota would cost millions of dollars for a one-time data collection effort.  
+
+Within the last decade, rapid adoption of mobile devices like smartphones (Figure \@ref(fig:cellphone-park-picture)) allows for park visitation to be estimated using aggregated and anonymized location-based services (LBS) data. Mobile phone applications, such as couponing, dating, weather, or tourism apps, collect anonymous user locations. Apps can collect location information in the foreground or background, meaning that a user does not have to be actively using the app for data to be collected. This passive data collection results in a unique opportunity for park and trail research.  
+
+This project used aggregated and anonymized location-based services (LBS) data to estimate and evaluate visitation to Minnesota parks and trails. LBS data gives information about when and where people travel. This approach provides detail about how visitors use parks and trails and broadly describes who those visitors are. Visitation and use patterns can be analyzed at annual, monthly, weekly, and hourly time intervals. This data makes it possible to understand how people travel to parks and trails and where they are coming from. This data is intended to supplement, but not replace existing data used for decision making.
+
+```{r cellphone-park-picture, results = "show"}
+#| fig.cap = "A person uses a cellphone while resting on a bench.",
+#| results = 'markup',
+#| out.width = "65%",
+#| out.extra = 'style="float:right"',
+knitr::include_graphics(file.path(here::here(), "documentation/images/2118.png"))
+```
+
+StreetLight Data, Inc. is a big data firm specializing in mobility analytics via location-based services (LBS) data. StreetLight purchases de-identified LBS data from third-party vendors, such as [Cuebiq](https://www.cuebiq.com/). StreetLight then processes the data, completing quality assurance and statistical tests. Finally, the project team runs queries on the dataset, specifying the geographic area and output metrics.
+
+StreetLight reviews every query to ensure sample sizes are sufficiently large. LBS data shared by StreetLight always describes aggregated behavior trends, not the behavior of individuals. This means that the data can never be used to identify individuals, only to describe and analyze broad travel patterns. StreetLight's sample contains roughly 110 million devices, which accounts for roughly one third of the population ofthe United States and Canada. StreetLight publishes detailed methodologies and whitepapers on their [website](https://www.streetlightdata.com/whitepapers/). 
+
+
+Using StreetLight to understand park visitation is an experimental project, and any findings are meant to complement existing and future parks research. Importantly, different methodological approaches may be employed to understand various facets of park and trail visitation and certain methods may be preferable over others based on the key research question. A brief description and comparison of several most-used methodologies are given in Table \@ref(tab:method-table).
+
+```{r method-table, results = "markup", tidy = FALSE, echo = FALSE}
+qflextable(
+  read_excel(file.path(
+    here(), 
+    "data-intermediate/documentation/Park research method comparisons.xlsx"))) %>% 
+  autofit() %>% 
+  set_caption("Park and recreation research methods compared") %>%
+  autofit(add_w = 0, add_h = 0) %>%
+  set_table_properties(layout = "autofit") %>%
+  fontsize(size = 7, part = "all")
+```
+
+The specific goals of this project are to: 
+
+1) Broadly determine whether or not location-based services data may be a useful tool for park and trail research, 
+2) Estimate weekly park visitation and monthly trail use, 
+3) Compare, or validate, LBS use estimates to traditional use estimates (intercept surveys and automatic trail counters), 
+4) Explore and validate visitor home locations and demographics inferred by the LBS data provider
+
+<br> 
+
+Section 2 of this report describes the methods, data validation, and findings developed for the analysis of parks. Section 3 details trail methods and findings and Section 4 summarizes inferred visitor home locations and demographics. Section 5 discusses recommendations, resources, and future work. Appendices provide additional methodological detail. 
+
+More summarized data, including high-level key findings and interactive visualizations are available on a project-specific website [here](https://arcg.is/0Oee0W0). Complete project results (Excel workbooks and shapefiles) are available for download on the project website. The code used to conduct the analysis and create this report is available on a public GitHub repository [here](https://github.com/Metropolitan-Council/legacy-LBS-parktrail-research). Many of the results in this report are replicated on the project website. The goal of this report is to provide methodological detail such that this analysis could be repeated using the provided Github repository. 
+
+This project was funded with Legacy Partnership Research Funds from the State of Minnesota Parks and Trails Legacy Fund. The joint research project was conducted in collaboration with the Minnesota Department of Natural Resources, the Greater Minnesota Regional Parks and Trails Commission, and the Metropolitan Council. We thank staff from across these organizations and their associated implementing agencies for their cooperation in sharing data and providing feedback.

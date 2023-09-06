@@ -7,7 +7,7 @@ Understanding visitation to Minnesota’s parks and trails is essential
 for planning, programming, and investment decisions. Visitation
 estimates generally rely on methods such as intercept surveys, in-field
 visitation counts, and automated trail counters. Visitation estimates
-using passively-generated data sources may offer opportunities to
+using passively generated data sources may offer opportunities to
 complement existing strategies.
 
 This project used aggregated and anonymized location-based services
@@ -35,7 +35,8 @@ implementing agencies for their cooperation in sharing data and
 providing feedback.
 
 <figure>
-<img src="img/partner-logos.png" alt="Funding partner logos" />
+<img src="documentation/images/partner-logos.png"
+alt="Funding partner logos" />
 <figcaption aria-hidden="true">Funding partner logos</figcaption>
 </figure>
 
@@ -64,7 +65,14 @@ The `/data-raw` folder contains data obtained from external sources;
 StreetLight (LBS) analysis downloads, or other internally-produced data;
 `/data-processed` contains the final products of this research.
 
+To render plots and factsheets properly, ensure you have the Avenir font
+installed on your machine. It is available for free in various places
+online.
+
 ### Set-up
+
+Before running any code, be sure to open `R/_load_packages.R` and ensure
+you have all necessary packages installed.
 
 This project uses
 [`streetlightR`](https://metropolitan-council.github.io/streetlightR/)
@@ -81,13 +89,13 @@ require(keyring)
 require(usethis)
 keyring::key_set(service = "StreetLightAPI")
 
-usethis::edit_r_environ() 
+usethis::edit_r_environ()
 # When the `.Renviron` file comes up in the editor, save the following parameters:
 
 # `STREETLIGHT_LOGIN` = "your email"
 # `STREETLIHT_API_KEY` = "your API key"
 # `CENSUS_API_KEY` = "your API key"
-# 
+#
 # Save and close the `.Renviron` file and Restart R.
 ```
 

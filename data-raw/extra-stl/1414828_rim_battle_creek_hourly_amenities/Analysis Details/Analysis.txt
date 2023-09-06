@@ -1,0 +1,50 @@
+Analysis ID: 1414828
+Analysis: rim_battle-creek_hourly-amenities
+Created by: raven.mcknight@metc.state.mn.us
+Created on: 2023-04-21
+Organization: Minnesota DOT (MNDOT) - Regional Subscription
+
+Analysis Setup Details:
+Analysis Type: Zone Activity Analysis
+Unit of Measurement: Miles
+Mode of Travel: Pedestrian
+Output Type: StL Pedestrian Volume
+
+Analysis Options: 
+Data Periods: Jun 01, 2021 - Aug 31, 2021
+
+
+Day Type: 
+0: All Days (M-Su)
+
+Day Part: 
+00: All Day (12am-12am)
+01: 12am (12am-1am)
+02: 1am (1am-2am)
+03: 2am (2am-3am)
+04: 3am (3am-4am)
+05: 4am (4am-5am)
+06: 5am (5am-6am)
+07: 6am (6am-7am)
+08: 7am (7am-8am)
+09: 8am (8am-9am)
+10: 9am (9am-10am)
+11: 10am (10am-11am)
+12: 11am (11am-12noon)
+13: 12pm (12noon-1pm)
+14: 1pm (1pm-2pm)
+15: 2pm (2pm-3pm)
+16: 3pm (3pm-4pm)
+17: 4pm (4pm-5pm)
+18: 5pm (5pm-6pm)
+19: 6pm (6pm-7pm)
+20: 7pm (7pm-8pm)
+21: 8pm (8pm-9pm)
+22: 9pm (9pm-10pm)
+23: 10pm (10pm-11pm)
+24: 11pm (11pm-12am)
+
+Country: USA
+Metrics Version: R124-M127
+
+Copyright © 2011 - 2023, StreetLight Data, Inc. All rights reserved.

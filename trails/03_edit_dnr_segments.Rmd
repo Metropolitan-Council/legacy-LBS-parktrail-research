@@ -1,0 +1,884 @@
+---
+title: "State Trail Segment Processing"
+output:
+  github_document:
+    toc: true
+always_allow_html: true
+urlcolor: blue
+---
+
+This Rmarkdown manually edits the OSM segments identified in `02_fetch_osm_data.R` for each DNR state trail. Each trail is visually inspected and individual OSM segments are added or removed as necessary. The Rmarkdown outputs two pieces of data: `dnr_osm_edits`, a data frame documenting the osm_id for each segment to be added or removed, and `dnr_new_to_pull`, a list of osm_ids that were not captured in the original pull of OSM data. This data is saved to `data-intermediate/trails`.
+
+Rmarkdown is used for this step primarily for better legibility. Trails are accessed manually by zone name (rather than by index, for example) to ensure that edits are associated with the correct trail, and that changes to the order of trail or zone names does not introduce errors.
+
+# Setup
+
+```{r setup-dnr-segment-edits}
+# identified OSM segments
+dnr_osm <- bike_ped_osm %>%
+  filter(str_detect(unit_id, "DNR")) %>%
+  st_transform(4326)
+
+# list of DNR trail names
+dnr_trails <- unique(filter(trail_lines, str_detect(unit_id, "DNR"))$unit_id)
+
+# set up data frames of manually added/removed segments
+dnr_remove <- data.frame(NA_real_, NA_character_)
+names(dnr_remove) <- c("osm_id", "unit_id")
+
+dnr_add <- data.frame(NA_real_, NA_character_)
+names(dnr_add) <- c("osm_id", "unit_id")
+```
+
+# Edit each trail
+
+Alborn-Pengilly-Railroad_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Alborn-Pengilly-Railroad_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(185915142, 185915139, 176029686)
+  )
+)
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Alex-Laveau-Memorial_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Alex-Laveau-Memorial_trail_DNR")
+fxn_map(sample)
+
+# fxn_map_add(sample, dnr_osm)
+# don't add missing section, it's a road with no clear bike lane
+```
+
+Blazing-Star_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Blazing-Star_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(201985996)
+  )
+)
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Blue-Ox_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Blue-Ox_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(172878603, 18128338, 18008606)
+  )
+)
+
+# fxn_map_add(sample, dnr_osm)
+
+dnr_add <- rbind(
+  dnr_add,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(
+      172878239, 18127123, 172876511,
+      172875876, 172876514, 18008606,
+      172876515, 172875875, 172875874,
+      18131247, 18126307, 215588759
+    )
+  )
+)
+
+dnr_new_to_pull <- data.frame(
+  unit_id = sample$unit_id[1],
+  osm_id = 215588759
+)
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Blufflands-Preston-to-Forestville_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Blufflands-Preston-to-Forestville_trail_DNR")
+fxn_map(sample)
+
+dnr_add <- rbind(
+  dnr_add,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(175768437)
+  )
+)
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Browns-Creek_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Browns-Creek_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(696642770, 428283084, 896060936)
+  )
+)
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+CJ-Ramstad-North-Shore_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "CJ-Ramstad-North-Shore_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(
+      18134822, 129898311, 213216627,
+      256521380, 696159016, 781987321,
+      1075202700, 1103961459, 476478806,
+      476216982, 177934412
+    )
+  )
+)
+
+# # fxn_map_add(sample, dnr_osm)
+dnr_add <- rbind(
+  dnr_add,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(
+      1103961460, 167849986, 781987319,
+      18137327, 18137738, 18138045,
+      211434860, 256521381, 781987318
+    )
+  )
+)
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Camp-Ripley-Veterans-Memorial_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Camp-Ripley-Veterans-Memorial_trail_DNR")
+fxn_map(sample)
+```
+
+Casey-Jones_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Casey-Jones_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(241073459, 524542950)
+  )
+)
+
+dnr_add <- rbind(
+  dnr_add,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(182650259, 1111732636)
+  )
+)
+
+dnr_new_to_pull <- rbind(
+  dnr_new_to_pull,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = 182478688
+  )
+)
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Central-Lakes_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Central-Lakes_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(992055447)
+  )
+)
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Chester-Woods_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Chester-Woods_trail_DNR")
+fxn_map(sample)
+
+dnr_new_to_pull <- rbind(
+  dnr_new_to_pull,
+  data.frame(
+    unit_id = "Chester-Woods_trail_DNR",
+    osm_id = c(134363265, 134337078, 134363266)
+  )
+)
+```
+
+Cloquet-Saginaw_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Cloquet-Saginaw_trail_DNR")
+fxn_map(sample)
+```
+
+Cuyuna-Lakes_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Cuyuna-Lakes_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(588992259, 733567451)
+  )
+)
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Dakota-Rail_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Dakota-Rail_trail_DNR")
+fxn_map(sample)
+
+# fxn_map_add(sample, dnr_osm)
+
+dnr_new_to_pull <- dnr_new_to_pull %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(18149511, 18149508, 178701075, 45121569)
+  ))
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+David-Dill-Arrowhead_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "David-Dill-Arrowhead_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(
+      18231848, 18238387, 214340509,
+      1006408862, 1137753035
+    )
+  )
+)
+
+# fxn_map_add(sample, dnr_osm)
+
+dnr_add <- rbind(
+  dnr_add,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(18242175, 214783901, 18242173)
+  )
+)
+
+dnr_new_to_pull <- dnr_new_to_pull %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1],
+      osm_id = c(
+        1137753032, 1137753095, 1137753056,
+        1137753036, 1137753053, 1137753041,
+        1137753044, 215031060, 1145431178,
+        1145431178, 214220634, 1146609084,
+        1146609082, 1139050946, 1139050917,
+        1139051013, 1144893547, 1141856611,
+        214297180, 1141856607, 214300760,
+        1141547061, 1141547060
+      )
+    )
+  )
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+David-Dill-Taconite_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "David-Dill-Taconite_trail_DNR")
+fxn_map(sample)
+
+# fxn_map_add(sample, dnr_osm)
+dnr_add <- rbind(
+  dnr_add,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(
+      18246744, 18250266, 18251230,
+      854283878, 854283882, 854283890,
+      854283889, 1005852475
+    )
+  )
+)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(1006463880)
+  )
+)
+
+
+
+dnr_new_to_pull <- dnr_new_to_pull %>%
+  rbind(
+    data.frame(
+      unit_id = sample$unit_id[1:2],
+      osm_id = c(214340515, 215056427)
+    )
+  )
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Douglas_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Douglas_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(140088704)
+  )
+)
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Gandy-Dancer_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Gandy-Dancer_trail_DNR")
+fxn_map(sample)
+
+# fxn_map_add(sample, dnr_osm)
+
+dnr_add <- rbind(
+  dnr_add,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(
+      18195970, 182810610, 881474893,
+      881474895
+    )
+  )
+)
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Gateway_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Gateway_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(
+      218816111, 218816129, 218816988,
+      486494600, 1022448260
+    )
+  )
+)
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Gitchi-Gami_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Gitchi-Gami_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(
+      71688221, 297942249, 485973500,
+      965511875, 976192928, 1098383158,
+      975815924
+    )
+  )
+)
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Glacial-Lakes_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Glacial-Lakes_trail_DNR")
+fxn_map(sample)
+```
+
+Goodhue-Pioneer_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Goodhue-Pioneer_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(155240551, 98260418)
+  )
+)
+
+# fxn_map_add(sample, dnr_osm)
+
+dnr_add <- rbind(
+  dnr_add,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(
+      98260424, 98260426, 155240552,
+      155240558, 155240562, 155736488,
+      236505321, 335368071, 403308411,
+      1063332059, 1063332059
+    )
+  )
+)
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Great-River-Ridge_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Great-River-Ridge_trail_DNR")
+fxn_map(sample)
+```
+
+Harmony-Preston-Valley_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Harmony-Preston-Valley_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(162090489)
+  )
+)
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Heartland_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Heartland_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(99065801)
+  )
+)
+
+# fxn_map_add(sample, dnr_osm)
+
+dnr_add <- rbind(
+  dnr_add,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(
+      18028873, 18038771, 99065805,
+      99137025
+    )
+  )
+)
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Luce-Line_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Luce-Line_trail_DNR")
+
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(
+      705637673, 721321833, 721382754,
+      727312273, 721382752, 721382753
+    )
+  )
+)
+
+assign("has_internet_via_proxy", TRUE, environment(curl::has_internet))
+luce_line_relation <- opq_osm_id(id = 3084425, type = "relation", open_url = FALSE) %>%
+  osmdata_sf()
+
+luce_line_relation <- luce_line_relation$osm_lines
+
+# check if osm ids are present in existing data (this should return nothing)
+luce_line_relation %>%
+  filter(!osm_id %in% osm_lines$osm_id)
+
+luce_line_add <- osm_lines %>%
+  filter(osm_id %in% luce_line_relation$osm_id & !osm_id %in% sample$osm_id) %>%
+  mutate(unit_id = "Luce-Line_trail_DNR") %>%
+  st_drop_geometry()
+
+dnr_add <- dnr_add %>%
+  rbind(luce_line_add %>% select(osm_id, unit_id))
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Matthew-Lourey_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Matthew-Lourey_trail_DNR")
+fxn_map(sample)
+
+dnr_osm <- filter(dnr_osm, unit_id != "Matthew-Lourey_trail_DNR")
+
+matthew <- c(
+  18190013, 18190084, 480480647, # about half
+  18191171, 698113046, 18191275, 480480650, # mostly good
+  18191050, 740047118, 695874922, 295767730, 788085444, 788086685,
+  788086837, 18195183, 480503354, 450388474, 480480646
+) # all good
+
+dnr_add <- dnr_add %>%
+  rbind(data.frame(
+    unit_id = "Matthew-Lourey_trail_DNR",
+    osm_id = matthew
+  ))
+
+dnr_remove <- dnr_remove %>%
+  rbind(data.frame(
+    unit_id = "Matthew-Lourey_trail_DNR",
+    osm_id = c(450391236)
+  ))
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Mill-Towns_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Mill-Towns_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(702157344, 172833905)
+  )
+)
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Minnesota-River_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Minnesota-River_trail_DNR")
+fxn_map(sample)
+# fxn_map_add(sample, dnr_osm)
+
+dnr_add <- dnr_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(
+      351778944, 448898494, 72833909,
+      18043459, 18044011, 97080823,
+      97080824, 18044359, 97080824,
+      97080823, 18044011, 18043459
+    )
+  ))
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Minnesota-Valley_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Minnesota-Valley_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(156895581, 18231957, 979860040)
+  )
+)
+
+# fxn_map_add(sample, dnr_osm)
+
+dnr_add <- dnr_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(
+      277636913, 277636915, 277636911,
+      98716135, 156895576, 98716135
+    )
+  ))
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+OHV-access-to-Taconite-via-USFS-Rd-11404_trail_DNR - SKIP
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "OHV-access-to-Taconite-via-USFS-Rd-11404_trail_DNR")
+fxn_map(sample)
+
+mapview(trail_polygons %>% filter(unit_id == "OHV-access-to-Taconite-via-USFS-Rd-11404_trail_DNR"))
+```
+
+Paul-Bunyan_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Paul-Bunyan_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(
+      835799794, 931492553, 98942488,
+      98942519
+    )
+  )
+)
+
+paul_bunyan_relation <- opq_osm_id(id = 1419968, type = "relation", open_url = FALSE) %>%
+  osmdata_sf()
+
+paul_bunyan_relation <- paul_bunyan_relation$osm_lines
+
+paul_bunyan_relation %>%
+  filter(!osm_id %in% osm_lines$osm_id)
+
+paul_bunyan_add <- osm_lines %>%
+  filter(osm_id %in% paul_bunyan_relation$osm_id & !osm_id %in% sample$osm_id) %>%
+  mutate(unit_id = sample$unit_id[1]) %>%
+  st_drop_geometry()
+
+dnr_add <- dnr_add %>%
+  rbind(paul_bunyan_add %>% select(osm_id, unit_id))
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Root-River_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Root-River_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(284555082)
+  )
+)
+
+# fxn_map_add(sample, dnr_osm)
+dnr_add <- dnr_add %>%
+  rbind(data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(160066207)
+  ))
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Sakatah-Singing-Hills_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Sakatah-Singing-Hills_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(235068914)
+  )
+)
+
+sakatah_relation <- opq_osm_id(id = 3079469, type = "relation", open_url = FALSE) %>%
+  osmdata_sf()
+
+sakatah_relation <- sakatah_relation$osm_lines
+
+sakatah_relation %>%
+  filter(!osm_id %in% osm_lines$osm_id)
+
+sakatah_add <- osm_lines %>%
+  filter(osm_id %in% sakatah_relation$osm_id & !osm_id %in% sample$osm_id) %>%
+  mutate(unit_id = sample$unit_id[1]) %>%
+  st_drop_geometry()
+
+dnr_add <- dnr_add %>%
+  rbind(sakatah_add %>% select(osm_id, unit_id))
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Shooting-Star_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Shooting-Star_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(133822236)
+  )
+)
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Taconite_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Taconite_trail_DNR")
+fxn_map(sample)
+# fxn_map_add(sample, dnr_osm)
+
+# to clear the whole sample:
+dnr_osm <- filter(dnr_osm, unit_id != dnr_trails[33])
+
+# unfortunately the VAST majority of this trail is not in OSM at all
+taconite <- c(
+  216970926, 18113825, # less than half
+  215034555, 216995848, 18103668, # ~half
+  215232770, 18241810, # mostly good
+  217021508, 217020767, 18105921, 362142043, 362142042, 845487243
+) # actual match
+
+dnr_new_to_pull <- dnr_new_to_pull %>%
+  bind_rows(data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = taconite
+  ))
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+Willard-Munger_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Willard-Munger_trail_DNR")
+fxn_map(sample)
+```
+
+Willard-Munger-Hinkley-Duluth-Fire-Segment_trail_DNR
+
+```{r}
+sample <- filter(dnr_osm, unit_id == "Willard-Munger-Hinkley-Duluth-Fire-Segment_trail_DNR")
+fxn_map(sample)
+
+dnr_remove <- rbind(
+  dnr_remove,
+  data.frame(
+    unit_id = sample$unit_id[1],
+    osm_id = c(
+      18252233, 145168457, 175836808,
+      777690977, 1008678096
+    )
+  )
+)
+
+fxn_map_edits(sample, dnr_add, dnr_remove)
+```
+
+# Save all edits
+
+```{r}
+dnr_osm_edits <- dnr_remove %>%
+  mutate(osm_id = as.character(osm_id)) %>%
+  mutate(action = "remove") %>%
+  bind_rows(dnr_add %>%
+    mutate(
+      action = "add",
+      osm_id = as.character(osm_id)
+    )) %>%
+  mutate(zone_name = paste0(unit_id, "_", osm_id)) %>%
+  filter(!is.na(osm_id)) %>%
+  unique() # a few things got added more than once
+
+save(dnr_new_to_pull, dnr_osm_edits,
+  file = file.path(here(), "data-intermediate/trails/dnr-geography-edits.rda")
+)
+```

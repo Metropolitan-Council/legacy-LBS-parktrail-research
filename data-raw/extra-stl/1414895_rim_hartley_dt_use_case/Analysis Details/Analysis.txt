@@ -1,0 +1,26 @@
+Analysis ID: 1414895
+Analysis: rim_hartley-dt-use-case
+Created by: raven.mcknight@metc.state.mn.us
+Created on: 2023-04-21
+Organization: Minnesota DOT (MNDOT) - Regional Subscription
+
+Analysis Setup Details:
+Analysis Type: O-D Analysis
+Unit of Measurement: Miles
+Mode of Travel: Bicycle
+Output Type: StL Bicycle Volume
+
+Analysis Options: 
+Data Periods: Jun 01, 2021 - Aug 31, 2021
+
+
+Day Type: 
+0: All Days (M-Su)
+
+Day Part: 
+0: All Day (12am-12am)
+
+Country: USA
+Metrics Version: R124-M127
+
+Copyright © 2011 - 2023, StreetLight Data, Inc. All rights reserved.

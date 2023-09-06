@@ -1,0 +1,1528 @@
+---
+title: "Parks"
+output:
+  bookdown::word_document2:
+    reference_docx: ../documentation/wordtemplate.docx
+    toc: true
+    toc_depth: 6
+  github_document:
+      toc: true
+      toc_depth: 6
+urlcolor: blue
+always_allow_html: yes
+---
+
+```{r parks-setup, include = FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.pos = "H",
+  out.width = "65%",
+  fig.height = 4,
+  fig.asp = 0.6,
+  dpi = 300
+)
+## source basic utility functions, colors for plotting, etc
+source(file.path(here::here(), "R/_load_packages.R"))
+source(file.path(here(), "R/_utility_functions.R"))
+source(file.path(here(), "R/_global_parameters.R"))
+source(file.path(here(), "R/_streetlight_credentials_parameters.R"))
+source(file.path(here(), "R/_set_aesthetics.R"))
+```
+
+```{r fetch-parks}
+## set TRUE if you want to download original, unedited shapefiles
+fetch_parks <- FALSE
+
+if (fetch_parks == TRUE) {
+  source(file.path(here(), "parks/01_fetch_park_geography.R"))
+}
+```
+
+```{r edit-park-geography}
+## set to TRUE if you want to manually edit park polygons
+edit_park_geography <- FALSE
+
+if (edit_park_geography == TRUE) {
+  ## edit code in the following scripts to update individual park polygons
+  
+  park_geom_processing_date <- str_replace_all(Sys.Date(), "-", ".")
+  source(file.path(here(), "R/_park_geography_functions.R"))
+  
+  source_rmd(file.path(here(), "parks/02_edit_dnr_geography.Rmd"))
+  source_rmd(file.path(here(), "parks/02_edit_greatermn_geography.Rmd"))
+  source_rmd(file.path(here(), "parks/02_edit_metro_geography.Rmd"))
+} else {
+  ## read existing zone sets to get processing date
+  file_names <- file.info(list.files(paste0(here(), "/data-intermediate/parks/shp"), full.names = TRUE)) %>%
+    filter(str_detect(rownames(., ), "shp"))
+  recent_zones <- rownames(file_names)[which.max(file_names$mtime)]
+  
+  ## date is the 10 characters immediate preceding .shp
+  park_geom_processing_date <- word(str_remove_all(recent_zones, ".shp"), -1, sep = "_")
+}
+```
+
+```{r create-full-park-metadata}
+## set to TRUE to update all park metadata
+create_full_park_metadata <- FALSE
+
+if (create_full_park_metadata == TRUE) {
+  source(file.path(here(), "parks/03_create_metadata.R"))
+}
+
+park_metadata <- readRDS(file.path(here(), "data-intermediate/parks/parks-metadata.RDS"))
+```
+
+```{r create-park-zone-set}
+## set to TRUE if you want to create new zone sets to upload to StreetLight
+create_parks_zone_set <- FALSE # do you want to create & upload a new zone set?
+
+if (create_parks_zone_set == TRUE) {
+  source(file.path(here(), "parks/04_create_upload_zoneset.R"))
+  zone_set_name <- paste0("legacy_park_polygons_", park_geom_processing_date)
+  perim_zone_set_name <- paste0("legacy_park_perimeters_", park_geom_processing_date)
+} else {
+  zone_set_name <- "please update to desired zone set"
+  perim_zone_set_name <- "please update to desired zone set"
+}
+```
+
+
+```{r initiate-park-coverage-review}
+## set to TRUE if you've uploaded new zones
+initiate_park_coverage_review <- FALSE
+
+if (initiate_park_coverage_review == TRUE) {
+  coverage_review_date <- str_replace_all(Sys.Date(), "-", ".")
+  
+  ## bike tends to have the most coverage issues
+  create_streetlight_analysis(
+    login_email = login_email,
+    analysis_type = "Zone_Activity_Analysis",
+    analysis_name = paste0("park_poly_coverage_", coverage_review_date),
+    travel_mode_type = "Bicycle",
+    output_type = "Volume",
+    origin_zone_set = zone_set_name,
+    date_ranges = list(
+      start_date = month_sequence[1, ]$start_date,
+      end_date = month_sequence[1, ]$end_date
+    ),
+    day_types = day_types,
+    day_parts = day_parts,
+    tags = list("streetlightR")
+  )
+  
+  create_streetlight_analysis(
+    login_email = login_email,
+    analysis_type = "Zone_Activity_Analysis",
+    analysis_name = paste0("park_perim_coverage_", coverage_review_date),
+    travel_mode_type = "Bicycle",
+    output_type = "Volume",
+    origin_zone_set = perim_zone_set_name,
+    date_ranges = list(
+      start_date = month_sequence[1, ]$start_date,
+      end_date = month_sequence[1, ]$end_date
+    ),
+    day_types = day_types,
+    day_parts = day_parts,
+    tags = list("streetlightR")
+  )
+}
+```
+
+```{r run-parks}
+## set run_ parameters to TRUE to run StreetLight analyses, set fetch_ parameters TRUE to fetch data
+## recommended to run & fetch separately
+# run weekly volume & index (for comparison)
+run_weekly <- FALSE
+fetch_weekly <- FALSE
+# index is optional, only needed for comparison to volume
+run_index <- FALSE
+fetch_index <- FALSE
+# run biweekly volume (for filling in missing weeks)
+run_biweekly <- FALSE
+fetch_biweekly <- FALSE
+# run monthly volume (vehicle for filling in missing weeks, most granular bike/ped data available)
+run_monthly <- FALSE
+fetch_monthly <- FALSE
+# run supplemental origin-destination analyses
+run_od <- FALSE
+fetch_od <- FALSE
+# run demographics, home locations, hourly
+run_supplemental <- FALSE
+fetch_supplemental <- FALSE
+
+if (isTRUE(any(run_weekly, run_biweekly, run_monthly, run_od, run_supplemental))) {
+  source(file.path(here(), "R/_run_stl_functions.R"))
+  ## set parameters
+  park_stl_date <- str_replace_all(Sys.Date(), "-", ".")
+  # StreetLight has a cap on the number of characters in an analysis name
+  # need a shorter unique ID for each separate "run" of analyses
+  # remove "20" from year & shorten date to use as label for analysis
+  park_stl_date_id <- str_remove_all(substr(park_stl_date, 3, nchar(park_stl_date)), "\\.|0")
+  
+  ## create data periods for demographic_analysis
+  demographic_date_sequence <- data.frame(
+    start_date = c("06/01/2021", "01/01/2021"),
+    end_date = c("08/31/2021", "12/31/2021"),
+    label = c("summer21", "year21")
+  )
+  
+  ## and run analyses
+  source(file.path(here(), "parks/05_run_park_stl.R"))
+}
+```
+
+```{r fetch-park-data}
+if (isTRUE(any(fetch_weekly, fetch_biweekly, fetch_monthly, fetch_od, fetch_supplemental))) {
+  load(file.path(here(), "R/_run_stl_functions.R"))
+  park_stl_date <- str_replace_all(Sys.Date(), "-", ".")
+  park_stl_date_id <- str_remove_all(substr(park_stl_date, 3, nchar(park_stl_date)), "\\.|0")
+  source(file.path(here(), "parks/05_run_park_stl.R"))
+}
+```
+
+
+```{r clean-park-data}
+## set to TRUE if you've re-run StL data and need to reprocess & clean
+clean_park_data <- FALSE
+
+if (clean_park_data == TRUE) {
+  source(file.path(here(), "parks/06_fill_in_volume.R"))
+  source(file.path(here(), "parks/07_imputation.R"))
+  source(file.path(here(), "parks/08_combine_modes.R"))
+  source(file.path(here(), "parks/09_aggregate_estimates.R"))
+  source(file.path(here(), "parks/10_evaluate_imputation.R"))
+}
+
+load(file.path(here(), "data-intermediate/processed/park-volume.rda"))
+```
+
+```{r update-park-metadata}
+## remove any zones that were dropped by StL
+park_metadata <- park_metadata %>%
+  filter(zone_name %in% annual_volume$zone_name)
+
+saveRDS(park_metadata, file.path(here(), "data-intermediate/parks/parks-metadata.RDS"))
+```
+
+```{r export-park-excel}
+## set to TRUE if you want to export a new excel workbook of park results
+export_park_excel <- FALSE
+
+if (export_park_excel == TRUE) {
+  source(file.path(here(), "parks/11_export_park_excel.R"))
+}
+```
+
+```{r export-park-factsheets}
+## set to TRUE if you want to create new factsheets
+export_park_factsheets <- FALSE
+
+if (export_park_factsheets == TRUE) {
+  source(file.path(here(), "parks/12_generate_park_factsheets.R"))
+}
+```
+
+```{r create-park-appendices}
+## set to TRUE to update park-specific appendices
+create_park_appendices <- FALSE
+
+if (create_park_appendices == TRUE) {
+  source(file.path(here(), "parks/13_create_park_appendices.R"))
+}
+```
+
+```{r setup-documentation-parameters}
+n_parks <- n_distinct(weekly_volume$zone_name)
+n_dnr <- n_distinct(filter(weekly_volume, system == "DNR")$zone_name)
+n_gmn <- n_distinct(filter(weekly_volume, system == "Greater MN")$zone_name)
+n_egmn <- n_distinct(filter(weekly_volume, system == "Greater MN" & str_detect(zone_name, "Eligible"))$zone_name)
+n_metro <- n_distinct(filter(weekly_volume, system == "Metro")$zone_name)
+n_weeks <- n_distinct(weekly_volume$start_date)
+n_records <- n_parks * n_weeks
+n_months <- nrow(month_sequence)
+```
+
+# Parks
+
+Understanding park visitation is essential for planning, programming, and investment decisions. This project used location-based services (LBS) data to analyze weekly use of `r n_parks` state and regional parks across Minnesota from `r analysis_period`. This data is intended to supplement, but not replace existing data used for decision making. Approximately `r round(sum(weekly_volume$weekly_total)/1e6, 2)` million park visits occurred across all parks during the study period. In total, 2020 had the highest use across the years analyzed. We found that parks were used in all seasons, although the summer months of June, July, and August had the highest use. Most visitors traveled to parks in vehicles, but this analysis also considered people arriving on bike or foot. Weekly-level detail revealed considerable variation in use patterns across and within individual park units. 
+
+
+## Methods
+
+Aggregated and anonymized LBS data was used to estimate weekly use of `r n_parks` state and regional parks across three systems (n = `r n_dnr` Minnesota Department of Natural Resources parks (DNR State), n = `r n_gmn` Greater Minnesota Regional Parks and Trails Commission parks (Greater MN Regional; `r n_gmn - n_egmn` designated and `r n_egmn` eligible for designation), and n = `r n_metro` Twin Cities metropolitan regional parks (Metro Regional)). The resulting data set consists of `r n_weeks` weekly observations for each park. Each observation reports estimated weekly use disaggregated by travel mode (vehicle, bicycle, and pedestrian).
+
+
+Geographic boundaries used to measure park use were accessed via the Minnesota Geospatial Commons for [DNR State](https://gisdata.mn.gov/dataset/bdry-dnr-lrs-prk) and [Metro Regional parks](https://gisdata.mn.gov/dataset/us-mn-state-metc-plan-parks-regional). Greater MN Regional park geographies were obtained via personal communication with Renee Mattson (Executive Director, Greater Minnesota Regional Parks and Trails Commission). In all cases, park geographies were post-processed to optimize suitability for LBS analyses. 
+
+
+Total park use was estimated by summing the number of visitors entering a park via vehicle, bicycle, or foot. The LBS data provider does not explicitly measure visitors arriving by other transportation modes, but other modes (i.e., snowmobiles, boaters) may be captured and classified as either vehicle, bike or foot visitors by the LBS data provider using their probabilistic models. A park visitor must have remained within the park boundary for at least five minutes to be counted. Visitors were counted once upon each park entry (i.e., overnight campers making a day trip outside the park would be counted upon their return as well as initial entry but visitors making multiple stops or short trips within the park are only counted upon initial entry). 
+
+LBS data was obtained from StreetLight Data, Inc. and last accessed in July 2023. The StreetLight application programming interface was used to run a zone activity analysis for each park’s vehicle, bike, and pedestrian counts during each week of the study period. Vehicle multipliers representing the average number of persons per vehicle were applied to convert vehicle counts to visitor counts. Devices registered to minors (under age 18) are not included in the LBS data source, however vehicle multipliers represent visitors of all ages.
+
+### Geography
+
+Park geographies were post-processed to suite LBS estimation methods. Original park geography files were accessed via a combination of pathways. DNR files from the [Minnesota Geospatial Data Commons](https://gisdata.mn.gov/dataset/bdry-dnr-lrs-prk) were last accessed in July 2023, and management boundaries are used for the polygons. Greater Minnesota files were obtained via personal communication with Renee Mattson in 2021 and both “designated” and “eligible for designation” park boundaries are used. Metro Regional files from the [Minnesota Geospatial Data Commons](https://gisdata.mn.gov/dataset/us-mn-state-metc-plan-parks-regional) were last accessed in July 2023, and park boundaries with the status of “existing” are used.
+
+#### Processing geography for visitor use estimates
+
+Park boundaries used for estimating total visitation contain all potential entrances, parking areas, and park amenities while excluding unrelated roadways or parking lots. Removing unrelated roads and parking lots allows for better isolation of park-specific traffic.  
+
+The resulting park boundaries used for LBS analyses typically deviate slightly from official park boundaries (Figure \@ref(fig:park-poly-before-after-fig)). Recall, the goal of these project-specific polygons is not to correspond perfectly to existing legal or management boundaries. In many cases, polygons will be nearly identical to those existing boundaries. However, to get reasonable LBS estimates, it is often necessary to deviate from official park plans to ensure that parking lots and other park features are included.
+
+To prepare park polygons, the following procedure was used:
+
+1. The original park polygon was modified to remove intersecting roads as follows:
+    a. Park polygons were expanded (“buffered”) by 30 meters and intersected with [road centerlines (Minnesota Department of Transportation)](https://gisdata.mn.gov/dataset/trans-roads-centerlines) and [water features (Minnesota Department of Natural Resources)](https://gisdata.mn.gov/dataset/water-dnr-hydrography). This step located roads and water features associated with each park. Park polygons were expanded to ensure that park features near the edges of the original park polygon were retained.
+    b. Roads not directly associated with the park were buffered by 30 meters and removed from the original park polygon. Roads associated with the park, such as roads to campgrounds or official park entrances, were left in the polygon. Note that, in some cases, a 30 meter buffer was too large. In these cases, the buffer was reduced manually on a case-by-case basis (Appendix 6.4). 
+
+2. Water features entirely within a park were added to the park polygon. Although water features may be managed by a different agency, this report considers activity on a lake as activity within the associated park. Additionally, when a park included a shore with lake or river access, the park polygon was extended by 50 meters into the water. This decision was made to ensure that all activity associated with a park was captured.
+
+3. Manual additions or subtractions were made as needed. In many cases, this step was not necessary. In other cases, key amenities such as park offices or parking areas fell outside of the given legal or management boundary. In these cases, important areas were manually added into the park polygon, often based on feedback from staff across the three systems in this project. 
+
+4.	Basic geographic smoothing was conducted as needed. When small gaps or “slivers” (<10,000 m$^2$) were left behind by post-processing, they were filled in or removed. Gaps or slivers larger than <10,000 m$^2$ may still appear in final park geographies. These small irregularities are unlikely to affect LBS estimates; smoothing was conducted primarily to improve mapping of park boundaries.
+
+5.	 Each park was visually examined using existing maps and satellite imagery to find cases where this process needed to be altered. The most common change was decreasing the size of road buffers when there were parking lots within 30 meters of removed roads. Park polygons were further refined with feedback solicited from each partner agency. A complete list of changes from this procedure is available in Appendix 6.4. 
+
+There are a small number of cases where further changes were made to the procedure described above. Additional polygons without roads removed were created for four urban parks (Minneapolis Chain of Lakes (Metro Regional), Minnehaha (Metro Regional), Nokomis-Hiawatha (Metro Regional), and Phalen (Metro Regional), Figure \@ref(fig:inclusive-park-poly-fig)). These polygons without roads removed are referred to as being road “inclusive.”
+
+The decision to have supplemental “inclusive” boundaries arose from the unique nature of visitation at urban parks with roads – specifically, parkways – as key amenities. For example, visitors may use a park simply by driving along a parkway to enjoy the scenery. These supplemental boundaries were included in the analysis based on feedback from park staff. The accompanying data downloads contain data for each of these units separately. Inclusive boundaries are not included in total estimates throughout this project. Similar edits may be appropriate for additional parks across the project sample; park staff familiar with individual units are most qualified to make this decision.
+
+```{r park-poly-before-after-fig, results = "hide", fig.keep = "all"}
+#| fig.cap = "Park boundaries at Glendalough State Park before (left) and after (right) processing. Note the inclusion of lakes and shorelines and the removal of an unrelated road in the southeast corner of the park.",
+#| fig.height = 4
+
+# load & plot raw shapefile
+load(file.path(here(), "data-intermediate/parks/raw-dnr-geography.rda"))
+
+# force quiet warnings from rgdal
+options("rgdal_show_exportToProj4_warnings" = "none")
+
+before <- dnr$Glendalough_park_DNR %>%
+  ggplot() +
+  ggspatial::annotation_map_tile(
+    type = "cartolight",
+    zoom = 15
+  ) +
+  geom_sf(
+    fill = park_map_color, alpha = 0.8,
+    color = park_map_color
+  ) +
+  theme_void() +
+  labs(
+    title = "Original boundary",
+    caption = "     "
+  ) +
+  theme(plot.margin = margin(0, 1, 1, 1))
+
+# load & plot edited polygon
+park_polygons <- read_sf(file.path(here(), "data-processed/zone-sets/park-polygons/park-polygon-zone-set-2023.07.02.shp"))
+
+after <- park_polygons %>%
+  filter(zone_id == "Glendalough_park_DNR") %>%
+  ggplot() +
+  ggspatial::annotation_map_tile(
+    type = "cartolight",
+    zoom = 15
+  ) +
+  geom_sf(
+    fill = park_map_color, alpha = 0.8,
+    color = park_map_color
+  ) +
+  theme_void() +
+  labs(
+    title = "Revised boundary",
+    caption = "Source: MN Geospatial Commons. Accessed July 2023."
+  ) +
+  theme(plot.margin = margin(0, 1, 1, 1))
+
+title <- ggdraw() +
+  draw_label(
+    "Glendalough State Park boundary",
+    x = 0,
+    hjust = 0
+  ) +
+  theme(
+    plot.margin = margin(0, 0, 0, 7)
+  )
+
+plot_grid(title,
+          plot_grid(before, after,
+                    nrow = 1
+          ),
+          ncol = 1, rel_heights = c(0.1, 1)
+)
+```
+
+
+```{r inclusive-park-poly-fig, results = "hide", fig.keep = "all"}
+#| fig.cap = "Comparison of road-inclusive (left) and road-exclusive (right) boundaries for Nokomis-Hiawatha Regional Park (Metro Regional). The inclusive boundary, which encompasses roads and/or parkways, may allow for better understanding of visitation at this urban park.",
+#| fig.height = 4
+
+
+inc <- park_polygons %>%
+  filter(zone_id == "Nokomis-Hiawatha_park_Metro-Regional-Inclusive_MPRB") %>%
+  ggplot() +
+  ggspatial::annotation_map_tile(
+    type = "cartolight",
+    zoom = 15
+  ) +
+  geom_sf(
+    fill = park_map_color, alpha = 0.8,
+    color = park_map_color
+  ) +
+  theme_void() +
+  labs(
+    title = "Roads included",
+    caption = "     "
+  )
+
+ex <- park_polygons %>%
+  filter(zone_id == "Nokomis-Hiawatha_park_Metro-Regional_MPRB") %>%
+  ggplot() +
+  ggspatial::annotation_map_tile(
+    type = "cartolight",
+    zoom = 15
+  ) +
+  geom_sf(
+    fill = park_map_color, alpha = 0.8,
+    color = park_map_color
+  ) +
+  theme_void() +
+  labs(
+    title = "Roads excluded",
+    caption = "Source: MN Geospatial Commons. Accessed July 2023."
+  )
+
+title_nok <- ggdraw() +
+  draw_label(
+    "Nokomis-Hiawatha Regional Park boundaries",
+    x = 0,
+    hjust = 0
+  ) +
+  theme(
+    plot.margin = margin(0, 0, 0, 7)
+  )
+
+plot_grid(title_nok,
+          plot_grid(inc, ex,
+                    nrow = 1
+          ),
+          ncol = 1, rel_heights = c(0.1, 1)
+)
+```
+
+
+#### Processing geography for inferred demographics and home locations
+
+A “perimeter zone” was additionally generated for each park (Figure \@ref(fig:park-perim-zone-fig)). The LBS data provider estimates visitor home locations for polygons up to 4 km$^2$. Naturally, many of the parks in the project sample are larger than this maximum. Thus, in order to collect information about visitor home locations, perimeter zones of less than 4 km$^2$ were created for each park. When travelers “pass through” these perimeter zones, they are counted and the LBS data provider analyzes the aggregated and anonymized data to produce an estimate of home locations for all visitors. 
+
+Perimeters were created by buffering into the interior of the polygon by 30 meters. This means that the perimeter does not extend beyond the boundary of the park. The buffer width was decreased in several cases when the original perimeter was greater than 4 km$^2$ in area. In one case (Grand Portage, DNR State), perimeters were manually edited to ensure the geography was sufficiently far from the Canadian border for the data provider to provide metrics. These zones are used for pass-through analyses, so it is unnecessary to remove roads or conduct similar edits.
+
+```{r park-perim-zone-fig}
+#| fig.cap = "Perimeter zone for Glendalough State Park.",
+#| fig.height = 4
+
+# load and plot park perimeters
+park_perims <- read_sf(file.path(here(), "data-processed/zone-sets/park-perimeters/park-perim-zone-set-2023.07.02.shp"))
+
+park_perims %>%
+  filter(zone_id == "Glendalough_park_DNR") %>%
+  ggplot() +
+  ggspatial::annotation_map_tile(
+    type = "cartolight",
+    zoom = 15
+  ) +
+  geom_sf(
+    fill = park_map_color, alpha = 0.8,
+    color = park_map_color
+  ) +
+  theme_void() +
+  labs(
+    title = "Perimeter for Glendalough State Park",
+    caption = "Source: MN Geospatial Commons. Accessed July 2023."
+  )
+```
+
+### LBS analyses
+
+The finalized park geographies are used as the “zone set” for StreetLight analyses. The following StreetLight analyses were run:
+
+```{r}
+# weekly vehicle, biweekly_vehicle, monthly all 3 modes
+n_veh_analyses <- (n_weeks * n_parks) + (n_weeks * n_parks) + (n_months * n_parks)
+
+n_bike_ped_analyses <- n_months * n_parks * 2
+
+# monthly od
+n_od_analyses <- n_months * n_parks * 3
+
+# home location (2 time periods, 3 modes)
+n_hw_analyses <- 2 * 3 * 206
+```
+
+
+On park polygon zones:
+
+- Weekly, Biweekly, and Monthly Zone Activity analyses for Vehicle Volume. Trips ending within the polygon are counted. Results in `r prettyNum(n_veh_analyses, big.mark = ",")` analyses.
+- Monthly Zone Activity analyses for each Bicycle and Pedestrian Volume (bicycle and pedestrian volume is not available at more detailed intervals). Trips ending within the polygon are counted. Results in `r prettyNum(n_bike_ped_analyses, big.mark = ",")` analyses.
+- Monthly Origin-Destination analyses run on polygon zone sets for Vehicle, Bicycle, and Pedestrian Volume. Trips starting and ending within the same polygon are counted. Results in `r prettyNum(n_od_analyses, big.mark = ",")` analyses.
+
+<br>
+
+On park perimeter zones: 
+
+- Zone Activity analyses for Vehicle, Bicycle, and Pedestrian Volume, with the Home & Work Locations add-on and the Traveler Attribute add-on. Pass-through trips are counted. Results in `r prettyNum(n_hw_analyses, big.mark = ",")` analyses.
+
+<br>
+
+In total, `r prettyNum(sum(n_veh_analyses + n_bike_ped_analyses + n_od_analyses + n_hw_analyses), big.mark = ",")` StreetLight analyses were run for parks. StreetLight’s “zone activity” analysis type is used for the majority of this analysis. Zone activity analyses capture activity starting and ending in each park polygon. Trips ending within a given park polygon are counted as visitors. A trip has “ended” when the traveler stops moving (or moves less than 50 meters) for at least five minutes, meaning a visit can be defined as a vehicle, bicyclist, or pedestrian who enters the park polygon and stays there for at least five minutes.
+
+A supplementary origin-destination analysis was conducted for vehicles, bicycles, and pedestrians. The origin-destination analysis results were used to identify trips that begin and end within the same park polygon. When such trips were identified, they were removed from vehicle, bicycle, or pedestrian counts respectively to avoid double-counting visitors.
+
+The StreetLight application programming interface (API) was used to run each analysis. The API is accessed using [streetlightR](https://github.com/Metropolitan-Council/streetlightR), an API wrapper written in R by Metropolitan Council staff. The resulting data consists of `r prettyNum(3 * n_records, big.mark = ",")` weekly observations (`r n_parks` park polygons x `r n_weeks` weeks x 3 travel modes). 
+
+StreetLight provides two main measures of traffic or activity – StreetLight Volume (volume), which is an estimated count of vehicles, bicyclists, or pedestrians, and StreetLight Index (index), which is a relative measure of activity. There are two major motivations for using volume over index. First, volume represents an actual vehicle count whereas index is a unitless measure. Secondly, StreetLight recommends against comparing the index across time. Therefore, we prefer to use volume for all three modes. To confirm that both volume and index reflect similar temporal patterns and align with existing use estimates, the measures were compared throughout time using the Pearson correlation coefficient. Index and volume were found to have strong positive correlation. Based on this evaluation, volume is used for the analyses in this report.
+
+### Producing park visitor estimates 
+
+The following procedure was used to create park visitor estimates:
+
+1. Intrapark trips were removed for each mode (vehicle, bicycle, and pedestrian).
+2. Missing data was imputed.
+    a. Parks missing >50% of vehicle records were discarded from the analysis.
+    b. For vehicles, missing weekly estimates were filled in, or replaced, with biweekly estimates or monthly estimates when possible. Remaining missing data was imputed using time series imputation. 
+    c. For bicycle and pedestrian data, missing monthly estimates were imputed using time series imputation.
+3. Vehicle multipliers (average numbers of persons per vehicle) were applied to convert vehicle estimates to visitor estimates.
+4. Monthly vehicle, bicycle, and pedestrian data were combined to create total monthly use estimates. 
+5. Monthly scaling factors were used to convert bicycle and pedestrian data into weekly estimates.
+6. Data was aggregated at the weekly, monthly, seasonal, and annual level.
+
+<br>
+
+The following sections further describe each step of this procedure. 
+
+#### Imputing missing data
+
+```{r eval-imputation-date}
+load(file.path(here(), "data-intermediate/parks/parks-dropped-coverage.rda"))
+load(file.path(here(), "data-intermediate/parks/imputation-data.rda"))
+load(file.path(here(), "data-intermediate/parks/veh-records-by-source.rda"))
+load(file.path(here(), "data-intermediate/parks/filled-imputed-volume.rda"))
+
+veh_records_by_source <- veh_records_by_source %>%
+  mutate(
+    source = ifelse(is.na(source), "Imputation", source),
+    percent = count / sum(count)
+  )
+```
+
+In some cases, weekly LBS data was not available for a given park polygon. This generally occurred when visitation was low and the data provider masked data to maintain privacy standards. Data was masked (i.e., not reported) when the LBS provider estimated less than 50 daily visits over the analysis period. This was most common during winter months and at smaller park units.
+
+When weekly vehicle data was unavailable, biweekly and monthly records were used in their place. Biweekly and monthly analyses resolved many data privacy issues because more visits occurred in the longer time frame, meaning fewer records were discarded.
+
+Remaining missing vehicle records were resolved using data imputation. In other words, missing data was estimated based on those weekly, biweekly, and monthly records which were available. Because park visitation generally follows strong seasonal patterns and does not differ dramatically week-to-week, time series imputation is a reasonable method for filling in missing records.
+
+Several imputation methods were tested using the [imputeTS R package](https://steffenmoritz.github.io/imputeTS/). Values were imputed separately for vehicle, bicycle, and pedestrian data. For each mode, imputation was not performed if greater than half of the expected records were missing and visitation for that time period and mode was assumed to be zero.
+
+If biweekly, monthly, or imputed data was used, intrapark trips were assumed to be zero.
+
+Linear interpolation, spline interpolation, and a weighted moving average were each tested as possible imputation methods. To evaluate each method, imputed values were compared to observed LBS estimates at parks without missing data (`r nrow(no_missing_names)` of `r n_distinct(filter(annual_volume)$zone_name)`). For these parks, 30 (\~17%) weekly records were removed from each park. This reflects the average number of missing records for parks with any missing data. 
+
+Recall that imputation was not performed if greater than half of expected records were missing. This requirement excluded `r nrow(parks_dropped_coverage)` parks from the project: Devil's Track Falls State Wayside (DNR State), Hill Annex Mine State Park (DNR State), Joseph R. Brown State Wayside (DNR State), and Northerly Regional Park (Greater MN Regional, Eligible). An additional `r nrow(no_bike_imputation)` parks were missing >50% of expected bicycle records. For these parks, bicycle imputation was not performed, and missing bicycle records were assumed to be zero. No parks were missing >50% of pedestrian records. These and other park exclusions are documented in Appendix 6.3.
+
+Each imputation method was tested on the randomly removed records described above. Figure \@ref(fig:ar-imputation-fig) shows one example of imputation at Ramsey Park in Redwood County, MN. Because there are no missing records for Ramsey Park, the original StreetLight estimates ("ground truth" shown as green stars) can be compared to the imputed values (red triangles). 
+Methods were formally evaluated using the root-mean-square-error (RMSE) and mean absolute percent error (MAPE). An RMSE close to zero indicates that the imputation performed well. The MAPE indicates the difference between the observed LBS estimates and imputed values. For the Ramsey Park example above, the RMSE is `r round(err$RMSE, 4)` and the MAPE is `r round(err$MAPE, 2)`, meaning that the average difference between the LBS estimate and the imputed values is `r round(err$MAPE, 2)`%.
+
+The RMSE and MAPE were compared for each imputation method (Table \@ref(tab:rmse-mape-tab)). Based on this evaluation, a weighted moving average was selected for imputing weekly vehicle data as well as monthly bicycle and pedestrian data.
+
+A "moving average" simply means that each missing value is estimated based on surrounding values. For example, an imputed estimate for the first week of January would be based on observed data from the last week of December and the second week of January. "Weighted" means that values closer to the missing week contribute more to the estimates than values further away. In other words, the second week of January will be more influential than the third or fourth week. 
+
+```{r}
+bike_imputed <- filled_monthly_bike %>%
+  group_by(source) %>%
+  summarise(count = n(), .groups = "keep") %>%
+  mutate(pct = count / sum(count))
+
+ped_imputed <- filled_monthly_ped %>%
+  group_by(source) %>%
+  summarise(count = n(), .groups = "keep") %>%
+  mutate(pct = count / sum(count))
+```
+
+
+In total, weekly vehicle estimates consist of `r scales::percent(filter(veh_records_by_source, source == "Biweekly StreetLight")$percent)` biweekly LBS estimates, `r scales::percent(filter(veh_records_by_source, source == "Monthly StreetLight")$percent)` LBS estimates, and `r scales::percent(filter(veh_records_by_source, source == "Imputation")$percent)` imputed estimates. Additionally, `r scales::percent(filter(bike_imputed, source == "Imputed")$pct)` of monthly bicycle records and `r scales::percent(filter(ped_imputed, source == "Imputed")$pct)` of monthly pedestrian records were imputed. 
+
+```{r ar-imputation-fig}
+#| fig.cap = "An example of moving average imputation method at Ramsey Regional Park (Greater MN).",
+#| fig.asp = 0.8
+
+ggplot_na_imputations(
+  x_with_na = ar_ts,
+  x_with_imputations = ar_filled,
+  x_with_truth = ar_truth,
+  shape_truth = 8,
+  color_truth = "darkgreen",
+  shape_points = 19,
+  color_points = "black",
+  shape_imputations = 24,
+  color_imputations = "red",
+  ylab = "Vehicles", xlab = "Timeseries week",
+  label_truth = "Ground truth",
+  label_imputations = "Imputed values",
+  label_known = "Known values"
+) +
+  labs(
+    title = "Imputed Values - Moving Average",
+    subtitle = "Missing value replacements at Ramsey Park"
+  )
+```
+
+```{r rmse-mape-tab}
+#| results = 'markup',
+#| tidy = FALSE
+
+regulartable(avgs_tab %>%
+               mutate_if(is.numeric, prettyNum, digits = 2)) %>%
+  autofit(add_w = 0, add_h = 0) %>%
+  set_table_properties(layout = "autofit") %>%
+  set_caption("Root mean squared error (RMSE) and mean absolute percent error (MAPE) for three imputation methods.")
+```
+
+#### Intrapark trips
+
+The supplemental origin-destination analyses described above revealed many intrapark, or within-park, trips across all three systems (Figure \@ref(tab:pct-intra)). These are trips that begin and end within the same park polygon. When intrapark trips were identified, they were removed from trip counts in order to avoid double-counting visitors such as multi-day campers. The data provider is not able to determine how long a visitor spends in a park, so multi-day campers are counted once per entry to a park. Removing double-counted visitors via intrapark trips makes LBS estimates more comparable to existing use estimates.
+
+Intrapark vehicle trips were most common at large parks with multiple internal amenities, typically state parks with campgrounds. Across all three systems, the majority of bicycle and pedestrian trips began and ended within the same park. This is likely because visitors on foot or bicycle are more likely than vehicles to stop within a park for more than five minutes before continuing their park trip (consider visitors stopping to sightsee, picnic, wayfind, and so on). 
+
+```{r intrapark-setup}
+all_monthly <- readRDS(file.path(here(), "data-intermediate/parks/all-monthly-with-intrapark.RDS")) %>%
+  left_join(park_metadata) %>%
+  filter(system_label != "Metro Regional Inclusive")
+
+stl_with_intrapark <- all_monthly %>%
+  filter(system == "DNR") %>%
+  group_by(zone_name, unit_label, year) %>%
+  summarise(
+    total = sum(monthly_vehicles * 3.2 + monthly_bike_volume + monthly_ped_volume),
+    total_raw = total + sum(removed_monthly_intrapark_vehicles * 3.2 +
+                              removed_monthly_bike_intrapark_trips +
+                              removed_monthly_ped_intrapark_trips), .groups = "keep"
+  ) %>%
+  mutate(
+    NAME = toupper(unit_label),
+    NAME = str_remove_all(NAME, " \\(STATE RECREATION AREA\\)| \\(STATE WAYSIDE\\)")
+  ) %>%
+  select(zone_name, NAME, year, total, total_raw) %>%
+  unique()
+
+dnr_raw <- read_excel(file.path(here(), "data-raw/dnr/MonthlyStateParkAttendance_5-16_2022.6.7.xlsx"),
+                      sheet = "Total Visitors By Month"
+)
+
+dnr_monthly <- dnr_raw %>%
+  pivot_longer(names_to = "dnr_month", cols = names(dnr_raw)[2:49]) %>%
+  mutate(
+    date = as.POSIXct(dnr_month, format = "%m/%d/%Y"),
+    year = year(date),
+    month = lubridate::month(date, label = TRUE),
+    week = week(date),
+    NAME = stringr::str_remove_all(NAME, " STATE PARK") %>%
+      str_remove_all(" STATE RECREATION AREA"),
+    dnr_count = value
+  )
+
+dnr_annual <- dnr_monthly %>%
+  group_by(NAME, year) %>%
+  summarise(dnr_count = sum(dnr_count), .groups = "keep")
+
+both <- dnr_annual %>% # DON'T INCLUDE 2021, DNR estimate is only for part of year
+  filter(year %in% c(2019, 2020)) %>%
+  left_join(stl_with_intrapark, by = c("NAME", "year"))
+
+nums <- both %>%
+  mutate(
+    diff = 100 * (total_raw - dnr_count) / dnr_count,
+    diff2 = 100 * (total - dnr_count) / dnr_count
+  ) %>%
+  filter(str_detect(zone_name, "Cuyuna") & year == 2020)
+
+nums_notes <- both %>%
+  filter(str_detect(zone_name, "Gooseberry|Itasca|Tetegouche")) %>%
+  mutate(
+    diff = 100 * (total_raw - dnr_count) / dnr_count,
+    diff2 = 100 * (total - dnr_count) / dnr_count
+  )
+
+cor_raw <- cor.test(both$dnr_count, both$total_raw)
+cor_post <- cor.test(both$dnr_count, both$total)
+```
+
+Removing these trips improved the agreement of LBS estimates with existing DNR State use estimates (Figure \@ref(fig:with-without)). While removing intrapark trips increase overall correlation (r = `r prettyNum(cor_raw$estimate, digits = 2)`, p < 0.001 before removal, r = `r prettyNum(cor_post$estimate, digits = 2)`, p < 0.001 after removal), the improvement was most noticeable at individual parks. For example, in 2020, the LBS use estimate at Cuyuna Country State Recreation Area was initially a `r scales::percent(nums$diff, scale = 1)` overestimate compared to DNR State counts; with intrapark trips removed this was reduced to a `r scales::percent(nums$diff2, scale = 1, accuracy = 0.1)` overestimate (see highlighted points in Figure \@ref(fig:with-without)).
+
+This pattern was particularly evident at large, high-use state parks with many multi-day camping trips, such as Tettegouche, Itasca, or Gooseberry Falls DNR State parks where LBS estimates were initially overestimates of up to `r scales::percent(max(nums_notes$diff), scale = 1)`. In these cases, adjusted LBS estimates are still higher than existing use estimates, but the magnitude of the overestimate is drastically decreased (see highlighted points in Figure \@ref(fig:with-without)).
+
+
+```{r pct-intra}
+#| fig.cap = "Percent of trips by system and mode which begin and end within the same park, 2021.",
+#| results = 'markup',
+
+all_monthly %>%
+  filter(year == 2021) %>%
+  group_by(system_label) %>%
+  summarise(
+    bike_intra = sum(removed_monthly_bike_intrapark_trips, na.rm = TRUE),
+    ped_intra = sum(removed_monthly_ped_intrapark_trips, na.rm = TRUE),
+    veh_intra = sum(removed_monthly_intrapark_vehicles, na.rm = TRUE),
+    pct_veh_intra = veh_intra / sum(monthly_vehicles + removed_monthly_intrapark_vehicles),
+    pct_bike_intra = bike_intra / sum(monthly_bike_volume + removed_monthly_bike_intrapark_trips, na.rm = TRUE),
+    pct_ped_intra = ped_intra / sum(monthly_ped_volume + removed_monthly_ped_intrapark_trips, na.rm = TRUE),
+    .groups = "keep"
+  ) %>%
+  ungroup() %>% 
+  transmute(
+    System = system_label,
+    Vehicle = scales::percent(pct_veh_intra, accuracy = 1),
+    Bicycle = scales::percent(pct_bike_intra, accuracy = 1),
+    Pedestrian = scales::percent(pct_ped_intra, accuracy = 1)
+  ) %>%
+  flextable() %>%
+  autofit() %>%
+  set_caption("Percent of trips that start and end within the same park by system, 2021")
+```
+
+
+```{r with-without}
+#| fig.cap = "Comparison of 2020 annual count-based and LBS use estimates at DNR State parks with intrapark trips included (left) and with intrapark trips removed (right). The dashed line indicates a perfect one-to-one relationship; the solid blue line indicates the line of best fit. The relationship between DNR and LBS estimates is much stronger when intrapark trips are removed from LBS estimates. ",
+#| out.width = "80%"
+
+both %>%
+  filter(!is.na(total_raw) & !is.na(total) & !is.na(dnr_count), year == 2020) %>%
+  left_join(park_metadata) %>%
+  rename(
+    `Intrapark trips included` = total_raw,
+    `Intrapark trips removed` = total
+  ) %>%
+  pivot_longer(
+    cols = c("Intrapark trips included", "Intrapark trips removed"),
+    names_to = "Type", values_to = "Estimate"
+  ) %>%
+  mutate(label = ifelse(str_detect(zone_name, "Cuyuna|Tettegouche|Itasca|Gooseberry"),
+                        str_remove_all(unit_label, " \\(State Recreation Area\\)"),
+                        NA_character_
+  )) %>%
+  ggplot(aes(x = dnr_count, y = Estimate)) +
+  geom_point(alpha = .3) +
+  geom_smooth(method = "lm", se = FALSE, color = legacy_blue) +
+  geom_abline(slope = 1, intercept = 0, linetype = 2) +
+  facet_wrap(~Type) +
+  theme_council_open(base_size = 10) +
+  scale_x_continuous(
+    labels = scales::label_comma(scale = .001),
+    expand = expansion(mult = c(0, 0.01))
+  ) +
+  scale_y_continuous(
+    labels = scales::label_comma(scale = .001),
+    expand = expansion(mult = c(0, 0.01))
+  ) +
+  geom_text_repel(aes(label = label),
+                  segment.color = "grey50", min.segment.length = 0,
+                  size = 3, box.padding = 0.7, point.padding = 0.3, segment.square = TRUE,
+                  lineheight = 0.8
+  ) +
+  labs(
+    title = "Use estimates at DNR State parks (2020)",
+    x = "Count-based use estimate (thousands)", y = "LBS use \nestimate \n(thousands)"
+  )
+```
+
+
+#### Vehicle multipliers
+
+StreetLight vehicle volume provides an estimated count of vehicles. However, the goal of this project is to measure a count of *visitors*. Vehicle multipliers were required to translate LBS estimates into an estimate of visitors entering parks. A vehicle multiplier represents the average number of persons per vehicle at a given park. Note that vehicle multipliers are required to produce use estimates regardless of how vehicles are counted. 
+
+When available, existing multipliers were used to facilitate validation (Table \@ref(tab:vm-tab)). For DNR State parks, the established vehicle multiplier is 3.2 persons per vehicle (personal communication, Darin Newman). The ten metropolitan regional implementing agencies each have an agency-level multiplier, which range from 1.71-2.72 persons per vehicle ([2021 Metropolitan Council Visitor Study](https://metrocouncil.org/Parks/Research/Visitor-Study.aspx)). We estimated a baseline Greater Minnesota Regional vehicle multiplier based on the state and suburban metropolitan regional multipliers. Agencies serving areas such as Minneapolis and Saint Paul were not considered because Greater Minnesota Regional parks are likely to have more similarities with suburban parks, and because very urban parks tend to have lower vehicle multipliers than parks in other regions. The recommended Greater Minnesota vehicle multiplier is 2.46 persons per vehicle. 
+
+An intercept survey is likely the appropriate method to establish vehicle multipliers; LBS data is not able to recommend vehicle multipliers. We recognize that using one vehicle multiplier for an entire system or agency may be an oversimplification of true visitation behavior. The accompanying data produced by this research allow users to supply more bespoke vehicle multipliers. Further research into vehicle multipliers may be a priority for improving estimates of park use.
+
+
+```{r vm-tab, results = "markup", tidy = FALSE}
+park_metadata %>%
+  filter(system != "Metro Regional Inclusive") %>%
+  mutate(label = ifelse(system_label == "Metro Regional", long_agency, system_label)) %>%
+  select(label, vehicle_multiplier) %>%
+  unique() %>%
+  mutate(label = factor(label, levels = c("DNR State", "Greater MN Regional", 
+                                          sort(unique(park_metadata$long_agency))))) %>%
+  arrange(label) %>%
+  rename(`Park System` = label, `Vehicle Multiplier` = vehicle_multiplier) %>%
+  flextable() %>%
+  autofit() %>%
+  bold(i = c(1, 3, 5, 6, 10, 12)) %>%
+  set_caption("Vehicle multipliers used in this project. Bolded multipliers were used to suggest an average multiplier for Greater Minnesota Regional Parks.")
+```
+
+#### Combining, scaling, and aggregating data
+
+Monthly estimates of vehicle visitors (e.g., estimates of vehicles multiplied by vehicle multipliers), bicyclists, and pedestrians were combined for each park unit. Using this monthly data, bicycle and pedestrian scaling factors were calculated for each park unit during each month of the analysis period. Scaling factors were defined as the monthly estimate of bicyclists or pedestrians divided by the monthly estimate of vehicle visitors at the given park unit during the given month. 
+
+Scaling factors were applied to weekly estimates of vehicle visitors to estimate week-level bicycle data. Recall that the LBS data provider only shares bicycle and pedestrian data at the monthly-level. 
+
+Finally, week-level data was aggregated at the monthly, seasonal, and annual level. In this project, seasons are defined as spring (March - May), summer (June - August), fall (September - November), and winter (December - February). 
+
+### Data validation
+
+Where possible, LBS estimates were compared to existing use estimates. Due to the differing data sources and methods used to generate use estimates, a perfect agreement between estimates was not expected. Note that bicycle and pedestrian data was further validated in the trail portion of this analysis. 
+
+The methods described in this report were found to generate reasonable use estimates at most types of parks in our sample. Validation was performed to address concerns regarding the effect of cell service on LBS data quality and no significant differences were observed across parks with varying levels of cell coverage. Although LBS performs well across the state, there are certain park characteristics which are less compatible with LBS methods. These characteristics include: 
+
+- Linear or trail-heavy parks where users may not stop within the park for five minutes.
+- Parks with islands, or parks where boat access is more common than automobile access. Such units are excluded from this analysis.
+- Low visitation units. When visitation is under a given threshold, StreetLight filters data to protect privacy. This occurs most often at smaller units during the off-season. The threshold for reporting data is an estimated 50-100 daily trips during the analysis period (this threshold may vary based the geographic area of analysis and specific metrics requested).
+
+
+
+#### DNR State validation
+
+LBS estimates were compared to unit-level monthly use estimates for state parks generated by the DNR. The existing DNR estimates are based largely on automatic counters placed at park entrances and ticket sales, though methods may differ by park unit. Technology issues with automatic counters and reduced park staff in 2020 due to the COVID-19 pandemic may have affected the DNR use estimates.
+
+```{r setup-dnr-validation}
+# combine monthly data for comparison
+dnr_monthly_comp <- dnr_monthly %>%
+  mutate(month = month(date)) %>%
+  left_join(
+    monthly_volume %>%
+      mutate(NAME = toupper(unit_label)),
+    by = c("NAME", "month", "year")
+  ) %>%
+  group_by(NAME, month, year) %>%
+  summarise(
+    LBS = sum(monthly_total),
+    DNR = sum(dnr_count),
+    .groups = "keep"
+  ) %>%
+  ungroup() %>%
+  group_by(NAME, year) %>%
+  summarise(
+    LBS = sum(LBS),
+    DNR = sum(DNR),
+    nmonths = n(),
+    .groups = "keep"
+  ) %>%
+  filter(!is.na(LBS), !is.na(DNR))
+
+dnr_annual_comp <- dnr_monthly %>%
+  group_by(year, NAME) %>%
+  summarise(dnr_count = sum(dnr_count), .groups = "keep") %>%
+  left_join(
+    annual_volume %>%
+      mutate(NAME = toupper(unit_label)),
+    by = c("year", "NAME")
+  )
+
+# get correlation, forced through origin
+dnr_cor <- summary(lm(DNR ~ 0 + LBS, data = filter(dnr_monthly_comp)))
+```
+
+
+The overall agreement between DNR and LBS estimates was high (r = `r prettyNum(dnr_cor$r.squared, digits = 2)`, p = < 0.001) and confirmed that LBS data generates reasonable estimates of park use (Figure \@ref(fig:park-dnr-validation-fig)). There is some evidence to suggest that LBS data may overestimate use at particularly high-use units (Gooseberry Falls, Interstate, Tettegouche) compared to existing DNR estimates. This may be explained by the fact that LBS estimates measure use at all potential park entrances simultaneously, including informal entrances or entrances via intersecting trails. Therefore, LBS methods may report higher use than estimates based on counters or ticket sales at primary park entrances.
+
+```{r park-dnr-validation-fig}
+#| fig.cap = "Comparison of count-based and LBS use estimates at state parks. Annual use estimates were compared. The dashed line indicates a perfect one-to-one relationship; the solid blue line indicates the line of best fit. Parks with the largest discrepancies between estimates are labeled.",
+
+dnr_monthly_comp %>%
+  mutate(label = if_else(abs(DNR - LBS) > 250000, paste0(str_to_title(NAME), " ", year), NA_character_)) %>%
+  filter(year != 2022) %>%
+  ggplot(aes(x = DNR, y = LBS, label = label)) +
+  geom_point(alpha = .3) +
+  geom_smooth(method = "lm", formula = y ~ x + 0, se = FALSE, color = legacy_blue) +
+  geom_abline(slope = 1, intercept = 0, linetype = 2) +
+  theme_council_open(base_size = 10) +
+  scale_x_continuous(labels = scales::label_comma(), breaks = c(0, 250000, 500000, 750000)) +
+  scale_y_continuous(labels = scales::label_comma(), breaks = c(0, 250000, 500000, 750000, 1e6)) +
+  labs(
+    x = "Count-based use estimate", y = "LBS use \nestimate",
+    caption = paste0(fig_caption, "\nDarin Newman personal communication."),
+    title = "Use estimates at DNR State parks (2019 - 2021)"
+  ) +
+  geom_text_repel(
+    min.segment.length = 0,
+    box.padding = 0.35,
+    point.padding = 0.5,
+    segment.color = "grey50",
+    size = 3,
+    lineheight = 0.8
+  )
+```
+
+#### Metro Regional validation 
+
+LBS data was additionally compared to unit-level 2021 annual use estimates for Metro Regional parks created by the Metropolitan Council. These estimates are based on manual counts performed during the summer. Summer counts were converted into annual use estimates using vehicle multipliers (persons per vehicle) and seasonal multipliers (used to adjust summer visitation for other, typically lower visitation seasons). The conversion of summer counts to annual estimates may introduce error into these count-based estimates.
+
+LBS data agreed strongly with Metro Regional park use estimates (Figure \@ref(fig:park-metro-validation-fig)). As with the DNR State use estimates, there is some evidence that LBS data overestimates use at high-use units such as Como or Minnehaha Regional Park. This may be particularly true at units such as Como, which is adjacent to the Como Conservatory and Zoo Special Recreation Feature, or Bunker Hills, which contains a golf course. However, this is not universally true. 
+
+There are several locations where LBS data underestimated visitation compared to the count-based use estimates. The most notable example is the Minneapolis Chain of Lakes (Figure \@ref(fig:park-metro-validation-fig)), in addition to Mississippi Gorge park units in both Saint Paul and Minneapolis (Figure \@ref(fig:park-metro-validation-fig)). All three of these units feature trails as a primary amenity. In the case of Mississippi Gorge (Saint Paul), the park is largely "shaped" like a trail (Figure \@ref(fig:park-miss-gorge-fig)). Parks with these features may be less compatible with the LBS methods developed in this project. Recall that users must stop within the park boundary for at least five minutes to be counted by LBS data. In the case of a linear park largely centered around a trail, it is possible that a portion of visitors may not meet these criteria. In these cases, a more bespoke unit-level analysis may be appropriate. 
+
+```{r park-metro-validation-fig}
+#| fig.cap = "Comparison of count-based and LBS use estimates at Metro Regional parks. Data for summer of 2021 (June - August) is compared. The dashed line indicates a perfect one-to-one relationship; the solid blue line indicates the line of best fit. Parks with the largest discrepancies are labeled.",
+
+load(file.path(here(), "data-raw/metro/estimates_summer.rda"))
+load(file.path(here(), "data-raw/metro/park_id_name_index.rda"))
+
+summer_counts1 <- estimates_summer$d2021_summer_estimates %>%
+  left_join(park_id_name_index) %>%
+  filter(!str_detect(Park_name, "Trail")) %>%
+  mutate(park_name = str_remove_all(Park_name, " Regional Park| Park Reserve| Special Recreation Feature| \\(TRPD\\)| \\(MPRB\\)| \\(Scott County\\)| \\(St. Paul\\)| Park")) %>%
+  # get one record per park
+  group_by(Park_id) %>%
+  slice(1) %>%
+  mutate(
+    park_name = ifelse(str_detect(park_name, "Martin-Island"), "Martin-Island-Linwood", park_name),
+    short_agency = case_when(
+      str_detect(Agency_name, "Three") ~ "Three Rivers",
+      str_detect(Agency_name, "Minneapolis") ~ "MPRB",
+      TRUE ~ Agency_name
+    )
+  )
+
+inclusive_summer_counts <- summer_counts1 %>%
+  filter(str_detect(park_name, "Minneapolis Chain|Nokomis|Phalen|Minnehaha")) %>%
+  mutate(
+    park_name = paste(park_name, "(inclusive)"),
+    short_agency = paste(short_agency, "(Inclusive)"),
+    inclusive = TRUE
+  )
+
+summer_counts <- bind_rows(summer_counts1, inclusive_summer_counts)
+
+summer_metro_comp <- season_volume %>%
+  filter(
+    str_detect(system, "Metro"),
+    year == 2021,
+    season == "Summer"
+  ) %>%
+  mutate(park_name = ifelse(system == "Metro Regional Inclusive",
+                            paste(word(unit_label, sep = ", ", 1), "(inclusive)"),
+                            word(unit_label, sep = ", ", 1)
+  )) %>%
+  left_join(summer_counts, by = c("park_name", "short_agency")) %>%
+  select(zone_name, park_name, unit_label, year,
+         LBS = season_total, count_est = Estimate,
+         inclusive
+  ) %>%
+  replace_na(list(inclusive = FALSE))
+
+summer_metro_cor <- cor.test(summer_metro_comp$LBS, summer_metro_comp$count_est)
+
+
+summer_metro_comp %>%
+  mutate(label = if_else(abs(count_est - LBS) > 300000, unit_label, NA_character_)) %>%
+  ggplot(aes(x = count_est, y = LBS, label = label)) +
+  geom_point(
+    alpha = .3
+  ) +
+  geom_smooth(method = "lm", formula = y ~ x + 0, se = FALSE, color = legacy_blue) +
+  geom_abline(slope = 1, intercept = 0, linetype = 2) +
+  theme_council_open(base_size = 10) +
+  scale_x_continuous(
+    labels = scales::label_comma(scale = .000001),
+    breaks = c(0, 500000, 1e6, 1.5e6, 2e6, 2.5e6)
+  ) +
+  scale_y_continuous(
+    labels = scales::label_comma(scale = .000001),
+    breaks = c(0, 500000, 1e6, 1.5e6, 2e6, 2.5e6)
+  ) +
+  labs(
+    x = "Count-based use estimates (millions)", y = "LBS use \nestimates (millions)",
+    caption = paste0("Source: StreetLight Data, Inc; Metropolitan Council Use Estimates. Accessed July 2023."),
+    title = "Use estimates at Metro Regional parks \n(June - August 2021)"
+  ) +
+  geom_text_repel(
+    min.segment.length = 0,
+    box.padding = 0.35,
+    point.padding = 0.5,
+    segment.color = "grey50",
+    size = 3,
+    lineheight = 0.8
+  )
+```
+
+
+```{r park-miss-gorge-fig, results = "hide", fig.keep = "all"}
+#| fig.cap = "Map of Mississippi Gorge Regional Park in Saint Paul, MN.",
+#| fig.height = 3
+
+
+# load original geography
+load(file.path(here(), "data-intermediate/parks/raw-metro-geography.rda"))
+
+loc_bbox_1 <- st_bbox(metro$`Mississippi-Gorge_park_Metro-Regional_Saint-Paul`) %>% st_as_sfc()
+
+rot <- function(a) matrix(c(cos(a), sin(a), -sin(a), cos(a)), 2, 2)
+park_centroid <- st_centroid(st_geometry(metro$`Mississippi-Gorge_park_Metro-Regional_Saint-Paul`))
+rotated_park <- (st_geometry(metro$`Mississippi-Gorge_park_Metro-Regional_Saint-Paul`) - park_centroid) * rot(pi / 2) + park_centroid
+loc_bbox_2 <- st_bbox(rotated_park) %>%
+  st_as_sfc() %>%
+  st_set_crs(26915)
+
+loc_bbox <- st_bbox(st_union(loc_bbox_1, loc_bbox_2)) %>%
+  st_as_sfc() %>%
+  st_as_sf()
+
+loc_bbox %>%
+  ggplot() +
+  geom_sf(fill = NA, color = NA) +
+  ggspatial::annotation_map_tile(
+    type = "cartolight",
+    zoom = 15
+  ) +
+  geom_sf(
+    data = metro$`Mississippi-Gorge_park_Metro-Regional_Saint-Paul`,
+    fill = park_map_color, alpha = 0.8,
+    color = park_map_color
+  ) +
+  theme_void() +
+  labs(
+    title = "Mississippi Gorge, Saint Paul",
+    caption = "Source: MN Geospatial Commons. Accessed July 2023."
+  )
+
+rm(metro)
+rm(metro_water)
+rm(metro_mndot_roads)
+```
+
+#### Parks with limited cell service
+
+The LBS data provider's methods are designed to work whether or not a device has cell service and can even retrieve GPS data from cell phones in airplane mode. However, there are a number of state and regional parks across Minnesota with [limited, or no, cell service available](https://www.fcc.gov/BroadbandData/MobileMaps/mobile-map). Therefore, confirming that the presence or lack of cell service did not impact data quality was an important step. 
+
+LBS estimates were evaluated at parks with different levels of data or LTE coverage (Figure \@ref(fig:park-fig-cell-comparison)). Because cell service varies so much across the state and between providers, it was not feasible to test the relationship between LTE coverage and LBS data accuracy across the state simultaneously and only two units are presented in this report. However, no significant differences were observed between LBS and existing DNR State estimates at the evaluated parks. Based on this finding, we conclude that limited cell service does not present problems for LBS use estimates. 
+
+Note that areas without GPS connectivity may present problems for LBS methods. However, [GPS coverage is generally very complete and accurate](https://www.gps.gov/systems/gps/performance/accuracy/), meaning it is very unlikely that GPS connectivity challenges have affected the outcome of this work. 
+
+
+```{r park-fig-cell-comparison}
+#| fig.cap = "Comparison of average monthly estimates for Fort Snelling State Park and Split Rock Lighthouse State Park. Fort Snelling has complete cell coverage by all three service providers in the state. Split Rock Lighthouse has coverage gaps under all three providers. Error bars indicate standard error. No significant difference is observed.",
+
+dnr_monthly2 <- dnr_monthly %>%
+  mutate(month = month(date)) %>%
+  filter(NAME %in% c("FORT SNELLING", "GLACIAL LAKES", "SPLIT ROCK LIGHTHOUSE"))
+
+vol_monthly <- monthly_volume %>%
+  mutate(NAME = toupper(unit_label)) %>%
+  filter(NAME %in% c("FORT SNELLING", "GLACIAL LAKES", "SPLIT ROCK LIGHTHOUSE"))
+
+both_monthly2 <- dnr_monthly2 %>%
+  full_join(vol_monthly, by = c("NAME", "year", "month")) %>%
+  mutate(
+    facet_name = case_when(
+      NAME == "FORT SNELLING" ~ "Full cell coverage \n(Fort Snelling)",
+      TRUE ~ "Limited cell coverage \n(Split Rock Lighthouse)"
+    ),
+    label_name = case_when(
+      NAME == "FORT SNELLING" ~ "Fort Snelling",
+      TRUE ~ "Split Rock Lighthouse"
+    )
+  )
+
+
+both_monthly2 %>%
+  filter(
+    year %in% c(2020),
+    NAME != "GLACIAL LAKES"
+  ) %>%
+  group_by(label_name, facet_name) %>%
+  summarise(
+    `Count-based estimate` = mean(dnr_count, na.rm = TRUE),
+    SE_DNR = sd(dnr_count, na.rm = TRUE) / sqrt(n()),
+    `LBS estimate` = mean(monthly_total),
+    SE_STL = sd(monthly_total) / sqrt(n()),
+    .groups = "keep"
+  ) %>%
+  tidyr::pivot_longer(
+    cols = c(`Count-based estimate`, `LBS estimate`),
+    names_to = "SOURCE", values_to = "MEAN"
+  ) %>%
+  tidyr::pivot_longer(
+    cols = c(SE_DNR, SE_STL),
+    names_to = "SOURCE_SE", values_to = "SE"
+  ) %>%
+  ggplot() +
+  geom_col(aes(x = SOURCE, y = MEAN, fill = SOURCE), position = "dodge", color = "black") +
+  geom_errorbar(aes(x = SOURCE, ymin = MEAN - SE, ymax = MEAN + SE, group = SOURCE),
+                width = 0, position = position_dodge(width = .9)
+  ) +
+  theme_council_open(base_size = 10) +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    axis.title.y = element_text(
+      angle = 0,
+      vjust = .5
+    ),
+    strip.background = element_blank(),
+    # strip.text.x = element_blank(),
+    plot.margin = margin(7, 7, 7, 7)
+  ) +
+  scale_y_continuous(labels = scales::comma, expand = c(0, 0)) +
+  facet_wrap(~facet_name) +
+  labs(
+    x = "", y = "Average\nmonthly\nuse, 2020"
+  ) +
+  scale_fill_manual(values = c(legacy_blue, legacy_green)) +
+  theme(legend.position = "none") +
+  labs(
+    caption = "Source: StreetLight Data, DNR. Accessed July 2023.",
+    title = "Use estimates at parks with varying cell coverage"
+  )
+```
+
+
+## Results
+
+### Park use increased in 2020
+
+In total, 2020 had the highest park use across the years analyzed (`r round(sum(weekly_volume$weekly_total[weekly_volume$year == 2020])/1e6, 2)` total million visitors across three systems compared to `r round(sum(weekly_volume$weekly_total[weekly_volume$year == 2019])/1e6, 2)` and `r round(sum(weekly_volume$weekly_total[weekly_volume$year == 2021])/1e6, 2)` million visitors in 2019 and 2021, respectively). In many cases, the COVID-19 pandemic encouraged the use of Minnesota’s outdoor spaces as other indoor social and recreational opportunities were limited. While pandemic-related effects on park visitation varied across and within systems (Figure \@ref(fig:annual-fig)), the state park system saw the greatest overall increase in 2020. Both regional park systems (Greater MN Regional and Metro Regional) saw more modest increases from 2019 to 2020, with visitation remaining high into 2021.
+
+At the unit level, not all parks saw increased use in 2020. While `r annual_volume %>% group_by(zone_name) %>% filter(annual_total == max(annual_total)) %>% ungroup() %>% count(year) %>% .[2,2]` units saw their highest use in 2020, `r annual_volume %>% group_by(zone_name) %>% filter(annual_total == max(annual_total)) %>% ungroup() %>% count(year) %>% .[1,2]` units had their highest use in 2019 and another `r annual_volume %>% group_by(zone_name) %>% filter(annual_total == max(annual_total)) %>% ungroup() %>% count(year) %>% .[3,2]` had the highest use in 2021. Closures of campgrounds, beaches, or other amenities to facilitate social distancing often characterized units with lower use in 2020.
+
+```{r annual-fig}
+#| fig.cap = "Total estimated park use. Bars show the system-wide total visits to parks across the three complete years in this study (2019, 2020, 2021). Bar color indicates park system. Individual park units may show annual visitation trends which differ from the overall system trend.",
+
+annual_volume %>%
+  filter(
+    year != 2022,
+    system != "Metro Regional Inclusive"
+  ) %>%
+  group_by(system_label, year) %>%
+  summarise(
+    system_total = sum(annual_total) / 1e6,
+    system_vehicle = sum(annual_vehicle_visitors),
+    system_bike = sum(annual_bike),
+    system_ped = sum(annual_ped),
+    .groups = "keep"
+  ) %>%
+  ggplot(aes(x = year, y = system_total, fill = system_label)) +
+  geom_col(color = "black") +
+  facet_wrap(~system_label, scales = "free_y", nrow = 1) +
+  theme_council_open(base_size = 10) +
+  labs(
+    x = "", caption = fig_caption,
+    title = "Annual park use (millions of visits)"
+  ) +
+  scale_y_continuous(
+    labels = scales::label_comma(),
+    expand = expansion(mult = c(0, 0.1)), n.breaks = 4
+  ) +
+  scale_fill_manual(values = system_label_cols) +
+  theme(
+    legend.position = "none",
+    axis.title.y = element_blank(),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 10)
+  ) +
+  geom_label(aes(
+    label = format(round(system_total, 2), nsmall = 2),
+    y = rep(c(7.5, 5, 19), each = 3)
+  ), fill = "white", size = 2.5)
+```
+
+
+### Parks are used in all seasons
+
+Seasonal summaries are valuable for identifying nuanced changes in visitation throughout time or across parks. In this case, we observe only slight differences seasonal visitation patterns (Figure \@ref(fig:seasonal-system-fig)). All three systems have the most visitation in the summer, with various levels of visitation through the rest of the year. In particular, DNR State and Metro Regional parks have low winter visitation when compared to their summer peaks. Conversely, Greater MN Regional parks see less of a difference between winter, spring, and fall visitation.
+
+
+
+```{r season-calc}
+top_season <- season_volume %>%
+  filter(year == 2021) %>%
+  group_by(system, zone_name, unit_label, long_unit_label) %>%
+  mutate(percent = season_total / sum(season_total)) %>%
+  ungroup() %>%
+  filter(percent > 0.5) %>%
+  select(unit_label, long_unit_label, season, percent)
+```
+
+At the park-level, variation in seasonal visitation patterns is often driven by season-specific amenities. For instance, two parks saw the majority (> 50%) of 2021 use occur during the winter months of December, January, and February (Figure \@ref(fig:ski-parks)). Both `r (top_season$long_unit_label[top_season$season == "Winter"])[1]` (`r round((top_season$percent[top_season$season == "Winter"])[1]*100,1)`% winter use) and `r (top_season$long_unit_label[top_season$season == "Winter"])[2]` (`r round((top_season$percent[top_season$season == "Winter"])[2]*100,1)`% winter use) have downhill skiing facilities. There were `r (length(top_season$unit_label[top_season$season == "Summer"]))` parks that saw the majority of their annual visitation occur during the summer and no parks that had the majority of visits during the spring or fall. Most parks (`r n_parks - nrow(top_season)`) did not see the majority of annual visitation occur within a single season.
+
+```{r seasonal-system-fig}
+#| fig.cap = "Monthly park use as a percent of total annual use for each system. Points show the average monthly use across the three complete years in this study (2019, 2020, 2021). Point color indicates park system. Individual park units may show trends that differ from the overall system trend.",
+
+month_labs <- data.frame(month = 1:12, month_lab = month.abb) %>%
+  mutate(month_lab = factor(month_lab, levels = month.abb, ordered = TRUE))
+
+(monthly_volume) %>%
+  filter(system != "Metro Regional Inclusive") %>%
+  ungroup() %>%
+  group_by(system_label, year, month) %>%
+  summarise(SUM = sum(monthly_total), .groups = "keep") %>%
+  ungroup() %>%
+  group_by(system_label, year) %>%
+  mutate(percent = SUM / sum(SUM)) %>%
+  filter(year != 2022) %>%
+  ungroup() %>%
+  group_by(system_label, month) %>%
+  summarise(
+    MEAN = mean(percent),
+    SE = sd(percent) / sqrt(n()), .groups = "keep"
+  ) %>%
+  mutate(label = if_else(month == "12", system_label, NA_character_)) %>%
+  left_join(month_labs, by = "month") %>%
+  ggplot(aes(
+    x = month_lab, y = MEAN, group = system_label,
+    color = system_label, pch = system_label
+  )) +
+  geom_segment(aes(x = 1, xend = 1, y = 0, yend = .07), lty = 3, color = "grey90") +
+  geom_segment(aes(x = 4, xend = 4, y = 0, yend = .08), lty = 3, color = "grey90") +
+  geom_segment(aes(x = 7, xend = 7, y = 0, yend = .17), lty = 3, color = "grey90") +
+  geom_segment(aes(x = 10, xend = 10, y = 0, yend = .085), lty = 3, color = "grey90") +
+  geom_point(size = 2) +
+  geom_line() +
+  scale_color_manual(values = system_label_cols) +
+  scale_y_continuous(
+    labels = scales::label_percent(),
+    expand = expansion(mult = 0, 0)
+  ) +
+  theme_council_open(base_size = 10) +
+  scale_x_discrete(expand = expansion(mult = c(0.01, 0.3))) +
+  coord_cartesian(clip = "off") +
+  labs(
+    x = "", caption = fig_caption,
+    title = "Monthly park use (% of annual)"
+  ) +
+  geom_text(aes(x = 12.2, y = MEAN, label = label), hjust = 0, size = 3) +
+  theme(
+    legend.position = "none",
+    axis.title.y = element_blank(),
+    # panel.grid.major.x= element_line(linetype = 3),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 10)
+  )
+# takeaway here: winter ns at GMN, double check if spring vs fall is different at metro
+# car::Anova(lm(percent ~ system * year * as.character(month), data = filter(a, year != 2022)))
+```
+
+
+```{r ski-parks}
+#| fig.cap = "Monthly park use as a percent of total annual use for each park unit. Detroit Mountain Recreation Area (Greater MN), Spirit Mountain Recreation Area (Greater MN), and Hyland-Bush-Anderson Lakes Park Reserve (Metro Regional, Three Rivers unit) are highlighted. These units contain downhill ski slopes and therefore display different monthly or seasonal use patterns than the majority of park units.",
+#| out.width = "75%"
+
+monthly_volume %>%
+  filter(system != "Metro Regional Inclusive") %>%
+  ungroup() %>%
+  group_by(unit_label, year, month) %>%
+  summarise(SUM = sum(monthly_total), .groups = "keep") %>%
+  ungroup() %>%
+  group_by(unit_label, year) %>%
+  mutate(percent = SUM / sum(SUM)) %>%
+  filter(year != 2022) %>%
+  ungroup() %>%
+  group_by(unit_label, month) %>%
+  summarise(
+    MEAN = mean(percent),
+    SE = sd(percent) / sqrt(n()), .groups = "keep"
+  ) %>%
+  mutate(
+    label = ifelse(month == 12 & str_detect(unit_label, 
+                                            "Spirit Mountain|Detroit Mountain"), 
+                   unit_label, NA_character_),
+    label = ifelse(month == 12 & str_detect(unit_label,
+                                            "Anderson Lakes, Three Rivers"),
+                   "Hyland-Bush-Anderson, \nThree Rivers", label
+    ),
+    flag = ifelse(str_detect(unit_label, "Spirit Mountain|Detroit Mountain|Anderson Lakes, Three Rivers"), 
+                  "yes", "no"),
+    unit_label = factor(unit_label,
+                        levels = c(
+                          "Spirit Mountain", "Detroit Mountain",
+                          "Hyland-Bush-Anderson Lakes, Three Rivers",
+                          unique(
+                            filter(monthly_volume, 
+                                   !str_detect(
+                                     unit_label, 
+                                     "Spirit Mountain|Detroit Mountain|Anderson Lakes, Three Rivers"))$unit_label)
+                        ),
+                        ordered = TRUE
+    ),
+    unit_label = forcats::fct_rev(unit_label)
+  ) %>%
+  left_join(month_labs, by = "month") %>%
+  ggplot(aes(
+    x = month_lab, y = MEAN, group = unit_label,
+    color = unit_label, alpha = flag, size = flag
+  )) +
+  geom_line() +
+  scale_color_manual(values = c(
+    "Spirit Mountain" = legacy_blue,
+    "Detroit Mountain" = legacy_green,
+    "Hyland-Bush-Anderson Lakes, Three Rivers" = legacy_orange
+  )) +
+  scale_alpha_manual(values = c(
+    "yes" = 1,
+    "no" = 0.2
+  )) +
+  scale_size_manual(values = c(
+    "yes" = 1,
+    "no" = 0.5
+  )) +
+  scale_y_continuous(
+    labels = scales::label_percent(),
+    expand = expansion(mult = 0, 0)
+  ) +
+  theme_council_open(base_size = 10) +
+  scale_x_discrete(expand = expansion(mult = c(0.01, 0.4))) +
+  coord_cartesian(clip = "off") +
+  labs(
+    x = "", caption = fig_caption,
+    title = "Monthly park use (% of annual)"
+  ) +
+  geom_text(aes(x = 12.2, y = MEAN, label = label), hjust = 0, size = 3) +
+  theme(
+    legend.position = "none",
+    axis.title.y = element_blank(),
+    panel.grid.major.x = element_line(linetype = 3),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 10)
+  )
+```
+
+### Weekly data shows nuanced use patterns
+
+At individual park units, weekly LBS estimates can identify relatively precise changes in use. The data often reflect special events, extreme weather, and management changes. This temporal granularity may assist in evaluating park planning and management decisions.
+
+For instance, some units closed facilities during the spring and summer of 2020 to facilitate social distancing (e.g., Spirit Mountain Recreation Area (Greater MN) closed mountain biking facilities, Figure \@ref(fig:park-weekly-ts), top panel). The associated drop in park use is clear in a weekly time series; more generalized annual or monthly summaries may have otherwise obscured this causal relationship. Additionally, some special events cause notable increases in use, which can also be observed in a weekly time series. For example, Nokomis-Hiawatha Regional Park (Metro Regional) hosts a week-long pond hockey championship every winter (Figure \@ref(fig:park-weekly-ts), middle panel). Day-long events, such as a race held in Lake Waconia Regional Park (Metro Regional) may also appear in a weekly time series (Figure \@ref(fig:park-weekly-ts), bottom panel).
+
+
+```{r park-weekly-ts}
+#| fig.cap = "Estimated weekly park use at Spirit Mountain Recreation Area (top), Nokomis-Hiawatha Regional Park (middle), and Lake Waconia Regional Park (bottom). Notable events at each park are labeled.",
+#| fig.asp = 1.2,
+#| out.width = "75%"
+
+a <- weekly_volume %>%
+  filter(str_detect(unit_label, "Spirit"), year == 2020) %>%
+  mutate(label = ifelse(start_date == "2020-03-10", "COVID-19 \nstay-at-home \norder announced",
+                        NA_character_
+  )) %>%
+  ggplot(aes(x = start_date, y = weekly_total)) +
+  geom_point() +
+  geom_line() +
+  theme_council_open(base_size = 10) +
+  labs(title = "Spirit Mountain Recreation Area, 2020", x = "", y = "") +
+  scale_y_continuous(
+    labels = scales::label_comma(),
+    expand = expansion(mult = c(0.0, 0.1)), limits = c(0, 44000)
+  ) +
+  scale_x_date(
+    date_breaks = "1 month", date_labels = "%b",
+    expand = c(0, 0),
+    limits = c(as.Date("2020-01-07"), as.Date("2020-12-29"))
+  ) +
+  theme(legend.position = "none") +
+  geom_text_repel(aes(label = label),
+                  segment.color = "grey50", min.segment.length = 0,
+                  size = 3, box.padding = 0.7, point.padding = 0.3,
+                  segment.square = TRUE, nudge_x = 100, nudge_y = 10000,
+                  lineheight = 0.8
+  )
+
+
+b <- weekly_volume %>%
+  filter(system != "Metro Regional Inclusive") %>%
+  filter(str_detect(unit_label, "Nokomis"), year == 2020) %>%
+  mutate(label = ifelse(start_date == "2020-01-21",
+                        "US Pond Hocky \nChampionships", NA_character_
+  )) %>%
+  ggplot(aes(x = start_date, y = weekly_total)) +
+  geom_point() +
+  geom_line() +
+  theme_council_open(base_size = 10) +
+  labs(title = "Nokomis-Hiawatha Regional Park, 2020", x = "", y = "") +
+  scale_y_continuous(
+    labels = scales::label_comma(),
+    expand = expansion(mult = c(0.0, 0.1)),
+    limits = c(0, 70000)
+  ) +
+  scale_x_date(
+    date_breaks = "1 month", date_labels = "%b",
+    expand = c(0, 0), limits = c(
+      as.Date("2020-01-07"),
+      as.Date("2020-12-29")
+    )
+  ) +
+  theme(legend.position = "none") +
+  geom_text_repel(aes(label = label),
+                  segment.color = "grey50", min.segment.length = 0,
+                  size = 3, box.padding = 0.7, point.padding = 0.3,
+                  max.overlaps = 1, nudge_y = 10000, segment.square = TRUE,
+                  lineheight = 0.8
+  )
+
+c <- weekly_volume %>%
+  filter(system != "Metro Regional Inclusive") %>%
+  filter(str_detect(unit_label, "Waconia"), year == 2021) %>%
+  mutate(label = ifelse(start_date == "2021-06-29",
+                        "Lola's Lake 10 \nMile & 5k race", NA_character_
+  )) %>%
+  ggplot(aes(x = start_date, y = weekly_total)) +
+  geom_point() +
+  geom_line() +
+  theme_council_open(base_size = 10) +
+  labs(
+    title = "Lake Waconia Regional Park, 2021", x = "", y = "",
+    caption = fig_caption
+  ) +
+  scale_y_continuous(
+    labels = scales::label_comma(),
+    expand = expansion(mult = c(0.0, 0.1)),
+  ) +
+  scale_x_date(
+    date_breaks = "1 month", date_labels = "%b",
+    expand = c(0, 0), limits = c(
+      as.Date("2021-01-05"),
+      as.Date("2021-12-28")
+    )
+  ) +
+  theme(legend.position = "none") +
+  geom_text_repel(aes(label = label),
+                  segment.color = "grey50", min.segment.length = 0,
+                  size = 3, box.padding = 0.7, point.padding = 0.3,
+                  nudge_x = 100, segment.square = TRUE,
+                  lineheight = 0.8
+  )
+
+
+weekly_title <- ggdraw() +
+  draw_label(
+    "Weekly park use estimates",
+    fontface = "bold",
+    x = 0,
+    hjust = 0
+  ) +
+  theme(
+    plot.margin = margin(0, 0, 0, 7)
+  )
+
+plot_grid(weekly_title, a, b, c,
+          rel_heights = c(0.1, 1, 1, 1),
+          ncol = 1
+)
+```
+
+
+### Hourly park use varies by day and system
+
+On weekends (Sa-Su), all parks showed a midday peak in use (Figure \@ref(fig:hourly-fig)). On weekdays (M-F), this same midday peak is observed for DNR State parks. Regional parks, however, had a pronounced “after work” peak beginning around 5:00 pm.
+
+```{r hourly-fig}
+#| fig.cap = "Daily use patterns during summer 2021 for each system. For each system, the total number of visits across all parks is summed, from which the percent of total visits is calculated. Individual park units may show trends that differ from the overall system trend.",
+
+load(file.path(here(), "data-intermediate/processed/hourly-parks.rda"))
+
+hourly_parks %>%
+  left_join(park_metadata) %>%
+  filter(system != "Metro Regional Inclusive") %>%
+  mutate(day_type = str_remove_all(day_type, "1: Average |2: Average | Day")) %>%
+  filter(!str_detect(day_type, "All")) %>%
+  filter(!str_detect(day_type, "All")) %>%
+  group_by(system_label, day_type, time) %>%
+  summarise(total = sum(total), .groups = "keep") %>%
+  ungroup() %>%
+  group_by(system_label, day_type) %>%
+  mutate(percent = total / sum(total)) %>%
+  mutate(
+    time2 = strftime(time, format = "%H:%M"),
+    label = if_else(time2 == "23:00", system_label, NA_character_)
+  ) %>%
+  ggplot(aes(x = time, y = percent, color = system_label, group = system_label, pch = system_label)) +
+  geom_point() +
+  geom_line() +
+  facet_wrap(~day_type, nrow = 1) +
+  scale_color_manual(values = system_label_cols) +
+  theme_council_open(base_size = 10) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  scale_x_datetime(
+    date_breaks = "4 hours", date_labels = "%l%p",
+    expand = expansion(mult = c(0.01, 0.01))
+  ) +
+  labs(
+    x = "", y = "System \ntotal", color = "", shape = "",
+    title = "Hourly park use (summer 2021)",
+    caption = fig_caption
+  ) +
+  theme(
+    legend.position = "bottom",
+    panel.grid.major.x = element_line(linetype = 3),
+    axis.title.y = element_blank(),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 10)
+  )
+```
+
+
+### Most visitors drive to parks
+
+Our analysis includes estimated counts of visitors arriving at parks by vehicle, bicycle, or on foot. This “mode share” data provides nuance and can help characterize parks. For example, while most visitors traveled to parks in vehicles, the state park system had the highest vehicle mode share (Figure \@ref(fig:modeshare-fig)). Regional park systems had a larger portion of bicyclist and pedestrian visitors. The mode share of park visitors was relatively stable across different seasons.
+
+At individual park units, mode share  mode share information may be helpful in identifying infrastructure improvements. For example, additional bike storage may be needed at state parks with high bicycle mode share. A regional park with low pedestrian mode share in an otherwise walkable area may indicate barriers to access (e.g., fenced areas or roads without crosswalks or bridges, or lack of links to public transit). Such park-level analyses are beyond the scope of this project but may prove valuable in future work.
+
+```{r modeshare-fig}
+#| fig.cap = "Mode share of trips made to parks. Bars show the average annual mode share across the three complete years in this study (2019, 2020, 2021). Bar color indicates park system. Individual park units may show trends that differ from the overall system trend.",
+
+annual_volume %>%
+  filter(year != 2022, system != "Metro Regional Inclusive") %>%
+  group_by(system_label, year) %>%
+  summarise(
+    Vehicle = sum(annual_vehicle_visitors),
+    Bicycle = sum(annual_bike),
+    Pedestrian = sum(annual_ped), .groups = "keep"
+  ) %>%
+  ungroup() %>%
+  mutate(
+    total = (Vehicle + Bicycle + Pedestrian),
+    Vehicle = Vehicle / total,
+    Bicycle = Bicycle / total,
+    Pedestrian = Pedestrian / total
+  ) %>%
+  group_by(system_label) %>%
+  summarise(
+    Vehicle = mean(Vehicle),
+    Bicycle = mean(Bicycle),
+    Pedestrian = mean(Pedestrian), .groups = "keep"
+  ) %>%
+  pivot_longer(
+    cols = c(Vehicle, Bicycle, Pedestrian),
+    names_to = "Mode",
+    values_to = "Share"
+  ) %>%
+  ggplot(aes(x = Mode, y = Share, fill = system_label)) +
+  geom_bar(
+    stat = "identity", color = "black",
+    position = position_dodge(width = .9)
+  ) +
+  theme_council_open(base_size = 10) +
+  scale_fill_manual(values = system_label_cols) +
+  scale_y_continuous(
+    labels = scales::label_percent(),
+    expand = expansion(mult = c(0.0, 0.05))
+  ) +
+  labs(
+    title = "Park visitor travel mode",
+    x = "", y = "", fill = "",
+    caption = fig_caption
+  ) +
+  theme(
+    legend.position = "bottom",
+    axis.title.y = element_blank(),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 10)
+  ) +
+  geom_label(aes(
+    label = paste0(format(round(Share * 100, 1), nsmall = 1), "%"),
+    group = system_label,
+    y = rep(c(.14, .14, .14), 3)
+  ), fill = "white", size = 2.5, position = position_dodge(width = .9))
+```

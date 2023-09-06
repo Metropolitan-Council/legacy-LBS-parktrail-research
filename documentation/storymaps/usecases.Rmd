@@ -1,0 +1,236 @@
+---
+title: "Use Cases"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  bookdown::word_document2:
+    reference_docx: ../wordtemplate.docx
+    toc: yes
+    toc_depth: 1
+  word_document:
+    toc: yes
+    toc_depth: '1'
+always_allow_html: yes
+urlcolor: blue
+---
+
+# Use Cases
+
+```{r include = FALSE}
+knitr::opts_chunk$set(
+  cache = FALSE, echo = FALSE, warning = FALSE, message = FALSE,
+  fig.pos = "H",
+  fig.height = 4,
+  dpi = 300
+)
+
+load(file.path(here::here(), "data-intermediate/documentation/use-case-fig-dat.rda"))
+```
+
+
+This project aimed to develop universal methods of park and trail analysis. Therefore, in-depth analysis of individual units was beyond the scope of this work. Still, many park- or trail-specific research questions can be addressed with LBS data provided. These analyses require substantial on-the-ground knowledge of the park or trail of interest. Possible use cases fall broadly into three categories: those that can be completed using the data provided, those that require a StreetLight license but use this project’s methods, and those that require a StreetLight license and use custom methods beyond this project’s techniques. 
+
+
+## Using provided data
+
+### Custom summaries
+
+This project generally reports data summarized at the state or system level. The data provided includes unit-level data in monthly time intervals for trails and weekly time intervals for parks. This data can be used to address several questions: 
+
+- Data may be summarized at any geographic level. For your convenience, the data download includes counties, DNR areas, Greater Minnesota districts, and Metropolitan regional implementing agencies for summary purposes. 
+- Similarly, data may be summarized at any temporal level. For example, weeks or months may be grouped and summarized to analyze custom-defined peak versus off-peak visitation, amenity seasons (i.e., beach or skiing season), or before-and-after study periods. 
+- Editing vehicle multipliers in the provided Excel workbook will also modify associated visitor counts and mode share data. Accurate park-level vehicle multipliers can improve data quality; however, identifying park-level multipliers was beyond this project’s scope. 
+- Updating unit-level estimates of visitation to include additional data sources. For instance, LBS data estimates park visitation by counting visitors once upon each park entry (i.e., overnight campers making a day trip outside the park would be counted upon their return as well as initial entry but visitors making multiple stops or short trips within the park are only counted upon initial entry). Adding data from camping permit sales may allow for unit-level LBS estimates to align more closely with established use estimate definitions. Similarly, data estimating park use from minors (devices registered to minors under age 18 are not included in the LBS data source) may be added to LBS visitation estimates.  
+
+### Detailed unit-level explorations
+
+The unit-level data can be explored and applied to questions which may offer opportunities to better understand or serve visitors. In some instances, the unit-level fact sheets or online interactives can used for these explorations. In other instances, using the data downloads may offer more detail and options for summarizing data. Here are several specific questions that may of interest, and can be explored: 
+
+- Exploring mode share information to identify infrastructure improvements. For example, additional bike storage may be needed at parks or trails with high bicycle mode share. Parks with low pedestrian mode share in an otherwise walkable area may indicate barriers to access (e.g., fenced areas or roads without crosswalks or bridges, or lack of links to public transit).  
+- Explore local and non-local visitation. Summaries are provided for each unit about the percent of visitors who live within or outside Minnesota. Since data about visitor home locations are provided by zip code, it is possible to explore visitation percents using bespoke geographies.  
+
+
+### Demographic comparisons to bespoke reference populations
+
+Park staff may be interested in comparing the demographic estimates of specific park or trail units to bespoke reference populations. The summary report compares park and trail visitor demographics to the statewide population. However, comparisons to local or regional demographics may provide additional insights. Defining unit-specific reference populations is beyond this project’s scope, but the provided data can be used to compare visitor demographics with custom populations. 
+
+The provided spreadsheet titled “LBS_visitor_attribute_results_2023.07.xlsx” contains estimated demographic characteristics for each park and trail unit. Existing, online tools such as  [Census Reporter](https://censusreporter.org/)  can be used to help access census demographics for a [range of geographies](https://censusreporter.org/topics/geography/) (e.g., state, county, census tracts and block groups, zip codes, metropolitan areas, and others). Note that LBS data only provides selected demographic categories (race, income, education), while census data contains many more demographic axes. Comparing individual park- or trail-level demographics to bespoke reference populations may provide insights for park staff.  
+
+
+
+## Using project methods (requires StreetLight license)
+
+In addition to park- or trail-level analyses, LBS data can be used to analyze smaller or more specific geographies. Custom geographies can be used to address many park- or trail-specific questions. Several examples are described below. Note that, due to ongoing changes in LBS data availability, these analyses are currently recommended for time periods between January 2019 and April 2022. 
+
+ **How many users drive to a given trailhead?** A researcher may define custom analysis zones encompassing relevant trailheads or parking lots and measure vehicle trips to those parking lots. 
+
+**Which park entrance receives the most use?** The number of trips passing through any number of user-defined entrance “gates” can be compared to identify the highest- or lowest-use entrances. The same approach could be used to determine which of several parking lots receives the most used. This information could be used to identify ideal locations for survey stations, permanent vehicle counters, high priority locations for signage or other visitor service, among others. 
+
+**How to schedule park and trail management to meet visitor needs?** Analyzing use over time at custom geographies may be used to schedule any number of activities. For example, identifying maximum hourly use at a specific parking lot may indicate when a surveyor will likely encounter the most park visitors (Figure \@ref(fig:peak-hourly)). 
+
+Conversely, identifying minimum hourly use in areas of interest may be helpful scheduling disruptive maintenance, such as cleaning restrooms or mowing grass (Figure \@ref(fig:hourly-min)). 
+
+Other applications of hourly data include scheduling lifeguards at beaches, determining visitor center hours, or determining if 9-to-5 commuters may use a trail. 
+
+
+```{r peak-hourly}
+#| fig.cap = 'Average hourly pedestrian use at the entrance of Battle Creek Regional Park off-leash dog area (Metro Regional) during the summer of 2021.',
+#| results = 'markup',
+#| out.width = "5in",
+#| out.extra = 'style="float:center"',
+#| fig.asp = 0.5
+
+bc %>%
+  filter(str_detect(zone_name, "dog")) %>%
+  mutate(label = ifelse(time == "2023-08-22 18:00:00", "Ideal time for surveys", NA)) %>%
+  ggplot(aes(x = time, y = hourly_pct)) +
+  geom_point() +
+  geom_line() +
+  geom_segment(
+    aes(
+      x = as.POSIXct("2023-08-22 18:00:00"), y = 0.14478958,
+      xend = as.POSIXct("2023-08-22 15:00:00"), yend = 0.14478958 - 0.025
+    ),
+    linetype = "dotted"
+  ) +
+  geom_label(aes(label = label),
+    nudge_y = -0.025,
+    nudge_x = -3600 * 3.5
+  ) +
+  theme_council_open(base_size = 10) +
+  scale_y_continuous(labels = scales::label_percent(), limits = c(0, .16), expand = c(0, 0)) +
+  scale_x_datetime(
+    date_breaks = "4 hours", date_labels = "%l%p",
+    limits = c(as.POSIXct("2023-08-22 06:00:00"), as.POSIXct("2023-08-22 21:15:00")),
+    expand = c(0.01, 0)
+  ) +
+  labs(
+    x = "", y = "System \ntotal", color = "", shape = "",
+    title = "Pedestrian activity at Battle Creek Dog Park entrance (summer 2021)",
+    caption = fig_caption
+  ) +
+  theme(
+    legend.position = "bottom",
+    panel.grid.major.x = element_line(linetype = 3),
+    axis.title.y = element_blank(),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 10)
+  )
+
+ggsave(file.path(here::here(), "figures/storymap/battle-creek-peak-hourly.png"))
+```
+
+
+
+```{r hourly-min}
+#| fig.cap = 'Average hourly pedestrian use near a restroom in Battle Creek Regional Park (Metro Regional) during the summer of 2021.',
+#| results = 'markup',
+#| out.width = "5in",
+#| out.extra = 'style="float:center"',
+#| fig.asp = 0.5
+
+bc %>%
+  filter(str_detect(zone_name, "restroom")) %>%
+  mutate(label = ifelse(time == "2023-08-22 10:00:00", "Ideal time for cleaning \nor maintenance", NA)) %>%
+  ggplot(aes(x = time, y = hourly_pct)) +
+  geom_point() +
+  geom_segment(
+    aes(
+      x = as.POSIXct("2023-08-22 10:00:00"), y = 0.038095238,
+      xend = as.POSIXct("2023-08-22 11:30:00"), yend = 0.038095238 + 0.05
+    ),
+    linetype = "dotted"
+  ) +
+  geom_label(aes(label = label),
+    nudge_y = 0.05,
+    nudge_x = 3600 * 1.5
+  ) +
+  geom_line() +
+  theme_council_open(base_size = 10) +
+  scale_y_continuous(labels = scales::label_percent(), expand = c(0.01, 0), limits = c(0, .14)) +
+  scale_x_datetime(date_breaks = "4 hours", date_labels = "%l%p", expand = expansion(mult = c(0.01, -.075))) +
+  labs(
+    x = "", y = "System \ntotal", color = "", shape = "",
+    title = "Pedestrian activity at Battle Creek restroom (summer 2021)",
+    caption = fig_caption
+  ) +
+  theme(
+    legend.position = "bottom",
+    panel.grid.major.x = element_line(linetype = 3),
+    axis.title.y = element_blank(),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 10)
+  )
+
+ggsave(file.path(here::here(), "figures/storymap/battle-creek-min-hourly.png"))
+```
+
+
+
+## Using custom methods (requires StreetLight license)
+
+### Conduct analyses over custom geographies 
+The methods used for the research may be applied to new geographies. For instance, park and trail geographies may change over time or need customization beyond what was done for this research. With a StreetLight license, the code and full technical documentation used to produce this research can be applied to understand visitation patterns over custom geographies.  
+
+### Hotspots of activity within a park
+
+LBS data can be used to identify areas of high activity within a park. Specific amenities of interest can be compared, or a grid covering the entire park can be used to analyze all potential activity areas simultaneously. Such a grid can be generated using the programming language R or any Geographic Information Systems (GIS) tools. 
+
+Note that hotspots of activity on trails are already represented by the segment-level data provided. 
+
+Consider Glacial Lakes State Park (DNR). A grid of 150-meter squares was generated using R. LBS data was used to estimate the number of pedestrians passing through each grid cell on an average day during summer 2021 (Figure \@ref(fig:glacial-map)). 
+
+
+```{r glacial-map, results = "hide", fig.show = "show"}
+#| fig.cap = "Map of pedestrian activity in 150-meter grid cells in Glacial Lakes State Park (DNR State). Activity in each grid cell is represented as a percentage of total activity across all grid cells. Activity is focused around Mountain Lake in the northwest region of the park, and along prominent trails within the park.",
+#| results ='markup',
+#| out.width = "3.5in",
+#| out.extra ='style="float:center"',
+#| fig.asp = .7
+
+ggplot() +
+  ggspatial::annotation_map_tile(
+    quiet = T, progress = "none",
+    type = "cartolight",
+    zoom = 15
+  ) +
+  geom_sf(data = grid_dat, aes(fill = activity), alpha = 0.5) +
+  theme_void() +
+  scale_fill_viridis_c(trans = "log") +
+  theme(legend.position = "none")
+
+ggsave(file.path(here::here(), "figures/storymap/glacial-lakes-grid-use.png"))
+```
+
+
+### Trails passing through parks
+
+When a trail passes through a park, there is some overlap between “park use” and “trail use.” Researchers might ask how many trail users stop in the park and how many simply pass through. By creating geographic gates over the points where a trail enters and exits a park, LBS data can be used to measure the proportion of trail users who stop within versus pass through the park. Registered StreetLight users can read a full tutorial [here](https://support.streetlightdata.com/hc/en-us/articles/360019499071-Create-a-cut-through-analysis-with-internal-external-gates).
+
+Consider Hartley Park (Greater MN Regional) in Duluth. The Duluth Traverse passes through the park. Though the trail is bidirectional, we will consider bicyclists traveling north to south for simplicity. LBS data was used to measure bicyclists passing through the entrance gate during the summer of 2021. Data was summarized to determine the portion of bicyclists who stopped within the park (entrance gate to park polygon), passed through the park on the Duluth Traverse (entrance gate to exit gate), or passed through the park via some other trail connection (entrance gate to any other destination). LBS data indicates that roughly a quarter of bicyclists stop within Hartley Park, and over half connect to a different trail and exit the park elsewhere (Table \@ref(tab:duluth-table)). 
+
+The analysis could be expanded to consider bicyclists traveling in both directions. The same approach could be used to evaluate pedestrians or vehicles passing through parks or other geographic areas. 
+
+
+```{r duluth-table}
+dt %>%
+  mutate(entrance_use = 11,
+         Destination = case_when(
+           origin == "entrance" & destination == "exit" ~ "Exit Gate",
+           origin == "entrance" & destination == "Hartley Park" ~ "Hartley Park"
+         )) %>%
+  filter(!is.na(Destination)) %>%
+  group_by(Destination) %>%
+  summarise(pct_from_entrance = ped_use / entrance_use, .groups = "keep") %>%
+  bind_rows(data.frame(Destination = "Alternative exit", pct_from_entrance = (1 - 0.273 - 0.182))) %>%
+  mutate(
+    Origin = "Entrance Gate",
+    Share = scales::percent(pct_from_entrance)
+  ) %>%
+  select(Origin, Destination, Share) %>%
+  regulartable() %>%
+  autofit() %>%
+  set_caption("Portion of southbound Duluth Traverse bicyclists who pass through the defined exit gate, stop in Hartley Park, or exit the park elsewhere")
+```
+
+
+The analysis could be expanded to consider bicyclists traveling in both directions. The same approach could be used to evaluate pedestrians or vehicles passing through parks or other geographic areas. 
