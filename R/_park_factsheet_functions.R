@@ -350,7 +350,7 @@ demo_table_fxn <- function(x) {
                                  margin = unit(c(0.1, 0.1, 0.1, 0.1), "cm")
   )
 
-  demo_title <- textbox_grob("Visitor Demographics",
+  demo_title <- textbox_grob("Visitor demographics",
                              gp = gpar(fontfamily = "Avenir", fontsize = 22),
                              margin = unit(c(0.1, 0.1, 0, 0.1), "cm")
   )
@@ -360,7 +360,7 @@ demo_table_fxn <- function(x) {
     theme_void() +
     draw_grob(demo_tab) +
     labs(
-      title = "Visitor Demographics",
+      title = "Visitor demographics",
       subtitle = paste(str_wrap(demo_explain, width = 80), collapse = "\n")
     ) +
     legacy_theme +
