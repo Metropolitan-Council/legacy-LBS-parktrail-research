@@ -32,7 +32,7 @@ load(file.path(here(), "data-intermediate/processed/processed-homes.rda"))
 locations <- read_sf(file.path(here(), "data-processed/zone-sets/park-polygons/park-polygon-zone-set-2023.07.02.shp"))
 
 ## other geographic data
-mnoutline <- tigris::states(cb = T, progress_bar = F) %>%
+mnoutline <- tigris::states(cb = TRUE, progress_bar = F) %>%
   filter(NAME == "Minnesota")
 
 options(tigris_use_cache = TRUE)
@@ -96,7 +96,7 @@ create_unit_fig <- function(name) {
   # "\n\nLBS data was obtained from StreetLight Data, Inc. and was accessed in July 2023. This project was funded with Legacy Partnership Research Funds from the State of Minnesota Parks and Trails Legacy Fund. Interactive versions of these figures are available on the final project website.")
 
   explainer <- textbox_grob(explain_text,
-                            use_markdown = T,
+                            use_markdown = TRUE,
                             gp = gpar(fontfamily = "Avenir",
                                       fontsize = 14, lineheight = 1),
                             margin = unit(c(0.5, 1, 1, 0), "cm")

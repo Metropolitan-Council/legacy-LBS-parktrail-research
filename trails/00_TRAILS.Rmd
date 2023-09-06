@@ -212,7 +212,7 @@ n_metro <- n_distinct(filter(annual_trail_volume, system == "Metro")$unit_id)
 n_months <- n_distinct(monthly_trail_volume$start_date)
 n_records <- n_trails * n_months
 
-mnoutline <- tigris::states(cb = T, progress_bar = F) %>%
+mnoutline <- tigris::states(cb = TRUE, progress_bar = F) %>%
   filter(NAME == "Minnesota")
 
 trail_miles <- as.numeric(sum(cleaned_trail_segments$approx_length_miles))

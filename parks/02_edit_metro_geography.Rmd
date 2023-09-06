@@ -1651,7 +1651,7 @@ perim <- 30
 # buffer INSIDE polygon by 30 meters
 metro_perimeter <- metro_parks %>%
   st_boundary() %>%
-  st_buffer(-perim, singleSide = T) %>%
+  st_buffer(-perim, singleSide = TRUE) %>%
   st_intersection(metro_parks) %>%
   select(-zone_name.1) %>%
   st_collection_extract("POLYGON") %>%

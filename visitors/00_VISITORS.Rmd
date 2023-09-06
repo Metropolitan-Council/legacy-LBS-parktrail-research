@@ -404,7 +404,7 @@ oversample_home_wide %>%
 
 metro_counties <- tigris::counties(state = "MN", progress_bar = FALSE) %>%
   filter(NAME %in% c("Ramsey", "Hennepin", "Carver", "Scott", "Dakota", "Anoka", "Washington"))
-mn <- tigris::states(cb = T, progress_bar = FALSE) %>% filter(NAME == "Minnesota")
+mn <- tigris::states(cb = TRUE, progress_bar = FALSE) %>% filter(NAME == "Minnesota")
 zips <- tigris::zctas(state = "MN", year = 2010, progress_bar = FALSE)
 
 oversample_home_wide %>%

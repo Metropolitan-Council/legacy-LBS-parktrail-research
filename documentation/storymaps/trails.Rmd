@@ -255,7 +255,7 @@ Similarly, trails that are primarily rural with some segments passing through po
 
 This data can be explored for each trail and trail segment. In the interactive figure below (Figure \@ref(fig:trail-screenshot)), select a trail of interest to see a time series of trail use from January 2019 - April 2022, a map of activity by trail segment, a time series of mode share, and a summary table. Hover over any element and/or zoom in for additional detail.
 
-```{r trail-screenshot, include = T, eval = T}
+```{r trail-screenshot, include = TRUE, eval = TRUE}
 #| fig.cap = "Screenshot of the dashboard which is embedded within the interactive report. The dashboard contains interactive elements showing a timeseries of monthly trail use and mode share. A summary table of use for the three complete years in this study is also included, and a map of the trail colored by segment-level use.",
 #| results = 'markup',
 #| out.width = "65%",

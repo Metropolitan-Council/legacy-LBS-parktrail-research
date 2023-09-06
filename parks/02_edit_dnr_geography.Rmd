@@ -2444,7 +2444,7 @@ dnr_perimeter <- dnr_parks %>%
   # Grand Portage needs to be buffered before any processing to ensure the perimeter doesn't cross into canada
   st_buffer(., ifelse(.$zone_name == "Grand-Portage_park_DNR", -30, 0)) %>%
   st_boundary() %>%
-  st_buffer(-perim, singleSide = T) %>%
+  st_buffer(-perim, singleSide = TRUE) %>%
   st_intersection(dnr_parks) %>%
   select(-zone_name.1) %>%
   st_collection_extract("POLYGON") %>%

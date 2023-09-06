@@ -189,7 +189,7 @@ Consider Glacial Lakes State Park (DNR). A grid of 150-meter squares was generat
 
 ggplot() +
   ggspatial::annotation_map_tile(
-    quiet = T, progress = "none",
+    quiet = TRUE, progress = "none",
     type = "cartolight",
     zoom = 15
   ) +

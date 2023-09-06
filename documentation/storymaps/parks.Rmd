@@ -231,7 +231,7 @@ For instance, some units closed facilities during the spring and summer of 2020 
 Detailed use data for individual park units can be explored in the interactive below (Figure \@ref(fig:park-screenshot)). Select a unit of interest using the drop-down menu, and hover over the plot to view detailed information about use. If desired, click and drag on the plot to zoom in. 
 
 
-```{r park-screenshot, include = T, eval = T}
+```{r park-screenshot, include = TRUE, eval = TRUE}
 #| fig.cap = "Screenshot of the dashboard which is embedded within the interactive report. The dashboard contains interactive elements showing a timeseries of weekly park use and mode share. A summary table of use for the three complete years in this study is also included, and an outline map of the park location.",
 #| results = 'markup',
 #| out.width = "65%",

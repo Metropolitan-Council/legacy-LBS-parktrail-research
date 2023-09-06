@@ -47,7 +47,7 @@ cleaned_trail_segments_mapping <- cleaned_trail_segments %>%
 
 ## other geographic data
 trail_polygons <- readRDS(file.path(here(), "data-intermediate/trails/trail-polygons.RDS"))
-mnoutline <- tigris::states(cb = T, progress_bar = F) %>%
+mnoutline <- tigris::states(cb = TRUE, progress_bar = F) %>%
   filter(NAME == "Minnesota")
 
 options(tigris_use_cache = TRUE)
@@ -142,7 +142,7 @@ create_unit_fig <- function(name) {
   )
 
   explainer <- textbox_grob(explain_text,
-                            use_markdown = T,
+                            use_markdown = TRUE,
                             gp = gpar(fontfamily = "Avenir",
                                       fontsize = 14, lineheight = 1),
                             margin = unit(c(0.5, 1, 1, 0), "cm")

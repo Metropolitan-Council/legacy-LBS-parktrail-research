@@ -1378,7 +1378,7 @@ perim <- 30
 # buffer inside of parks by 30 meters
 gmn_perimeter <- gmn_parks %>%
   st_boundary() %>%
-  st_buffer(-perim, singleSide = T) %>%
+  st_buffer(-perim, singleSide = TRUE) %>%
   st_intersection(gmn_parks) %>%
   select(-zone_name.1) %>%
   st_collection_extract("POLYGON") %>%
