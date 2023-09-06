@@ -43,21 +43,19 @@ alt="Funding partner logos" />
 ## This repository
 
 This repository contains R code, tabular and spatial data files, and
-documentation behind this research project. As of June 2023, this
-repository primarily contains placeholders for future materials. We
-anticipate the repository will be completed in July 2023.
+documentation behind this research project.
 
 ### File organization
 
 The code used to conduct primary analyses are located in three folders:
 `/parks`, `/trails`, and `/visitors`. Each folder contains a tutorial
-document (`park_tutorial.RMD`, `trail_tutorial.Rmd`, and
-`visitor_tutorial.RMD`, respectively) which calls additional scripts to
+document (`park_tutorial.Rmd`, `trail_tutorial.Rmd`, and
+`visitor_tutorial.Rmd`, respectively) which calls additional scripts to
 conduct each step of the analysis. These scripts are numbered in the
 order in which they are called.
 
 Complete technical documentation is generated via
-`legaacy-LBS-parktrail-research-documentation.Rmd`; higher level summary
+`legacy-LBS-parktrail-research-documentation.Rmd`; higher level summary
 texts are generated in the `documentation` folder.
 
 The `/data-raw` folder contains data obtained from external sources;
@@ -65,9 +63,18 @@ The `/data-raw` folder contains data obtained from external sources;
 StreetLight (LBS) analysis downloads, or other internally-produced data;
 `/data-processed` contains the final products of this research.
 
-To render plots and factsheets properly, ensure you have the Avenir font
-installed on your machine. It is available for free in various places
-online.
+The `/figures` folder contains two sub-folders: `storymap` and
+`factsheets`. `storymap` contains individual plots and images used for
+online StoryMaps. `factsheets` contains single-page PDF reports for each
+park and trail with information like weekly total annual visits, weekly
+visit trends, mode share, hourly use, visitor home locations,
+generalized visitor demographics, and unit geography, organized by
+agency and unit type. Data is generally available from 2019 to April
+2022.
+
+To re-render plots and factsheets properly, ensure you have the Avenir
+font installed on your machine. Avenir is available for free in various
+places online.
 
 ### Set-up
 
@@ -100,6 +107,8 @@ usethis::edit_r_environ()
 ```
 
 ## Important details
+
+General contact: <research@metc.state.mn.us>.
 
 - **Contributing** Before contributing to this repository, please review
   the [contribution guide](CONTRIBUTING.md).
