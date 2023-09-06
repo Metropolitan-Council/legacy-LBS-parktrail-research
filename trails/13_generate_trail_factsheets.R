@@ -138,7 +138,7 @@ create_unit_fig <- function(name) {
 
     # "Over the study period, visitation may have been affected by the COVID-19 pandemic, poor air quality caused by wildfires in 2021, or park-specific events.",
     ifelse(meta$system == "Metro Regional Inclusive", 'This "inclusive" park boundary contains roads which would typically be excluded from analysis and may be helpful for interpreting use at parks with significant activity on parkways.', ""),
-    "\n\nThis research project was funded with Legacy Partnership Research Funds from the State of Minnesota Parks and Trails Legacy Fund. LBS data was obtained from StreetLight Data, Inc. and was accessed in May 2023."
+    "\n\nThis research project was funded with Legacy Partnership Research Funds from the State of Minnesota Parks and Trails Legacy Fund. LBS data was obtained from StreetLight Data, Inc. and was accessed in July 2023."
   )
 
   explainer <- textbox_grob(explain_text,
@@ -170,7 +170,7 @@ create_unit_fig <- function(name) {
     "Park boundaries were accessed via",
     ifelse(meta$system == "Greater MN",
            "personal communication in July, 2021",
-           "the Minnesota Geospatial Commons in May 2023"),
+           "the Minnesota Geospatial Commons in July 2023"),
     "and may have been edited to improve LBS data performance."
   )
 
