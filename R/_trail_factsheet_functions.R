@@ -33,7 +33,6 @@ annual_bar_chart_fxn <- function(x) {
       "Bicycle" = legacy_blue
     )) +
     guides(guide = guide_legend(reverse = TRUE)) +
-    # legacy_theme +
     theme(legend.position = "bottom") +
     geom_label(aes(
       label = prettyNum(format(save_ped, scientific = F), big.mark = ",", digits = 0),
@@ -112,7 +111,7 @@ location_map_fxn <- function(name) {
     meta$unit_label, "is part of the",
     meta$system_label, "Trail system",
     paste0("(", meta$primary_district, ")."),
-    "Park boundaries were accessed via",
+    "Trail boundaries were accessed via",
     ifelse(meta$system == "Greater MN", "personal communication in July, 2021",
            "the Minnesota Geospatial Commons in July 2023"),
     "and may have been edited to improve LBS data performance."
@@ -243,7 +242,7 @@ seasonal_mode_share_fxn <- function(x) {
     mutate(Mode = factor(Mode, levels = c("Pedestrian", "Bicycle"))) %>%
     ggplot(aes(x = month, y = Share, col = Mode, pch = Mode, group = Mode)) +
     geom_point(size = 4) +
-    geom_line(lwd = 1) + # 1.5) +
+    geom_line(lwd = 1) +
     legacy_theme +
     scale_y_continuous(label = scales::label_percent(),
                        expand = expansion(mult = c(0, 0.025))) +
@@ -253,7 +252,7 @@ seasonal_mode_share_fxn <- function(x) {
     )) +
     guides(color = guide_legend(override.aes = list(linetype = 0))) +
     labs(
-      title = "Mode share", x = "", y = "", # color = "Mode",
+      title = "Mode share", x = "", y = "",
       subtitle = paste(strwrap(modeshare_text, width = 80), collapse = "\n")
     ) +
     theme(
@@ -377,7 +376,7 @@ home_map_fxn <- function(name) {
     labs(
       title = "Visitor home locations",
       subtitle = paste(strwrap(home_text, width = 80), collapse = "\n")
-    ) + # ,
+    ) +
     theme(
       title = element_text(
         size = 22

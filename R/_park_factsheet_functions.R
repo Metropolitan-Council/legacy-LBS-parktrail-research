@@ -235,7 +235,7 @@ seasonal_mode_share_fxn <- function(x) {
 }
 
 hourly_timeseries_plot_fxn <- function(x) {
-  hour_text <- "Hourly use during summer 2021 shows patterns of when visitors use trails on weekdays and weekends."
+  hour_text <- "Hourly use during summer 2021 shows patterns of when visitors use parks on weekdays and weekends."
 
   x %>%
     mutate(day_type = str_remove_all(day_type, "1: Average |2: Average | Day")) %>%
@@ -322,8 +322,8 @@ demo_table_fxn <- function(x) {
     regulartable() %>%
     set_header_labels(values = list(
       category = "Category", group = "Census Group",
-      # summer_park_pct = "Park Estimate (summer 2021)",
-      full_park_pct = "Park Estimate (entire 2021)", percent = col_name
+      full_park_pct = "Park Estimate (entire 2021)",
+      percent = col_name
     )) %>%
     merge_v(j = 1) %>%
     theme_vanilla() %>%
@@ -435,7 +435,7 @@ home_map_fxn <- function(name) {
     labs(
       title = "Visitor home locations",
       subtitle = paste(strwrap(home_text, width = 80), collapse = "\n")
-    ) + # ,
+    ) +
     theme(
       title = element_text(
         size = 22
