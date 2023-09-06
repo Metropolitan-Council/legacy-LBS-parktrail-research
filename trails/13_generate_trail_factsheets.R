@@ -166,8 +166,8 @@ create_unit_fig <- function(name) {
   location_map_text <- paste(
     meta$unit_label, "is part of the",
     meta$system_label, "Trail system",
-    paste0("(", meta$district, ")."),
-    "Park boundaries were accessed via",
+    paste0("(", meta$primary_district, ")."),
+    "Trail boundaries were accessed via",
     ifelse(meta$system == "Greater MN",
            "personal communication in July, 2021",
            "Minnesota Geospatial Commons in July 2023"),
