@@ -11,6 +11,11 @@ source(file.path(here::here(), "R/_set_aesthetics.R"))
 load(file.path(here(), "data-intermediate/processed/trail-volume.rda"))
 load(file.path(here(), "data-intermediate/trails/trail-metadata.rda"))
 
+trail_metadata <- trail_metadata %>%
+  mutate(primary_district = ifelse(system == "DNR",
+                                   paste0("DNR Area ", primary_district),
+                                   primary_district))
+
 ## demographics
 load(file.path(here(), "data-intermediate/visitors/census-comp-pops.rda"))
 load(file.path(here(), "data-intermediate/processed/all-processed-demographics.rda"))
@@ -127,7 +132,8 @@ create_unit_fig <- function(name) {
   # title
   title <- textbox_grob(paste(meta$long_unit_label),
                         gp = gpar(fontfamily = "Avenir",
-                                  fontsize = 40, fontface = "bold", lineheight = 0.6),
+                                  fontsize = 40, fontface = "bold",
+                                  lineheight = 0.6),
                         margin = unit(c(1, 1, 2, 2), "cm")
   )
 
