@@ -20,10 +20,14 @@ annual_bar_chart_fxn <- function(x) {
     ggplot(aes(x = year, y = Miles, fill = Mode)) +
     geom_col(color = "black") +
     legacy_theme +
-    scale_y_continuous(labels = scales::comma,
-                       expand = expansion(mult = c(0, 0.2))) +
-    scale_x_continuous(expand = c(0, 0.1), labels = c("2019", "2020", "2021"),
-                       breaks = c(2019, 2020, 2021)) +
+    scale_y_continuous(
+      labels = scales::comma,
+      expand = expansion(mult = c(0, 0.2))
+    ) +
+    scale_x_continuous(
+      expand = c(0, 0.1), labels = c("2019", "2020", "2021"),
+      breaks = c(2019, 2020, 2021)
+    ) +
     labs(
       x = "", y = "",
       title = "Total annual miles of use"
@@ -35,16 +39,19 @@ annual_bar_chart_fxn <- function(x) {
     guides(guide = guide_legend(reverse = TRUE)) +
     theme(legend.position = "bottom") +
     geom_label(aes(
-      label = prettyNum(format(save_ped, scientific = F), big.mark = ",", digits = 0),
+      label = prettyNum(format(save_ped, scientific = F),
+                        big.mark = ",", digits = 0),
       y = save_ped * 0.5
     ), fill = "white", color = "grey20", size = 3) +
     geom_label(aes(
-      label = prettyNum(format(save_bike, scientific = F), big.mark = ",", digits = 0),
+      label = prettyNum(format(save_bike, scientific = F),
+                        big.mark = ",", digits = 0),
       y = save_ped + (save_bike * 0.5)
     ), fill = "white", color = "grey20", size = 3) +
     geom_label(
       aes(
-        label = prettyNum(format(save_total, scientific = F), big.mark = ",", digits = 0),
+        label = prettyNum(format(save_total, scientific = F),
+                          big.mark = ",", digits = 0),
         y = save_total
       ),
       fill = "white", color = "black", size = 5,
@@ -112,8 +119,10 @@ location_map_fxn <- function(name) {
     meta$system_label, "Trail system",
     paste0("(", meta$primary_district, ")."),
     "Trail boundaries were accessed via",
-    ifelse(meta$system == "Greater MN", "personal communication in July, 2021",
-           "Minnesota Geospatial Commons in July 2023"),
+    ifelse(meta$system == "Greater MN",
+           "personal communication in July, 2021",
+           "Minnesota Geospatial Commons in July 2023"
+    ),
     "and may have been edited to improve LBS data performance."
   )
 
@@ -145,7 +154,7 @@ location_map_fxn <- function(name) {
   logo_file <- file.path(getwd(), "data-temp/mapexport", paste0(name, ".png"))
 
   legend <- get_legend(cleaned_trail_segments_mapping %>%
-                         filter(unit_id == name) %>%
+    filter(unit_id == name) %>%
     ggplot() +
     geom_sf(aes(fill = total_vol, color = total_vol), linewidth = 3) +
     scale_color_viridis_b(
@@ -180,8 +189,10 @@ location_map_fxn <- function(name) {
         plot.margin = unit(c(t = 0, r = 0, b = 0, l = 2), "cm")
       ))
   locmap2 <- plot_grid(loc_map, legend, rel_widths = c(1, .25)) %>%
-    add_sub(paste("\n", strwrap(location_map_text, width = 60),
-                  collapse = "\n"),
+    add_sub(
+      paste("\n", strwrap(location_map_text, width = 60),
+        collapse = "\n"
+      ),
       x = 0, hjust = 0,
       fontfamily = "Avenir", lineheight = 0.5, size = 12
     ) %>%
@@ -199,8 +210,10 @@ monthly_timeseries_plot_fxn <- function(x) {
     ggplot(aes(x = start_date, y = miles_traveled)) +
     geom_line(col = "black") +
     geom_point(size = 2) +
-    scale_y_continuous(labels = scales::comma,
-                       expand = expansion(mult = c(0, 0.2))) +
+    scale_y_continuous(
+      labels = scales::comma,
+      expand = expansion(mult = c(0, 0.2))
+    ) +
     scale_x_date(
       date_breaks = "3 months", date_labels = "%b '%y", expand = c(0, 0),
       limits = c(as.Date("2019-01-01"), as.Date("2022-04-26"))
@@ -244,8 +257,10 @@ seasonal_mode_share_fxn <- function(x) {
     geom_point(size = 4) +
     geom_line(lwd = 1) +
     legacy_theme +
-    scale_y_continuous(label = scales::label_percent(),
-                       expand = expansion(mult = c(0, 0.025))) +
+    scale_y_continuous(
+      label = scales::label_percent(),
+      expand = expansion(mult = c(0, 0.025))
+    ) +
     scale_color_manual(values = c(
       "Pedestrian" = legacy_green,
       "Bicycle" = legacy_blue
@@ -285,8 +300,10 @@ hourly_timeseries_plot_fxn <- function(x) {
       time2 = strftime(time, format = "%H:%M"),
       label = if_else(time2 == "23:00", day_type, NA_character_)
     ) %>%
-    ggplot(aes(x = time, y = percent, color = day_type,
-               group = day_type, pch = day_type)) +
+    ggplot(aes(
+      x = time, y = percent, color = day_type,
+      group = day_type, pch = day_type
+    )) +
     geom_point(size = 4) +
     geom_line(lwd = 1) +
     legacy_theme +
@@ -294,10 +311,14 @@ hourly_timeseries_plot_fxn <- function(x) {
       "Weekday (M-F)" = legacy_blue,
       "Weekend (Sa-Su)" = legacy_green
     )) +
-    scale_y_continuous(labels = scales::label_percent(),
-                       expand = c(0, 0.01)) +
-    scale_x_datetime(date_breaks = "4 hours", date_labels = "%l%p",
-                     expand = expansion(mult = c(0.01, 0.01))) +
+    scale_y_continuous(
+      labels = scales::label_percent(),
+      expand = c(0, 0.01)
+    ) +
+    scale_x_datetime(
+      date_breaks = "4 hours", date_labels = "%l%p",
+      expand = expansion(mult = c(0.01, 0.01))
+    ) +
     labs(
       x = "", color = "", shape = "", y = "", title = "Hourly use",
       subtitle = paste(strwrap(hour_text, width = 80), collapse = "\n")
@@ -412,16 +433,22 @@ demo_table_fxn <- function(x) {
     rename(trail_pct = percent)
 
   demo_tab1 <- comp %>%
-    full_join(x2 %>%
-                select(label,
-                       day_type,
-                       zone_name, unit_id,
-                       category, group, trail_pct),
-              by = c("category", "group"))
+    full_join(
+      x2 %>%
+        select(
+          label,
+          day_type,
+          zone_name, unit_id,
+          category, group, trail_pct
+        ),
+      by = c("category", "group")
+    )
 
   col_name <- ifelse(x$system[1] == "DNR", "State Average",
-                     ifelse(x$system[1] == "Greater MN", "Greater Minnesota Average",
-                            "Metro Region Average"))
+    ifelse(x$system[1] == "Greater MN", "Greater Minnesota Average",
+      "Metro Region Average"
+    )
+  )
 
   demo_tab <- demo_tab1 %>%
     mutate(
@@ -441,8 +468,10 @@ demo_table_fxn <- function(x) {
     font(part = "all", fontname = "Avenir") %>%
     fontsize(part = "all", size = 14) %>%
     align(j = 1, align = c("right"), part = "all") %>%
-    hline(i = c(8, 15),
-          border = officer::fp_border(color = "grey40", width = 2)) %>%
+    hline(
+      i = c(8, 15),
+      border = officer::fp_border(color = "grey40", width = 2)
+    ) %>%
     bold(j = 1, bold = TRUE) %>%
     width(width = c(.5, 1.5, 1, 1)) %>%
     vline(j = 1, part = "all") %>%
@@ -452,7 +481,8 @@ demo_table_fxn <- function(x) {
     "Visitor demographics are inferred based on home locations and data from the 2020 US Census. The table summarizes inferred demographic attributes of visitors to",
     unique(x$unit_label), "during 2021 (LBS data). 2020 US Census data for",
     ifelse(meta$system == "DNR", "the state",
-           ifelse(meta$system == "Greater MN", "Greater Minnesota (the state minus the 7-county metro area)", "the 7-county metro area")), "is provided for context. Please note that local and/or historical context is crucial when interpreting trail-level demographic data."
+      ifelse(meta$system == "Greater MN", "Greater Minnesota (the state minus the 7-county metro area)", "the 7-county metro area")
+    ), "is provided for context. Please note that local and/or historical context is crucial when interpreting trail-level demographic data."
   )
 
   demo_explainer <- textbox_grob(demo_explain,

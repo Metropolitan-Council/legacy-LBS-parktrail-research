@@ -52,8 +52,7 @@ system_label_cols <- c(
 
 # find Avenir
 
-avenir_location <- function(){
-
+avenir_location <- function() {
   if (grepl("mac", osVersion)) {
     # if mac, search default font paths
     sysfonts::font_paths()
@@ -71,8 +70,10 @@ avenir_location <- function(){
 
   font_locs <- subset(
     sysfonts::font_files(),
-    family %in% c("Avenir",
-                  "Avenir Book")
+    family %in% c(
+      "Avenir",
+      "Avenir Book"
+    )
   )
 
   return(here::here(font_locs$path, font_locs$file))

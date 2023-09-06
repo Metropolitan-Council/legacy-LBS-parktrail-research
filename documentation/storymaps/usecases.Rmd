@@ -213,11 +213,13 @@ The analysis could be expanded to consider bicyclists traveling in both directio
 
 ```{r duluth-table}
 dt %>%
-  mutate(entrance_use = 11,
-         Destination = case_when(
-           origin == "entrance" & destination == "exit" ~ "Exit Gate",
-           origin == "entrance" & destination == "Hartley Park" ~ "Hartley Park"
-         )) %>%
+  mutate(
+    entrance_use = 11,
+    Destination = case_when(
+      origin == "entrance" & destination == "exit" ~ "Exit Gate",
+      origin == "entrance" & destination == "Hartley Park" ~ "Hartley Park"
+    )
+  ) %>%
   filter(!is.na(Destination)) %>%
   group_by(Destination) %>%
   summarise(pct_from_entrance = ped_use / entrance_use, .groups = "keep") %>%

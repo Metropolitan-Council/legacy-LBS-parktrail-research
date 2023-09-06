@@ -2,8 +2,10 @@ annual_bar_chart_fxn <- function(x) {
   x %>%
     filter(year != 2022) %>%
     ungroup() %>%
-    select(year, annual_bike, annual_ped,
-           annual_vehicle_visitors, annual_total) %>%
+    select(
+      year, annual_bike, annual_ped,
+      annual_vehicle_visitors, annual_total
+    ) %>%
     mutate(
       annual_active = annual_bike + annual_ped,
       save_active = annual_active,
@@ -22,11 +24,15 @@ annual_bar_chart_fxn <- function(x) {
     ggplot(aes(x = year, y = Visits, fill = Mode)) +
     geom_col(color = "black") +
     legacy_theme +
-    scale_y_continuous(labels = scales::comma,
-                       expand = expansion(mult = c(0, 0.2))) +
-    scale_x_continuous(expand = c(0, 0.1),
-                       labels = c("2019", "2020", "2021"),
-                       breaks = c(2019, 2020, 2021)) +
+    scale_y_continuous(
+      labels = scales::comma,
+      expand = expansion(mult = c(0, 0.2))
+    ) +
+    scale_x_continuous(
+      expand = c(0, 0.1),
+      labels = c("2019", "2020", "2021"),
+      breaks = c(2019, 2020, 2021)
+    ) +
     labs(
       x = "", y = "",
       title = "Total annual visits"
@@ -60,8 +66,10 @@ annual_table_fxn <- function(x) {
   ann_dat <- x %>%
     filter(year != 2022) %>%
     ungroup() %>%
-    select(year, annual_bike, annual_ped,
-           annual_vehicle_visitors, annual_total) %>%
+    select(
+      year, annual_bike, annual_ped,
+      annual_vehicle_visitors, annual_total
+    ) %>%
     transmute(
       `Year` = as.character(year),
       `Total visits` = annual_total,
@@ -104,15 +112,20 @@ location_map_fxn <- function(name) {
 
   location_map_text <- paste(
     meta$unit_label, "is part of the",
-    str_remove(meta$system_label,
-               " \\(Inclusive Boundaries\\)"), "Park system. The park is in",
+    str_remove(
+      meta$system_label,
+      " \\(Inclusive Boundaries\\)"
+    ), "Park system. The park is in",
     meta$primary_county, "County",
-    paste0("(",
-           str_remove(meta$district, " \\(Inclusive Boundaries\\)"), ")."),
+    paste0(
+      "(",
+      str_remove(meta$district, " \\(Inclusive Boundaries\\)"), ")."
+    ),
     "Park boundaries were accessed via",
     ifelse(meta$system == "Greater MN",
-           "personal communication in July, 2021",
-           "Minnesota Geospatial Commons in July 2023"),
+      "personal communication in July, 2021",
+      "Minnesota Geospatial Commons in July 2023"
+    ),
     "and may have been edited to improve LBS data performance."
   )
 
@@ -127,10 +140,10 @@ location_map_fxn <- function(name) {
     )
 
   (location_map %>%
-      mapview::mapshot(
-        vwidth = 800 / 1.2, vheight = 900 / 1.2,
-        file = file.path(getwd(), "data-temp/mapexport", paste0(name, ".png"))
-      ))
+    mapview::mapshot(
+      vwidth = 800 / 1.2, vheight = 900 / 1.2,
+      file = file.path(getwd(), "data-temp/mapexport", paste0(name, ".png"))
+    ))
 
   loc_file <- file.path(getwd(), "data-temp/mapexport", paste0(name, ".png"))
 
@@ -141,9 +154,10 @@ location_map_fxn <- function(name) {
     )
 
   loc_map2 <- plot_grid(loc_map) %>%
-    add_sub(paste("\n", strwrap(location_map_text, width = 60), collapse = "\n"),
-            x = 0, hjust = 0,
-            fontfamily = "Avenir", lineheight = 0.5, size = 12
+    add_sub(paste("\n", strwrap(location_map_text, width = 60),
+                  collapse = "\n"),
+      x = 0, hjust = 0,
+      fontfamily = "Avenir", lineheight = 0.5, size = 12
     ) %>%
     ggdraw()
 
@@ -165,8 +179,10 @@ weekly_timeseries_plot_fxn <- function(x) {
     legacy_theme +
     labs(
       x = "", y = "", title = "Weekly visits",
-      subtitle = paste0("Each point in this time series indicates estimated weekly visits to ",
-                        meta$unit_label, ".")
+      subtitle = paste0(
+        "Each point in this time series indicates estimated weekly visits to ",
+        meta$unit_label, "."
+      )
     ) +
     theme(
       legend.position = "none",
@@ -205,15 +221,20 @@ seasonal_mode_share_fxn <- function(x) {
       values_to = "Share"
     ) %>%
     mutate(Mode = factor(Mode,
-                         levels = c("Vehicle", "Pedestrian", "Bicycle"),
-                         ordered = TRUE)) %>%
-    ggplot(aes(x = month, y = Share, col = forcats::fct_rev(Mode),
-               pch = forcats::fct_rev(Mode), group = forcats::fct_rev(Mode))) +
+      levels = c("Vehicle", "Pedestrian", "Bicycle"),
+      ordered = TRUE
+    )) %>%
+    ggplot(aes(
+      x = month, y = Share, col = forcats::fct_rev(Mode),
+      pch = forcats::fct_rev(Mode), group = forcats::fct_rev(Mode)
+    )) +
     geom_point(size = 4) +
     geom_line(lwd = 1) +
     legacy_theme +
-    scale_y_continuous(label = scales::label_percent(),
-                       expand = expansion(mult = c(0, 0.025))) +
+    scale_y_continuous(
+      label = scales::label_percent(),
+      expand = expansion(mult = c(0, 0.025))
+    ) +
     labs(
       x = "", fill = "Mode", y = "", title = "Mode share",
       subtitle = paste(strwrap(modeshare_text, width = 80), collapse = "\n"),
@@ -249,8 +270,10 @@ hourly_timeseries_plot_fxn <- function(x) {
       time2 = strftime(time, format = "%H:%M"),
       label = if_else(time2 == "23:00", day_type, NA_character_)
     ) %>%
-    ggplot(aes(x = time, y = percent, color = day_type,
-               group = day_type, pch = day_type)) +
+    ggplot(aes(
+      x = time, y = percent, color = day_type,
+      group = day_type, pch = day_type
+    )) +
     geom_point(size = 4) +
     geom_line(lwd = 1) +
     legacy_theme +
@@ -259,8 +282,10 @@ hourly_timeseries_plot_fxn <- function(x) {
       "Weekend (Sa-Su)" = legacy_green
     )) +
     scale_y_continuous(labels = scales::label_percent(), expand = c(0, 0.01)) +
-    scale_x_datetime(date_breaks = "4 hours", date_labels = "%l%p",
-                     expand = expansion(mult = c(0.01, 0.01))) +
+    scale_x_datetime(
+      date_breaks = "4 hours", date_labels = "%l%p",
+      expand = expansion(mult = c(0.01, 0.01))
+    ) +
     labs(
       x = "", color = "", shape = "", y = "", title = "Hourly use",
       subtitle = paste(strwrap(hour_text, width = 80), collapse = "\n")
@@ -290,8 +315,10 @@ demo_table_fxn <- function(x) {
 
   x <- x %>%
     filter(str_detect(day_type, "All")) %>%
-    select(unit_id, day_type, zone_name, unit_label,
-           category, group, label, percent) %>%
+    select(
+      unit_id, day_type, zone_name, unit_label,
+      category, group, label, percent
+    ) %>%
     pivot_wider(names_from = label, values_from = percent) %>%
     rename(
       full_park_pct = year21
@@ -306,9 +333,11 @@ demo_table_fxn <- function(x) {
     full_join(x, by = c("category", "group"))
 
   col_name <- ifelse(meta$system == "DNR", "State Average",
-                     ifelse(meta$system == "Greater MN",
-                            "Greater Minnesota Average",
-                            "Metro Region Average"))
+    ifelse(meta$system == "Greater MN",
+      "Greater Minnesota Average",
+      "Metro Region Average"
+    )
+  )
 
   demo_tab <- demo_tab %>%
     mutate(
@@ -338,21 +367,25 @@ demo_table_fxn <- function(x) {
     "Visitor demographics are inferred based on home locations and data from the 2020 US Census. The table summarizes inferred demographic attributes of visitors to",
     unique(x$unit_label), "during 2021 (LBS data). 2020 US Census data for",
     ifelse(meta$system == "DNR", "the state",
-           ifelse(meta$system == "Greater MN",
-                  "Greater Minnesota (the state minus the 7-county metro area)",
-                  "the 7-county metro area")),
+      ifelse(meta$system == "Greater MN",
+        "Greater Minnesota (the state minus the 7-county metro area)",
+        "the 7-county metro area"
+      )
+    ),
     "is provided for context. Please note that local and/or historical context is crucial when interpreting park-level demographic data."
   )
 
   demo_explainer <- textbox_grob(demo_explain,
-                                 gp = gpar(fontfamily = "Avenir",
-                                           fontsize = 14, lineheight = 1),
-                                 margin = unit(c(0.1, 0.1, 0.1, 0.1), "cm")
+    gp = gpar(
+      fontfamily = "Avenir",
+      fontsize = 14, lineheight = 1
+    ),
+    margin = unit(c(0.1, 0.1, 0.1, 0.1), "cm")
   )
 
   demo_title <- textbox_grob("Visitor demographics",
-                             gp = gpar(fontfamily = "Avenir", fontsize = 22),
-                             margin = unit(c(0.1, 0.1, 0, 0.1), "cm")
+    gp = gpar(fontfamily = "Avenir", fontsize = 22),
+    margin = unit(c(0.1, 0.1, 0, 0.1), "cm")
   )
 
   demo_plot <- ggplot() +

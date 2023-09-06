@@ -13,8 +13,9 @@ load(file.path(here(), "data-intermediate/trails/trail-metadata.rda"))
 
 trail_metadata <- trail_metadata %>%
   mutate(primary_district = ifelse(system == "DNR",
-                                   paste0("DNR Area ", primary_district),
-                                   primary_district))
+    paste0("DNR Area ", primary_district),
+    primary_district
+  ))
 
 ## demographics
 load(file.path(here(), "data-intermediate/visitors/census-comp-pops.rda"))
@@ -131,10 +132,12 @@ create_unit_fig <- function(name) {
 
   # title
   title <- textbox_grob(paste(meta$long_unit_label),
-                        gp = gpar(fontfamily = "Avenir",
-                                  fontsize = 40, fontface = "bold",
-                                  lineheight = 0.6),
-                        margin = unit(c(1, 1, 2, 2), "cm")
+    gp = gpar(
+      fontfamily = "Avenir",
+      fontsize = 40, fontface = "bold",
+      lineheight = 0.6
+    ),
+    margin = unit(c(1, 1, 2, 2), "cm")
   )
 
   # paragraph directly under title with basic info
@@ -148,10 +151,12 @@ create_unit_fig <- function(name) {
   )
 
   explainer <- textbox_grob(explain_text,
-                            use_markdown = TRUE,
-                            gp = gpar(fontfamily = "Avenir",
-                                      fontsize = 14, lineheight = 1),
-                            margin = unit(c(0.5, 1, 1, 0), "cm")
+    use_markdown = TRUE,
+    gp = gpar(
+      fontfamily = "Avenir",
+      fontsize = 14, lineheight = 1
+    ),
+    margin = unit(c(0.5, 1, 1, 0), "cm")
   )
 
   # annual bar chart
@@ -175,8 +180,9 @@ create_unit_fig <- function(name) {
     paste0("(", meta$primary_district, ")."),
     "Trail boundaries were accessed via",
     ifelse(meta$system == "Greater MN",
-           "personal communication in July, 2021",
-           "Minnesota Geospatial Commons in July 2023"),
+      "personal communication in July, 2021",
+      "Minnesota Geospatial Commons in July 2023"
+    ),
     "and may have been edited to improve LBS data performance."
   )
 
@@ -209,67 +215,85 @@ create_unit_fig <- function(name) {
   ## PUT IT ALL TOGETHER
 
   annfigs <- plot_grid(bars,
-                       plot_grid(nullGrob(),
-                                 annual_table,
-                                 nullGrob(), nrow = 3, ncol = 1,
-                                 rel_heights = c(.3, 1, .3)), rel_widths = c(1, 1))
+    plot_grid(nullGrob(),
+      annual_table,
+      nullGrob(),
+      nrow = 3, ncol = 1,
+      rel_heights = c(.3, 1, .3)
+    ),
+    rel_widths = c(1, 1)
+  )
 
   top <- plot_grid(title,
-                   plot_grid(
-                     nullGrob(),
-                     plot_grid(explainer, annfigs, ncol = 1,
-                               rel_heights = c(2, 3.5)),
-                     loc_map,
-                     nullGrob(),
-                     nrow = 1, rel_widths = c(0.5, 5, 3, 0.2)
-                   ),
-                   ncol = 1, rel_heights = c(1, 5)
+    plot_grid(
+      nullGrob(),
+      plot_grid(explainer, annfigs,
+        ncol = 1,
+        rel_heights = c(2, 3.5)
+      ),
+      loc_map,
+      nullGrob(),
+      nrow = 1, rel_widths = c(0.5, 5, 3, 0.2)
+    ),
+    ncol = 1, rel_heights = c(1, 5)
   )
 
   middle <- plot_grid(nullGrob(),
-                      season_mode, hour_ts,
-                      nullGrob(),
-                      nrow = 1, rel_widths = c(0.05, 1, 1, 0.1)
+    season_mode, hour_ts,
+    nullGrob(),
+    nrow = 1, rel_widths = c(0.05, 1, 1, 0.1)
   )
 
   bottom <- plot_grid(nullGrob(),
-                      home_map, nullGrob(), demo_plot,
-                      nullGrob(),
-                      nrow = 1, rel_widths = c(0.1, 1, 0.1, 1, 0.1)
+    home_map, nullGrob(), demo_plot,
+    nullGrob(),
+    nrow = 1, rel_widths = c(0.1, 1, 0.1, 1, 0.1)
   )
 
   figure <- plot_grid(nullGrob(), top,
-                      plot_grid(nullGrob(), month_ts, nullGrob(), nrow = 1,
-                                rel_widths = c(0.05, 1, 0.05)),
-                      middle, bottom, nullGrob(),
-                      ncol = 1, rel_heights = c(0.2, 8, 4, 5.5, 7, 0.2)
+    plot_grid(nullGrob(), month_ts, nullGrob(),
+      nrow = 1,
+      rel_widths = c(0.05, 1, 0.05)
+    ),
+    middle, bottom, nullGrob(),
+    ncol = 1, rel_heights = c(0.2, 8, 4, 5.5, 7, 0.2)
   )
 
 
   # create folder if it doesn't already exist
-  if(!file.exists(paste0(here::here(), "/figures/factsheets/", meta$system,
-                         "-trails/"))){
-    dir.create(paste0(here::here(), "/figures/factsheets/",
-                      meta$system,
-                      "-trails/"),
-               recursive = TRUE)
+  if (!file.exists(paste0(
+    here::here(), "/figures/factsheets/", meta$system,
+    "-trails/"
+  ))) {
+    dir.create(
+      paste0(
+        here::here(), "/figures/factsheets/",
+        meta$system,
+        "-trails/"
+      ),
+      recursive = TRUE
+    )
   }
 
   if (meta$system == "Metro Regional") {
     save_plot(figure,
-              filename = paste0(here::here(), "/figures/factsheets/", meta$system,
-                                "-trails/",
-                                stringr::str_replace(meta$unit_id, "/", "-"),
-                                "_", meta$short_agency, ".pdf"),
-              base_height = 23, base_width = 17
+      filename = paste0(
+        here::here(), "/figures/factsheets/", meta$system,
+        "-trails/",
+        stringr::str_replace(meta$unit_id, "/", "-"),
+        "_", meta$short_agency, ".pdf"
+      ),
+      base_height = 23, base_width = 17
     )
   } else {
     save_plot(figure,
-              filename = paste0(here::here(), "/figures/factsheets/", meta$system,
-                                "-trails/",
-                                stringr::str_replace(meta$unit_id, "/", "-"),
-                                ".pdf"),
-              base_height = 23, base_width = 17
+      filename = paste0(
+        here::here(), "/figures/factsheets/", meta$system,
+        "-trails/",
+        stringr::str_replace(meta$unit_id, "/", "-"),
+        ".pdf"
+      ),
+      base_height = 23, base_width = 17
     )
   }
 
