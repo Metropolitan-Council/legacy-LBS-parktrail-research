@@ -1,0 +1,864 @@
+---
+title: "Visitors"
+output:
+  bookdown::word_document2:
+    reference_docx: ../documentation/wordtemplate.docx
+    toc: true
+    toc_depth: 6
+  github_document:
+      toc: true
+      toc_depth: 6
+urlcolor: blue
+always_allow_html: yes
+---
+
+```{r visitors-setup, include = FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.pos = "H",
+  out.width = "65%",
+  fig.height = 4,
+  fig.asp = 0.6,
+  dpi = 300
+)
+### source basic utility functions, colors for plotting, etc
+source(file.path(here::here(), "R/_load_packages.R"))
+source(file.path(here(), "R/_utility_functions.R"))
+source(file.path(here(), "R/_global_parameters.R"))
+source(file.path(here(), "R/_streetlight_credentials_parameters.R"))
+source(file.path(here(), "R/_set_aesthetics.R"))
+
+park_metadata <- readRDS(file.path(here(), "data-intermediate/parks/parks-metadata.RDS"))
+load(file.path(here(), "data-intermediate/trails/trail-metadata.rda"))
+```
+
+
+
+```{r process-demos}
+### set each component to TRUE to edit corresponding demographics
+process_park_demos <- FALSE
+if (process_park_demos == TRUE) {
+  source(file.path(here::here(), "visitors/01_process-park-demos.R"))
+}
+
+process_trail_demos <- FALSE
+if (process_trail_demos == TRUE) {
+  source(file.path(here::here(), "visitors/01_process-trail-demos.R"))
+}
+
+process_survey_demos <- FALSE
+if (process_survey_demos == TRUE) {
+  source(file.path(here::here(), "visitors/02_process_survey_demos.R"))
+}
+
+combine_demos <- FALSE
+if (combine_demos == TRUE) {
+  source(file.path(here(), "visitors/03_combine_parktrail_demographics.R"))
+}
+```
+
+```{r process-homes}
+### set each component to TRUE to edit corresponding home locations
+process_park_homes <- FALSE
+if (process_park_demos == TRUE) {
+  source(file.path(here::here(), "visitors/04_process_park_homes.R"))
+}
+
+process_trail_homes <- FALSE
+if (process_trail_demos == TRUE) {
+  source(file.path(here::here(), "visitors/04_process_trail_homes.R"))
+}
+
+combine_homes <- FALSE
+if (combine_homes == TRUE) {
+  source(file.path(here::here(), "visitors/05_combine_parktrail_homes.R"))
+}
+```
+
+```{r get-sample-sizes}
+### set to TRUE to get unit-level LBS sample sizes (for validation)
+get_trail_sample_sizes <- FALSE
+
+if (get_trail_sample_sizes == TRUE) {
+  source(file.path(here(), "visitors/06_get_sample_size.R"))
+}
+```
+
+```{r get-comp-pops}
+### set to TRUE to process census data for comparison to LBS demographics
+get_comp_pops <- FALSE
+
+if (get_comp_pops == TRUE) {
+  source(file.path(here(), "visitors/07_get_comp_pops.R"))
+}
+```
+
+
+```{r visitor-documentation-setup}
+load(file.path(here(), "data-intermediate/processed/all-processed-demographics.rda"))
+load(file.path(here(), "data-intermediate/processed/processed-homes.rda"))
+source(file.path(here(), "R/f_demo_compare.R"))
+```
+
+```{r export-visitor-excel}
+### set to TRUE if you want to export a new excel workbook of visitor results
+export_visitor_excel <- FALSE
+
+if (export_visitor_excel == TRUE) {
+  source(file.path(here(), "visitors/08_export_visitor_excel.R"))
+}
+```
+
+```{r home-states, warning = FALSE, message = FALSE, results = "hide"}
+state_pcts <- home_states %>%
+  filter(label %in% c("full21", "year21")) %>%
+  group_by(state_name) %>%
+  summarise(total_by_state = sum(total_by_state), .groups = "keep") %>%
+  ungroup() %>%
+  mutate(percent_by_state = total_by_state / sum(total_by_state))
+
+
+states <- tigris::states(cb = TRUE) %>%
+  filter(!NAME %in% c(
+    "Commonwealth of the Northern Mariana Islands",
+    "Hawaii", "United States Virgin Islands",
+    "American Samoa", "Alaska", "Guam", "Puerto Rico"
+  ))
+
+map_data <- states %>%
+  left_join(state_pcts, by = c("NAME" = "state_name"))
+```
+
+# Visitors
+
+We found high use of parks and trails across the state. Most visitors live within Minnesota (`r scales::percent(state_pcts$percent_by_state[state_pcts$state_name=="Minnesota"], accuracy = 0.01)`), but we also found that Minnesota’s parks and trails attracted visitors from across the country. We found the benefits of accessible green space are not equitably distributed among Minnesotans and that the specific dynamics of visitor demographics varied across systems and individual park and trail units. Understanding the demographic characteristics of visitors to Minnesota’s parks and trails can help reduce barriers to access and create more equitable access to parks and trails for all Minnesotans.  
+
+
+## Methods
+
+Aggregated and anonymized LBS data was used to infer park and trail visitor home locations and demographics. StreetLight Data, Inc. produces this inferred data by combining aggregated, anonymized GPS data with census information. Inferred home locations and demographics provide an opportunity to explore the demographics of park and trail visitors on a broad scale. Note that inferred demographics cannot and should not replace data about individuals’ lived experiences. Inferred data may be used to augment existing data or guide future research efforts, but should not be considered a replacement for intercept survey data. 
+
+In this project, similar methods were used to process visitor demographics for parks and trails. Inferred home locations and demographics were accessed via StreetLight analyses described in sections 2.1.2 and 3.1.2, respectively. 
+
+Inferred visitor home locations are reported at the block group, zip code, and/or state level. Inferred demographics are reported in three categories: race/ethnicity, educational attainment, and income. Inferred home locations and demographics are available for the year 2021. 
+
+
+#### StreetLight's inferred home locations
+
+StreetLight infers visitor home locations by assigning home locations to the devices (i.e., smartphones) in their data sample. Device home locations are probabilistically assigned based on where a device "spends the night" most often. Nighttime hours are defined as 7 p.m. - 8 a.m. every day of the week. If a device is consistently in a given location between these hours, that location is inferred to be the device's "home." 
+
+This method assumes that the majority of the population is at home, not work, during these hours. Naturally, some home locations will be misclassified when devices do not follow the traditional pattern of working 9 a.m. - 5 p.m. outside of the home. StreetLight performs additional data cleaning steps to minimize such errors, such as limiting home locations to residential census blocks. However, workers with atypical shifts or domestic workers who are employed in residential census blocks may be misrepresented by these methods. 
+
+StreetLight assigns home locations on a monthly basis. Therefore, seasonal residents will be captured so long as they spend at least one month in their seasonal home location. In this analysis, we can identify home locations for visitors from outside of Minnesota, but not for international visitors. 
+
+Additionally, a single device can be assigned to multiple home locations (up to five). For example, if a device spends 50% of nights in one census block and 50% of nights in another, it will be considered by StreetLight's algorithms in each census block, weighted by the proportion of nights spent in each block. 
+
+Once device home locations are distributed at the census block level, StreetLight's algorithms expand the sampled devices to reflect the full population of visitors. In other words, visitor home locations are modeled based on a sample of device home locations. This data is aggregated at coarser geographies, such as census block groups or zip codes, before being shared with the project team. Like all of StreetLight's LBS data, this data is anonymized and can never be used to identify individuals. 
+
+#### StreetLight's inferred demographics
+
+StreetLight infers visitor demographics by coupling the inferred home locations described above with spatially explicit census demographics. Like home locations, demographics are probabilistically assigned based on the census data associated with a device's inferred home census block. 
+
+This method of inference can be vulnerable to the ecological fallacy (i.e., incorrectly drawing inferences about individuals based on a larger group they belong to). StreetLight addresses this challenge by correcting for the proportion of the population represented in their data sample, and for variations in cell phone usage across geographic space and socioeconomic groups (see [StreetLight's "Larger and More Representative Sample Size" white paper](https://learn.streetlightdata.com/larger-more-representative-sample-size) for more information). However, because StreetLight never collects data on individuals, there is no way to confirm which residents in any given census block own the devices in StreetLight's sample. 
+
+Other limitations of inferred demographics include a lack of qualitative information (e.g., visitors' lived experiences collected through methods such as focus groups) and limited categories for describing visitors' identities (e.g., categories of race and ethnicity [used by the US Census Bureau](https://www.census.gov/quickfacts/fact/note/US/RHI625222#:~:text=OMB%20requires%20five%20minimum%20categories,report%20more%20than%20one%20race.)). 
+
+Due to these challenges, inferred demographic data is reported only at the park- or trail-level in this project. We believe that local, historical, and/or cultural context is critical when considering these inferred data.
+
+### LBS Analyses
+
+Various LBS analyses were used to gather inferred home locations and demographics for parks and trails. Home location data is only available for areas of less than 4km$^2$. Therefore, home locations and demographics for parks were collected using zone activity analyses on park perimeter zones (described in section 2.1.1.2). Trail demographics were collected for each identified trail segment, and trail home locations were collected using the entire trail polygons (described in section 3.1.1). Trail polygons were used due to data coverage issues observed with segments (i.e., many individual trail segments had few enough daily visitors that no home location data was reported in order to maintain data privacy standards). 
+
+For both parks and trails, home locations and demographics were collected for summer 2021 for validation purposes. However, data for the entire year is reported in this project (unless otherwise specified).
+
+Note that both polygon and perimeter zones were considered for collecting park demographics. Each method produced very similar results. No significant differences were observed when validating demographic data gathered from perimeters versus polygons. Because demographics are based on home locations, perimeter zones were selected for consistency. At individual parks, there may be slight differences in demographic estimates produced by perimeters versus polygons. Interpreting such differences would be challenging and require substantial knowledge about a given park. Therefore, comparing and/or contrasting these estimates was not feasible for the entire project sample.
+
+### Creating estimates of user attributes
+
+Home location data for each applicable mode (vehicles, bicycles, and pedestrians for parks; bicycles and pedestrians for trails) was combined and weighted by mode to reflect the overall share of visits from a given home location. Vehicle multipliers were used when conducting this weighting. Data was aggregated at the zip code level for validation purposes. Final results are shared at the census block group and state level. 
+
+In order to facilitate validation, demographic data was processed to match the categories used by the [Metropolitan Council's 2021 Visitor Study](https://metrocouncil.org/Parks/Research/Visitor-Study.aspx). The intercept survey and LBS data did not perfectly align in all demographic categories. Within the topic of race and ethnicity, the survey asked a combined question about race and ethnicity, while the LBS data treats race and ethnicity as two separate attributes. To align these metrics, LBS race and ethnicity data was rescaled to relative percentages such that all categories sum to 100%. 
+
+Within the topic of household income, two income brackets had different starting and ending points. The LBS data had information on people with an average household income of $60 - 74,9999 and $75 - 99,999 while the intercept survey used income categories of $60 - 79,000 and $80 - 99,999. Because there was full agreement on all other income categories, we chose to allow these two categories to have different ending and starting points (e.g., $60 - 74/79,999 and $75/80 - 99,999) and keep the finer scale resolution rather than combining into an aggregated $60-99,999 category. 
+
+Like home locations, demographics were weighted by mode. For parks, vehicle multipliers were used for weighting. For trails, demographics were collected at the segment level and data was additionally weighted by segment-level use. Home locations were also rescaled to relative percentages such that the percentage of visitors from each reported home location sums to 100% for each park or trail. This may not reflect all home locations of visitors; when there are few enough visits from a given home location, StreetLight does not report any data to maintain privacy standards. 
+
+### Comparison populations
+
+In addition to LBS data, data from the 2020 US Census was processed to match the demographic categories captured by the intercept survey and LBS data. This data was obtained using the R package [tidycensus](https://walker-data.com/tidycensus/). Data was summarized for the entire state of Minnesota, the 7-county Twin Cities metropolitan area, and the entire state minus the 7-county metro area. These "comparison populations" are used to provide context for unit-level estimates of demographics for DNR State, Metro Regional, and Greater MN Regional parks and trails respectively. Comparison populations are used in the park- and trail-level fact sheets available on the [project website](https://arcg.is/0Oee0W0). 
+
+### Data Validation
+
+Home location and demographic data gathered by the Metropolitan Council's 2021 Visitor Study (the "intercept survey") was used to validate LBS estimates. During the survey, ten units (8 parks and 2 trails) were over-sampled (i.e., additional surveys were conducted), in part to facilitate this validation. 
+
+One notable difference between intercept survey and LBS data was the associated sample size (Table \@ref(tab:sample-size-compare)). The intercept survey was administered in person to between 198 and 388 visitors at each over-sampled unit. Rather than visitors, StreetLight's LBS data samples devices (i.e., smart phones with GPS services enabled). The approximate number of devices sampled ranged from 1,000 to 19,500 at each unit. This discrepancy in sample size results in some differences between the data sources. For example, LBS data detected more unique home locations than the intercept survey (Table \@ref(tab:cor-by-park)). 
+
+
+```{r sample-size-compare}
+load(file.path(here(), "data-intermediate/visitors/sample-size.rda"))
+load(file.path(here(), "data-raw/intercept-survey/raven_surveymetadata.rda"))
+
+park_to_zone <- data.frame(
+  zone_name = c(
+    "Battle-Creek_park_Metro-Regional_Ramsey-County",
+    "Cleary-Lake_park_Metro-Regional_Three-Rivers",
+    "Como-Zoo-and-Conservatory_park_Metro-Regional_Saint-Paul",
+    "Hyland-Bush-Anderson-Lakes_park_Metro-Regional_Bloomington",
+    "Lake-Elmo_park_Metro-Regional_Washington-County",
+    "Lake-Minnewashta_park_Metro-Regional_Carver-County",
+    "Lebanon-Hills_park_Metro-Regional_Dakota-County",
+    "North-Mississippi_park_Metro-Regional_MPRB",
+    "Lake-Minnetonka-LRT_trail_Metro-Regional_Three-Rivers",
+    "Rice-Creek-West_trail_Metro-Regional_Anoka-County"
+  ),
+  unit_name = c(
+    "Battle Creek", "Cleary Lake",
+    "Como Zoo and Conservatory", "Hyland Bush Anderson Lakes",
+    "Lake Elmo", "Lake Minnewashta", "Lebanon Hills", "North Mississippi",
+    "Lake Minnetonka LRT", "Rice Creek West"
+  ),
+  PARK = c(
+    "Battle Creek Regional Park",
+    "Cleary Lake Regional Park (Scott County)",
+    "Como Regional Zoo and Conservatory",
+    "Bush and Normandale Lakes Regional Park",
+    "Lake Elmo Park Reserve",
+    "Lake Minnewashta Regional Park",
+    "Lebanon Hills Regional Park",
+    "North Mississippi Regional Park (MPRB)",
+    "Lake Minnetonka LRT Regional Trail",
+    "Rice Creek West Regional Trail (Anoka County)"
+  )
+)
+
+num_surveys <- raven_surveymetadata %>%
+  left_join(park_to_zone, by = "PARK") %>%
+  group_by(unit_name) %>%
+  summarise(count = n(), .groups = "keep") %>%
+  transmute(
+    Unit = unit_name,
+    `Completed surveys` = count
+  )
+
+num_lbs_devices <- sample_size %>%
+  left_join(park_to_zone, by = "zone_name") %>%
+  transmute(
+    Unit = unit_name,
+    `Approximate LBS \ndevice count` = Total
+  )
+
+sample_size_comp <- full_join(num_surveys, num_lbs_devices)
+
+load(file.path(here(), "data-intermediate/processed/park-volume.rda"))
+load(file.path(here(), "data-intermediate/processed/trail-volume.rda"))
+
+annual_use_ss_comp <- annual_volume %>%
+  filter(zone_name %in% park_to_zone$zone_name) %>%
+  select(zone_name, year, annual_total) %>%
+  bind_rows(annual_trail_volume %>%
+    filter(
+      unit_id %in% park_to_zone$zone_name,
+      str_detect(day_type, "All")
+    ) %>%
+    select(zone_name = unit_id, year, annual_total = counter_estimate)) %>%
+  left_join(park_to_zone)
+
+full_ss_comp <- sample_size_comp %>%
+  left_join(annual_use_ss_comp %>%
+    filter(year == 2021) %>%
+    select(Unit = unit_name, annual_total)) %>%
+  mutate(
+    `Percent surveyed` = `Completed surveys` / annual_total,
+    `Percent sampled` = `Approximate LBS \ndevice count` / annual_total
+  ) %>%
+  ungroup() %>%
+  transmute(
+    Unit = Unit,
+    `Completed surveys` = prettyNum(`Completed surveys`, big.mark = ","),
+    `Percent surveyed` = scales::percent(`Percent surveyed`, accuracy = 0.01),
+    `Approximate LBS \ndevice count` = prettyNum(`Approximate LBS \ndevice count`, big.mark = ","),
+    `Percent sampled` = scales::percent(`Percent sampled`, accuracy = 0.01)
+  )
+
+full_ss_comp %>%
+  arrange(Unit) %>%
+  qflextable() %>%
+  autofit() %>%
+  set_caption("Comparison of sample size at each oversampled unit. The intercept survey was administered to 0.01 - 0.09% of annual visitors (as estimated by the LBS methods described in this report). StreetLight Data sampled 1.2 - 2.64% of annual visitors.") %>%
+  align(align = "center", part = "all") %>%
+  add_header_row(
+    values = c("", "Intercept Survey", "LBS Data"),
+    colwidths = c(1, 2, 2)
+  ) %>%
+  bold(bold = TRUE, part = "header") %>%
+  align(align = "center", i = 1, part = "header") %>%
+  height(height = 0.4)
+```
+
+#### Home Locations
+
+```{r}
+cordat <- cor.test(oversample_home_wide$LBS, oversample_home_wide$Survey)
+
+all_cordat <- oversample_home_wide %>%
+  group_by(unit_name) %>%
+  tidyr::nest() %>%
+  rowwise() %>%
+  mutate(
+    cor = cor.test(data$LBS, data$Survey)$estimate,
+    p = cor.test(data$LBS, data$Survey)$p.value
+  )
+
+home_aov <- anova(lm(Survey ~ unit_name * LBS, oversample_home_wide)) %>%
+  rename(f = `F value`)
+
+como_investigation <- count(oversample_home_wide, unit_name) %>%
+  group_by(unit_name) %>%
+  mutate(unit_name = stringr::str_split(unit_name, " - ")[[1]][1]) %>%
+  select(
+    `Park` = unit_name,
+    `zipcodes compared` = n
+  )
+```
+
+The intercept survey reports home locations at the zip code level. The strength of the relationship between the percent of visitors living in zip codes as measured via the intercept survey and LBS varied significantly by park or trail unit (F = `r round(home_aov[3,]$f, 2)` , p < 0.001; Figure \@ref(fig:home-location-summary)). However, visitor home locations were observed to have a strong, positive correlation between methods at all ten units (Table \@ref(tab:cor-by-park)). 
+
+Lower correlation observed at units such as Como Zoo and Conservatory can be explained in part by differing sample sizes and number of zip codes identified by each data source. In some cases, the intercept survey identified distant home zip codes with a single surveyed visitor. Consider Como Zoo and Conservatory, where 214 surveys were conducted. If a single survey were administered to a visitor from Two Harbors, for example, `r scales::percent(1/214, accuracy = 0.001)` of survey respondents would have a Two Harbors home zip code. Because LBS data has a larger sample size and identified more home zip codes overall, LBS data tends to estimate a smaller percentage of visitors living in more distant home locations. For example, the LBS sample for Como Zoo and Conservatory consists of approximately 19,500 devices. If one of these devices were from Two Harbors, it would represent only `r scales::percent(1/19500, accuracy = 0.001)` of sampled devices. This phenomenon means that the intercept survey tends to estimate more visitors from distant home locations (Figure \@ref(fig:como-investigation)).
+
+```{r cor-by-park}
+all_cordat %>%
+  group_by(unit_name) %>%
+  mutate(
+    cor = round(cor, 2),
+    unit_name = stringr::str_split(unit_name, " - ")[[1]][1],
+    p = ifelse(p < 0.001, "<0.001", p)
+  ) %>%
+  select(
+    `Park` = unit_name,
+    `p-value` = p,
+    `r-value` = cor
+  ) %>%
+  full_join(como_investigation) %>%
+  full_join(oversample_zip_count %>% rename(Park = unit_name)) %>%
+  ungroup() %>%
+  transmute(
+    Unit = Park,
+    LBS = LBS,
+    Survey = Survey,
+    Shared = `zipcodes compared`,
+    `r-value` = `r-value`,
+    `p-value` = `p-value`
+  ) %>%
+  arrange(Unit) %>%
+  qflextable() %>%
+  autofit() %>%
+  set_caption("Correlation between intercept survey and LBS data visitor home locations. A correlation test was performed on the percent of visitors inferred to live in each zip code by each data source. The total number of zip codes compared for each park are shown.") %>%
+  add_header_row(
+    values = c("", "Zip codes identified", "Correlation"),
+    colwidths = c(1, 3, 2)
+  ) %>%
+  align(align = "center", i = 1, part = "header") %>%
+  bold(bold = TRUE, part = "header") %>%
+  align(align = "center", i = 1, part = "header")
+```
+
+```{r home-location-summary}
+#| fig.cap = "Comparison of intercept survey and LBS data home locations at eight oversampled metropolitan area regional parks. Each point represents one home zip code. The values on the axes indicate the percent of visitors to the indicated park estimated to live in that zip code. The lines of best fit shows a strong positive correlation between these estimates, while the black, dashed line shows a 1:1 relationship. Source: Metropolitan Council visitor Survey, StreetLight Data, Inc. Accessed July 2023.",
+#| out.width = "80%",
+#| fig.asp = 0.7
+
+oversample_home_wide %>%
+  rename(Park = unit_name) %>%
+  group_by(Park) %>%
+  mutate(Park = stringr::str_split(Park, " - ")[[1]][1]) %>%
+  ungroup() %>%
+  ggplot(aes(x = Survey, y = LBS, color = Park)) +
+  geom_smooth(
+    method = "lm", alpha = 0.8, se = FALSE, lwd = 0.5,
+    formula = y ~ x + 0
+  ) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  geom_point(aes(fill = Park, shape = Park), alpha = 0.9) +
+  theme_council_open() +
+  labs(
+    title = "Percent of visitors from home zipcode",
+    fill = "", color = "", shape = "",
+    x = "Intercept Survey",
+    y = "LBS \ndata"
+  ) +
+  scale_x_continuous(labels = scales::percent, expand = expansion(mult = c(0, 0.01))) +
+  scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0, 0.01))) +
+  scale_fill_brewer(palette = "Paired") +
+  scale_color_brewer(palette = "Paired") +
+  scale_shape_manual(values = c(21, 22, 23, 24, 25, 21, 22, 23, 24, 25)) +
+  theme(legend.text = element_text(size = 5)) +
+  guides(shape = guide_legend(override.aes = list(size = 0.8)))
+```
+
+
+```{r como-investigation, results = "hide"}
+#| fig.cap = "Difference in home locations identified by the intercept survey and LBS data for Como Zoo and Conservatory. Positive values (green) indicate areas where LBS data estimates a higher percentage of visitors than the intercept survey; negative values (brown) indicate areas where the intercept survey estimates a higher percentage of visitors than LBS data. Note the negative values on the North Shore, far away from the park unit in Saint Paul.",
+#| fig.height = 6
+
+metro_counties <- tigris::counties(state = "MN", progress_bar = FALSE) %>%
+  filter(NAME %in% c("Ramsey", "Hennepin", "Carver", "Scott", "Dakota", "Anoka", "Washington"))
+mn <- tigris::states(cb = TRUE, progress_bar = FALSE) %>% filter(NAME == "Minnesota")
+zips <- tigris::zctas(state = "MN", year = 2010, progress_bar = FALSE)
+
+oversample_home_wide %>%
+  filter(str_detect(unit_name, "Como")) %>%
+  mutate(diff = LBS - Survey) %>%
+  arrange(diff) %>%
+  left_join(zips, by = c("zip_code" = "ZCTA5CE10")) %>%
+  st_as_sf() %>%
+  ggplot() +
+  geom_sf(data = mn, fill = "transparent") +
+  geom_sf(data = metro_counties, fill = "grey80") +
+  geom_sf(aes(fill = diff), alpha = 1, lwd = 0) +
+  scale_fill_gradient2(low = "#8c510a", mid = "white", high = "#01665e", midpoint = 0, labels = scales::percent) +
+  theme_void() +
+  labs(
+    fill = "Difference in \n% visitors \nbetween methods \n(LBS - Survey)",
+    title = "Visitors to Como Zoo and Conservatory \nby home zip code"
+  )
+```
+
+
+
+#### Demographics
+
+Surveyed and inferred demographics were compared using z-scores with statistical significance determined at the 95% confidence level. Comparing z-scores addresses the difference between both estimates and standard errors. When demographic estimates are significantly different at the 95% confidence level, there is less than a 5% chance that the difference between the two estimates is due to random chance. 
+
+The alignment between surveyed and inferred visitor demographics is strong (Table \@ref(tab:demo-table)). No significant differences were observed across income categories. LBS methods estimated more visitors with a high school diploma as their highest educational attainment and fewer visitors with a graduate or professional degree. LBS data generally estimated fewer white visitors than the intercept survey, though this varied from unit to unit. 
+
+In sum, this validation suggests that LBS-derived demographics provide valuable views of park and trail visitor demographics, particularly when intercept survey (or similar) data is not available. The ability for LBS to record visitors spanning wider temporal and spatial dimensions than many other methods may additionally reflect a visitor sample which is likely to be more representative of the entire population of park visitors. 
+
+```{r demo-table}
+demo_table <- both %>%
+  filter(source == "LBS") %>%
+  mutate(sig = if_else(sig == "ns", "Not significantly different", "Significant")) %>%
+  count(category, group, sig) %>%
+  pivot_wider(names_from = sig, values_from = n) %>%
+  replace(is.na(.), 0) %>%
+  mutate(
+    group = if_else(str_detect(group, "Associate"), "Associate degree or some college", group),
+    group = if_else(str_detect(group, "High school"), "High school", group)
+  ) %>%
+  mutate(group = forcats::fct_relevel(
+    group,
+    "High school",
+    "Associate degree or some college",
+    "4-year degree",
+    "Graduate or professional degree",
+    "Less than $25,000",
+    "$25,000 - 39,999",
+    "$40,000 - 59,999",
+    "$60,000 - 74/79,999",
+    "$75/80,000 - 99,999",
+    "$100,000 - 149,999",
+    "$150,000 or higher"
+  )) %>%
+  arrange(group)
+
+demo_tab <- regulartable(
+  demo_table %>%
+    rename(
+      Attribute = category,
+      Category = group
+    )
+) %>%
+  autofit(add_w = 0, add_h = 0) %>%
+  merge_at(i = 1:4, j = 1, part = "body") %>%
+  hline(i = 4, part = "body") %>%
+  merge_at(i = 5:11, j = 1, part = "body") %>%
+  hline(i = 11, part = "body") %>%
+  merge_at(i = 12:19, j = 1, part = "body") %>%
+  fontsize(size = 8, part = "all") %>%
+  autofit(add_h = 0) %>%
+  line_spacing(space = .25, part = "all") %>%
+  set_caption("Summary of validation between location based services derived demographic values and intercept survey values. Values show the number of units with and without a statistically significant difference in demographic percentages at the 95% confidence interval.")
+
+demo_tab
+```
+
+
+##### Race/ethnicity
+
+In all but one case, LBS data estimated fewer white visitors than the intercept survey (Table \@ref(tab:white-table), Figure \@ref(fig:race-validation)). The survey and LBS data agreed on the portion of visitors belonging to other races/ethnicities at all ten units.  
+
+Como Zoo and Conservatory was the only unit where no significant difference was observed for percent of white visitors estimated by each data source. We note that a larger portion of intercept surveys were conducted on weekends at Como Zoo and Conservatory as compared to the other over-sampled units (Figure \@ref(fig:fig-survey-completion-day)). While it was beyond the scope of this research, exploring variations in demographic patterns for weekday versus weekend visitors may explain the higher agreement between survey and LBS data at Como Zoo and Conservatory. 
+
+There are several reasons LBS data may estimate fewer white visitors on average. LBS data may avoid sampling bias which can occur when conducting surveys, although it is also possible that there is some unknown level of bias in LBS estimates (see [StreetLight's "Larger and More Representative Sample Size" white paper](https://learn.streetlightdata.com/larger-more-representative-sample-size) for more information). Additionally, LBS data has a larger sample size (Table \@ref(tab:sample-size-compare)). Larger sample sizes are typically associated with more representative samples and smaller margins of error. Therefore, it is possible that LBS-derived estimates better reflect the true population of visitors. However, it is important to acknowledge that LBS data may be underestimating white visitors by up to 27% (the difference observed at North Mississippi Regional Park). Because of these potential discrepancies, the project team recommends using LBS-derived demographic data in combination with other data sources and/or with local and historical context for individual parks and trails. 
+
+```{r white-table, results = "show"}
+both %>%
+  filter(category == "Race/ethnicity", str_detect(group, "White")) %>%
+  mutate(datlabel = paste0(
+    scales::percent(percent, accuracy = 0.1),
+    " (±", scales::percent(moe_95, accuracy = 0.01), ")"
+  )) %>%
+  select(unit_label, zone_name, datlabel, source) %>%
+  pivot_wider(names_from = source, values_from = datlabel) %>%
+  left_join(park_to_zone, by = "zone_name") %>%
+  group_by(zone_name) %>%
+  fill(unit_label, .direction = "downup") %>%
+  ungroup() %>%
+  select(
+    `Unit` = unit_label,
+    `Intercept survey` = survey,
+    `LBS data` = LBS
+  ) %>%
+  group_by(Unit) %>%
+  fill(c(`Intercept survey`, `LBS data`), .direction = "downup") %>%
+  unique() %>%
+  arrange(Unit) %>%
+  regulartable() %>%
+  autofit(add_w = 0, add_h = 0) %>%
+  set_table_properties(layout = "autofit") %>%
+  set_caption("Comparing the percent of visitors identifiying as white between sampling methods during summer 2021. The 95% confidence interval is shown in parentheses.") %>%
+  fontsize(size = 8, part = "all") %>%
+  add_header_row(values = c("", "White visitors (%)"), colwidths = c(1, 2)) %>%
+  bold(bold = TRUE, part = "header") %>%
+  align(align = "center", i = 1, part = "header")
+
+source(file.path(here(), "R/f_demo_compare.R"))
+```
+
+```{r race-validation, results = "show"}
+#| fig.cap = "Validation of race/ethnicity categorys. Error bars show a 95% confidence interval. When there was no significant difference in percentages at the 95% confidence interval, LBS percentages are shown. Source: Metropolitan Council visitor study, StreetLight Data, Inc. Accessed July 2023.",
+#| results = 'markup',
+#| out.width = "7in",
+#| out.extra = 'style="float:right"',
+#| fig.asp = 1.3
+
+both %>%
+  filter(category == "Race/ethnicity") %>%
+  demo_compare()
+```
+
+
+
+```{r fig-survey-completion-day, results = "hide"}
+#| fig.cap = "Percent of 2021 intercept surveys completed on the weekend and percent of 2021 LBS data visits which occur on the weekends. Parks are sorted by descending order of difference between survey and LBS data percents. Source: Metropolitan Council visitor study, StreetLight Data, Inc. Accessed July 2023.",
+#| results = 'markup',
+#| out.width = "5.5in",
+#| out.extra = 'style="float:right"',
+#| fig.asp = .6
+#
+
+load(file.path(here(), "data-raw/intercept-survey/raven_surveymetadata.rda"))
+
+c <- raven_surveymetadata %>%
+  count(PARK, daytype) %>%
+  group_by(PARK) %>%
+  mutate(
+    total_n = sum(n),
+    percent = n / total_n,
+    info = paste0(n, " (", round(percent * 100, 0), "%)")
+  ) %>%
+  mutate(type = "Intercept survey") %>%
+  rename(system = PARK) %>%
+  mutate(
+    system = str_remove_all(system, " Regional Park| Regional| (Scott County)| Park Reserve| (MPRB)"),
+    system = str_remove_all(system, "(Scott County)|(MPRB)"),
+    system = str_remove(system, "\\(\\)"),
+    system = str_replace(system, "Bush and Normandale Lakes", "Hyland Bush Anderson Lakes"),
+    system = str_trim(system)
+  ) %>%
+  select(system, daytype, percent) %>%
+  mutate(type = "Survey") %>%
+  mutate(system = case_when(
+    str_detect(system, "Minnetonka") ~ "Lake Minnetonka LRT",
+    str_detect(system, "Rice") ~ "Rice Creek West",
+    TRUE ~ system
+  )) %>%
+  select(system, daytype, percent, type) %>%
+  pivot_wider(names_from = daytype, values_from = percent) %>%
+  select(-weekday)
+
+
+d <- stl_dem %>%
+  filter(
+    label == "summer21",
+    !str_detect(day_type, "All"),
+    str_detect(day_part, "All")
+  ) %>%
+  filter(zone_name %in% park_to_zone$zone_name) %>%
+  mutate(use = ifelse(unit_type == "trail", total_volume, use)) %>%
+  group_by(zone_name, day_type) %>%
+  slice(1) %>%
+  transmute(
+    zone_name = zone_name,
+    n_stl = case_when(
+      str_detect(day_type, "Weekday") ~ use * 5,
+      str_detect(day_type, "Weekend") ~ use * 2
+    ),
+    day_type = day_type
+  ) %>%
+  mutate(daytype = if_else(str_detect(day_type, "1"), "weekday", "weekend")) %>%
+  group_by(zone_name) %>%
+  mutate(
+    totaln = sum(n_stl),
+    percent = n_stl / totaln,
+    info = paste0(prettyNum(round(n_stl, 0), big.mark = ","), " (", round(n_stl / totaln * 100, 0), "%)")
+  ) %>%
+  mutate(type = "LBS data") %>%
+  select(zone_name, daytype, percent, type) %>%
+  pivot_wider(names_from = daytype, values_from = percent) %>%
+  select(-weekday)
+
+c %>%
+  rename(unit_name = system) %>%
+  left_join(park_to_zone) %>%
+  bind_rows(d %>%
+    left_join(park_to_zone)) %>%
+  pivot_wider(
+    names_from = type,
+    values_from = weekend
+  ) %>%
+  mutate(
+    dif = `LBS data` - Survey,
+    dif2 = abs(dif)
+  ) %>%
+  arrange(-dif2) %>%
+  pivot_longer(cols = c(Survey, `LBS data`), names_to = "type", values_to = "percent") %>%
+  mutate(yend = ifelse(type == "Survey", percent + dif, NA_real_)) %>%
+  ggplot(aes(x = unit_name, y = percent, color = type, shape = type, fill = type)) +
+  geom_segment(
+    aes(
+      x = forcats::fct_reorder(unit_name, dif2),
+      y = percent, yend = yend, xend = unit_name
+    ),
+    color = "black"
+  ) +
+  geom_point() +
+  theme_council_open(base_size = 10) +
+  coord_flip() +
+  scale_colour_manual(values = c("#a6611a", "#018571")) +
+  scale_fill_manual(values = c("#a6611a", "#018571")) +
+  scale_shape_manual(values = c(22, 23)) +
+  labs(
+    y = "", x = "", fill = "", col = "", shape = "",
+    title = "Percent intercept surveys completed,\nor LBS-estimated visits, on weekends"
+  ) +
+  scale_y_continuous(labels = scales::percent)
+```
+
+##### Education
+
+LBS and intercept survey data agreed on the general distribution of visitors' educational attainment, though the agreement was less consistent than for race and ethnicity (Figure \@ref(fig:edu-validation)). There was the most agreement on the portion of visitors who were currently enrolled in college, had an associates degree, or had some level of post-secondary other than a 4-year or graduate degree (no significant difference at 8/10 units; when a significant difference was observed, LBS data estimated more visitors in this group). Agreement on the portion of visitors with 4-year degrees was similarly strong (no significant difference at 6/10 units; when a significant difference was observed, LBS estimated fewer visitors in this group). In all but two cases, LBS data estimates significantly more visitors with a high school diploma as their highest level of education. In all but one case, LBS data estimates significantly fewer visitors with a graduate or professional degree. In summary, LBS data estimated more visitors with high school or some college as their highest level of educational attainment and less visitors with a 4-year or graduate/professional degree, as compared to the intercept survey. 
+
+As noted above, there are several possible explanations for this pattern: LBS data may avoid sampling bias, but there may be unknown bias in LBS estimates. Larger sample sizes associated with LBS data may indicate that LBS-derived estimates are more representative of visitors overall. However, it is important to note that LBS data may be overestimating the portion of visitors with high school diplomas as their highest educational attainment by up to 26% (North Mississippi Regional Park) and/or underestimating the portion of visitors with graduate or professional degrees by up to 22% (Rice Creek West Regional Trail). 
+
+
+```{r edu-validation, results = "show"}
+#| fig.cap = "Validation of educational attainment. Error bars show a 95% confidence interval. When there was no significant difference in percentages at the 95% confidence interval, LBS data percentages are shown. Source: Metropolitan Council visitor study, StreetLight Data, Inc. Accessed July 2023.",
+#| results = 'markup',
+#| out.width = "7in",
+#| out.extra = 'style="float:right"',
+#| fig.asp = 1.3
+
+both %>%
+  filter(category == "Education") %>%
+  mutate(group = factor(group,
+    levels = c(
+      "High school", "Associate degree or some college",
+      "4-year degree", "Graduate or professional degree"
+    ),
+    ordered = TRUE
+  )) %>%
+  demo_compare()
+```
+
+
+##### Income
+
+There were no significant differences observed in estimated visitor household income for LBS and intercept survey data (Figure \@ref(fig:income-validation)). This validation suggests that LBS data income categories are reliable and can provide useful information about park and trail visitors. However, similar percentages of visitors are seen across many income categories, which may obscure larger patterns. 
+
+```{r income-validation, results = "show"}
+#| fig.cap = "Validation of visitor household income. Error bars show a 95% confidence interval. When there was no significant difference in percentages at the 95% confidence interval, LBS data percentages are shown. Source: Metropolitan Council visitor study, StreetLight Data, Inc. Accessed July 2023.",
+#| results = 'markup',
+#| out.width = "7in",
+#| out.extra = 'style="float:right"',
+#| fig.asp = 1.3
+
+both %>%
+  filter(category == "Income") %>%
+  mutate(group = factor(group,
+    levels = c(
+      "Less than $25,000", "$25,000 - 39,999",
+      "$40,000 - 59,999", "$60,000 - 74/79,999",
+      "$75/80,000 - 99,999", "$100,000 - 149,999",
+      "$150,000 or higher"
+    ),
+    ordered = TRUE
+  )) %>%
+  demo_compare()
+```
+
+## Results
+
+### Visitors from across the country visited Minnesota's parks and trails
+
+Visitors traveled to visit Minnesota’s parks and trails from all lower 48 states (Figure \@ref(fig:country-map)). Overall, Minnesota residents made up approximately 90.22% of users to parks and trails. Following Minnesota, adjacent states represent the largest portion of total use: Wisconsin with 3%, North Dakota with 0.83%, Iowa with 0.81%, and Illinois with 0.65%. Notably, California was the 5th most common home location (outside of Minnesota), representing 0.43% of total use. 
+
+While visits by international residents are counted in park and trail estimates, LBS data does not allow for identification of home locations for international residents. 
+
+
+```{r country-map}
+#| fig.cap = "Proportion of visitors to Minnesota parks and trails in 2021 mapped by state of residence. Darker green colors indicate states with a greater share of visitors.",
+#| out.extra = 'style="float:right"',
+#| out.width = "6.5in",
+#| fig.asp = .6,
+
+
+## <!-- Visitors traveled to visit Minnesota's parks and trails from all lower 48 states. Overall, Minnesota residents made up approximately `r scales::percent(state_pcts$percent_by_state[state_pcts$state_name=="Minnesota"], accuracy = 0.01)` of users to parks and trails. Following Minnesota, adjacent states represent the largest portion of total use: `r state_pcts[2,]$state_name` with `r scales::percent(state_pcts[2,]$percent_by_state)`, `r state_pcts[3,]$state_name` with `r scales::percent(state_pcts[3,]$percent_by_state, accuracy = 0.01)`, `r state_pcts[4,]$state_name` with `r scales::percent(state_pcts[4,]$percent_by_state, accuracy = 0.01)`, and `r state_pcts[5,]$state_name` with `r scales::percent(state_pcts[5,]$percent_by_state, accuracy = 0.01)`. Notably, California was the 5th most common home location (outside of Minnesota), representing `r scales::percent(state_pcts[6,]$percent_by_state, accuracy = 0.01)` of total use.  -->
+##
+## <!-- While visits by international residents are counted in park and trail estimates, LBS data does not allow for identification of home locations for international residents.  -->
+
+
+map_data %>%
+  mutate(logp = (percent_by_state)) %>%
+  ggplot() +
+  geom_sf(aes(fill = logp)) +
+  coord_sf(crs = (3785)) +
+  theme_void() +
+  scale_fill_gradientn(
+    colours = c("white", "#238b45", "#00441b"),
+    values = scales::rescale(c(min(map_data$percent_by_state), .02, max(map_data$percent_by_state))),
+    guide = "colorbar", limits = c(min(map_data$percent_by_state), max(map_data$percent_by_state)),
+    labels = scales::label_comma()
+  ) +
+  guides(fill = "none") +
+  theme(legend.position = "bottom", legend.text = element_blank()) +
+  labs(caption = fig_caption, fill = "Percent visitors") +
+  geom_sf_label(aes(label = paste0(round(percent_by_state * 100, 1), "%")),
+    colour = "black",
+    check_overlap = F,
+    size = 2, data = filter(map_data, percent_by_state > .001)
+  )
+
+ggsave(file.path(here::here(), "figures/storymap/home-locations-by-state.png"))
+```
+
+
+### Park and trail visitor attributes vary at the unit level
+
+For both visitor home locations and inferred demographics, a key finding of this work is that there is significant variation among parks and trails across the state and even within a given system. This data is best explored at the park- or trail-level (Figure \@ref(fig:race-distribution), Figure \@ref(fig:edu-distribution), Figure \@ref(fig:income-distribution)). Interactive figures are available on the [project website](https://arcg.is/0Oee0W0). 
+
+Note that demographic data is only shared at the park- or trail-level in this project. This is because summarizing demographic data at the state or system level is less meaningful than summarizing total visits, for example. While highly summarized data may suggest that park and trail visitors are representative of the state or a given region's population, it inherently obscures unit-level patterns which may reflect barriers to access at a given park or trail. 
+
+In many cases, LBS-derived demographic estimates suggest that park and trail visitors are not representative of local or regional populations (see the fact sheets on the [project website](https://arcg.is/0Oee0W0) to explore unit-level demographics alongside 2020 US Census data for context). This pattern can be referred to as a visitation gap, meaning that the use of parks and trails in Minnesota is not equitably distributed across the population. The extent of the visitation gap and specific dynamics vary across individual units and demographic categories. 
+
+Systems, and individual park and trail units, have unique missions and visitor populations. Equity analyses which compare LBS inferred demographics of park and trail users to baseline population demographics may be of interest but are recommended to be performed in a manner that is recognizes specific unit-level context. Therefore, it may be more appropriate to compare park and trail visitor demographics to local or regional demographics. Defining unit-specific reference populations is beyond the scope of this project, but park staff may be interested in using the spreadsheets produced from this project to compare visitor demographics with bespoke baseline populations. 
+
+```{r race-distribution}
+#| fig.cap = "Inferred race and ethnicity of park and trail visitors. Each point represents a single park or trail. Point color and shape indicates system."
+
+stl_dem %>%
+  filter(
+    label %in% c("full21", "year21"),
+    str_detect(day_type, "All"),
+    category == "Race/ethnicity",
+    system != "Metro Regional Inclusive"
+  ) %>%
+  ungroup() %>%
+  select(zone_name, unit_label, system_label, unit_type, category, group, percent) %>%
+  ggplot(aes(x = forcats::fct_rev(group), y = percent, color = system_label, fill = system_label, pch = system_label)) +
+  ggbeeswarm::geom_quasirandom(
+    dodge.width = 0.8, size = 0.7,
+    width = .15, alpha = 0.5
+  ) +
+  coord_flip() +
+  theme_council_open(base_size = 10) +
+  scale_fill_manual(values = system_label_cols) +
+  scale_color_manual(values = system_label_cols) +
+  scale_shape_manual(values = c(21, 24, 23)) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 20)) +
+  scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0, 0.05))) +
+  labs(
+    caption = fig_caption,
+    x = "", y = "", fill = "", col = "", pch = "",
+    title = "Inferred race and ethnicity"
+  )
+```
+
+<br> 
+
+```{r edu-distribution}
+#| fig.cap = "Inferred educational attainment of park and trail visitors. Each point represents a single park or trail. Point color and shape indicates system."
+
+stl_dem %>%
+  filter(
+    label %in% c("full21", "year21"),
+    str_detect(day_type, "All"),
+    category == "Education",
+    system != "Metro Regional Inclusive"
+  ) %>%
+  ungroup() %>%
+  select(zone_name, unit_label, system_label, unit_type, category, group, percent) %>%
+  ggplot(aes(x = forcats::fct_rev(group), y = percent, color = system_label, fill = system_label, pch = system_label)) +
+  ggbeeswarm::geom_quasirandom(
+    dodge.width = 0.8, size = 0.7,
+    width = .15, alpha = 0.5
+  ) +
+  coord_flip() +
+  theme_council_open(base_size = 10) +
+  scale_fill_manual(values = system_label_cols) +
+  scale_color_manual(values = system_label_cols) +
+  scale_shape_manual(values = c(21, 24, 23)) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 20)) +
+  scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0, 0.05))) +
+  labs(
+    caption = fig_caption,
+    x = "", y = "", fill = "", col = "", pch = "",
+    title = "Inferred educational attainment"
+  )
+```
+
+<br>
+
+```{r income-distribution}
+#| fig.cap = "Inferred household income of park and trail visitors. Each point represents a single park or trail. Point color and shape indicates system."
+
+stl_dem %>%
+  filter(
+    label %in% c("full21", "year21"),
+    str_detect(day_type, "All"),
+    category == "Income",
+    system != "Metro Regional Inclusive"
+  ) %>%
+  mutate(
+    group = case_when(
+      group == "$60,000 - 74/79,999" ~ "$60,000 - 74,999",
+      group == "$75/80,000 - 99,999" ~ "$75,000 - 99,999",
+      TRUE ~ group
+    ),
+    group = factor(group, levels = c(
+      "Less than $25,000", "$25,000 - 39,999", "$40,000 - 59,999",
+      "$60,000 - 74,999", "$75,000 - 99,999", "$100,000 - 149,999",
+      "$150,000 or higher"
+    ), ordered = TRUE)
+  ) %>%
+  ungroup() %>%
+  select(zone_name, unit_label, system_label, unit_type, category, group, percent) %>%
+  ggplot(aes(x = forcats::fct_rev(group), y = percent, color = system_label, fill = system_label, pch = system_label)) +
+  ggbeeswarm::geom_quasirandom(
+    dodge.width = 0.8, size = 0.7,
+    width = .15, alpha = 0.5
+  ) +
+  coord_flip() +
+  theme_council_open(base_size = 10) +
+  scale_fill_manual(values = system_label_cols) +
+  scale_color_manual(values = system_label_cols) +
+  scale_shape_manual(values = c(21, 24, 23)) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 20)) +
+  scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0, 0.05))) +
+  labs(
+    caption = fig_caption,
+    x = "", y = "", fill = "", col = "", pch = "",
+    title = "Inferred household income"
+  )
+```

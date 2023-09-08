@@ -1,2 +1,32 @@
+# history
+.Rhistory
+
+# user-specific
 .DS_Store
+.Ruserdata
+
+# rstudio
 .Rproj.user/
+
+# r environment
+.Renviron
+
+# knitr/markdown/outputs
+*.utf8.md
+*.knit.md
+
+
+# data
+data-temp/
+.RDataTmp
+*rosm.cache/
+*.docx
+
+# factsheets
+figures/factsheets/
+Rplots.pdf
+
+documentation/legacy-LBS-parktrail-technical_files/figure-gfm/
+parks/rosm.cache/
+documentation/storymaps/rosm.cache/
+figures/.DS_Store

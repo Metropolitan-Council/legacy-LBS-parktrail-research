@@ -1,0 +1,38 @@
+---
+title: "Resources"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  bookdown::word_document2:
+    reference_docx: ../wordtemplate.docx
+    toc: yes
+    toc_depth: 1
+  word_document:
+    toc: yes
+    toc_depth: '1'
+always_allow_html: yes
+urlcolor: blue
+---
+
+
+# Resources
+
+
+## Our partner organizations
+This research was made possible by collaboration with partner organizations and Legacy Amendment funding. 
+
+- [Minnesota Legacy and Trust Funds](https://www.legacy.mn.gov/) were the source of funding for this research.
+- [The Parks and Trails Legacy Advisory Committee](https://www.legacy.mn.gov/ptlac) provided guidance for this research project.
+- The [Department of Natural Resources]( Department of Natural Resources) manages state parks and trails.
+- [Greater Minnesota Regional Parks and Trails Commission](https://www.gmrptcommission.org/) designates regional parks and trails in the 80 counties of Greater Minnesota.
+- Metropolitan regional parks and trails are supported by the [Metropolitan Council](https://metrocouncil.org/Handbook/Plan-Elements/Parks.aspx) in partnership with [ten regional implementing agencies](https://metrocouncil.org/Parks/About/Partners.aspx).
+
+## Data sources
+Complete methods for this research can be found in the technical documentation. 
+
+- [StreetLight Data, Inc.](https://www.streetlightdata.com/) provided anonymized and aggregated location-based services data.
+- The Minnesota Geospatial Data Commons contains geography files for [DNR State parks](https://gisdata.mn.gov/dataset/bdry-dnr-lrs-prk), [DNR State trails](https://gisdata.mn.gov/dataset/trans-state-trails-minnesota), [Metro Regional parks](https://gisdata.mn.gov/dataset/us-mn-state-metc-plan-parks-regional), and [Metro Regional trails](https://gisdata.mn.gov/dataset/us-mn-state-metc-trans-regional-trails-exst-plan). Greater MN Regional park and trail files were accessed via personal communication. 
+
+## More about Minnesota parks and trails
+
+- [Minnesota Great Outdoors](https://mn.gov/greatoutdoors/) is another Legacy-funded collaborative project between DNR, Greater MN Regional Parks and Trails Commission, and the Metropolitan Council to provide web-based information for park and trail users.
+ 

@@ -1,24 +1,13 @@
-StreetLight Use Estimates & Parks
-================
-12 June 2023
 
-- <a href="#overview" id="toc-overview">Overview</a>
-  - <a href="#funding-and-acknowledgements"
-    id="toc-funding-and-acknowledgements">Funding and Acknowledgements</a>
-  - <a href="#resources" id="toc-resources">Resources</a>
-- <a href="#getting-started" id="toc-getting-started">Getting started</a>
-  - <a href="#file-organization" id="toc-file-organization">File
-    organization</a>
-  - <a href="#set-up" id="toc-set-up">Set-up</a>
-- <a href="#changelog" id="toc-changelog">Changelog</a>
+# Minnesota Parks and Trails
 
-# Overview
+*A Minnesota Legacy research project*
 
 Understanding visitation to Minnesota’s parks and trails is essential
 for planning, programming, and investment decisions. Visitation
 estimates generally rely on methods such as intercept surveys, in-field
 visitation counts, and automated trail counters. Visitation estimates
-using passively-generated data sources may offer opportunities to
+using passively generated data sources may offer opportunities to
 complement existing strategies.
 
 This project used aggregated and anonymized location-based services
@@ -34,46 +23,63 @@ making.
 
 ## Funding and Acknowledgements
 
-This Project was funded with Legacy Partnership Research Funds from the
-State of Minnesota [Parks and Trails Legacy
-Fund](https://www.legacy.mn.gov/parks-trails-fund) in collaboration with
-the [Minnesota Department of Natural
-Resources](https://www.dnr.state.mn.us/), the [Greater Minnesota
+This project was funded with Legacy Partnership Research Funds from the
+[State of Minnesota Parks and Trails Legacy
+Fund](https://www.legacy.mn.gov/parks-trails-fund). The joint research
+project was conducted in collaboration with the [Minnesota Department of
+Natural Resources](https://www.dnr.state.mn.us/), the [Greater Minnesota
 Regional Parks and Trails Commission](https://www.gmrptcommission.org/),
-and the [Metropolitan Council](https://metrocouncil.org/).
+and the [Metropolitan Council](https://metrocouncil.org/). We thank
+staff from across the different organizations and cooperating
+implementing agencies for their cooperation in sharing data and
+providing feedback.
 
-We thank park managers and staff from across the state for their
-cooperation in sharing data and providing feedback to establish and
-refine our methodology.
+<figure>
+<img src="documentation/images/partner-logos.png"
+alt="Funding partner logos" />
+<figcaption aria-hidden="true">Funding partner logos</figcaption>
+</figure>
 
-## Resources
+## This repository
 
-- The findings and resources produced by this research are available on
-  an interactive project website [here]().
-- [StreetLight Data, Inc.](https://www.streetlightdata.com/) was the LBS
-  data provider for this research.
+This repository contains R code, tabular and spatial data files, and
+documentation behind this research project.
 
-# Getting started
-
-## File organization
+### File organization
 
 The code used to conduct primary analyses are located in three folders:
-`parks`, `trails`, and `visitors`. Each folder contains a tutorial
-document (`park_tutorial.RMD`, `trail_tutorial.Rmd`, and
-`visitor_tutorial.RMD`, respectively) which calls additional scripts to
+`/parks`, `/trails`, and `/visitors`. Each folder contains a tutorial
+document (`park_tutorial.Rmd`, `trail_tutorial.Rmd`, and
+`visitor_tutorial.Rmd`, respectively) which calls additional scripts to
 conduct each step of the analysis. These scripts are numbered in the
 order in which they are called.
 
 Complete technical documentation is generated via
-`legaacy-LBS-parktrail-research-documentation.RMd`; higher level summary
+`legacy-LBS-parktrail-research-documentation.Rmd`; higher level summary
 texts are generated in the `documentation` folder.
 
-The `data-raw` folder contains data obtained from external sources;
-`data-intermediate` contains partially processed data, individual
+The `/data-raw` folder contains data obtained from external sources;
+`/data-intermediate` contains partially processed data, individual
 StreetLight (LBS) analysis downloads, or other internally-produced data;
-`data-processed` contains the final products of this research.
+`/data-processed` contains the final products of this research.
 
-## Set-up
+The `/figures` folder contains two sub-folders: `storymap` and
+`factsheets`. `storymap` contains individual plots and images used for
+online StoryMaps. `factsheets` contains single-page PDF reports for each
+park and trail with information like weekly total annual visits, weekly
+visit trends, mode share, hourly use, visitor home locations,
+generalized visitor demographics, and unit geography, organized by
+agency and unit type. Data is generally available from 2019 to April
+2022.
+
+To re-render plots and factsheets properly, ensure you have the Avenir
+font installed on your machine. Avenir is available for free in various
+places online.
+
+### Set-up
+
+Before running any code, be sure to open `R/_load_packages.R` and ensure
+you have all necessary packages installed.
 
 This project uses
 [`streetlightR`](https://metropolitan-council.github.io/streetlightR/)
@@ -87,18 +93,34 @@ Initially, you will need to save some parameters to your machine.
 
 ``` r
 require(keyring)
-key_set(service = "StreetLightAPI")
+require(usethis)
+keyring::key_set(service = "StreetLightAPI")
 
-usethis::edit_r_environ() 
+usethis::edit_r_environ()
 # When the `.Renviron` file comes up in the editor, save the following parameters:
 
 # `STREETLIGHT_LOGIN` = "your email"
 # `STREETLIHT_API_KEY` = "your API key"
 # `CENSUS_API_KEY` = "your API key"
-# 
+#
 # Save and close the `.Renviron` file and Restart R.
 ```
 
-# Changelog
+## Important details
 
-- June 12, 2023: Initial release of project website and results.
+General contact: <research@metc.state.mn.us>.
+
+- **Contributing** Before contributing to this repository, please review
+  the [contribution guide](CONTRIBUTING.md).
+- **Code of Conduct** Please note that this repository is released with
+  a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By contributing
+  to this project, you agree to abide by its terms.
+- **License** Code is released with an [MIT license](LICENSE.md). Data
+  provided is for informational purposes. Please open an issue if you
+  have any questions regarding licensing.
+- Thanks to our contributors.
+  - Raven McKnight [@ravenmcknight](https://github.com/ravenmcknight)
+  - Ellen Esch [@ehesch](https://github.com/ehesch)
+  - Liz Roten [@eroten](https://github.com/eroten)
+  - Senior Manager, Joel Huting
+    [@joelhuting](https://github.com/joelhuting-r)

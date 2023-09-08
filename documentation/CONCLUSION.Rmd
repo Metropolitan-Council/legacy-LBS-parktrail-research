@@ -1,0 +1,175 @@
+---
+title: "Conclusion"
+output:
+  bookdown::word_document2:
+    reference_docx: ../documentation/wordtemplate.docx
+    toc: true
+    toc_depth: 6
+  github_document:
+      toc: true
+      toc_depth: 6
+urlcolor: blue
+always_allow_html: yes
+---
+
+# Conclusion
+
+This report has outlined the methods and key findings of this Legacy-funded park and trail research project. Additional resources, including interactive figures, unit-level fact sheets, and complete data downloads are available on the [project website](https://arcg.is/0Oee0W0). This section of the report summarizes recommendations from the project team.  
+
+## Recommendations
+
+### Continue collaborative projects 
+
+The collaboration between Minnesota Legacy partners allowed us to leverage more information and resources than would have been possible if the project was internal to a single organization. We learned valuable information from partners at all three systems and combined collective knowledge to develop our methods. Collaboration to continue robust park and trail research that benefits all three Legacy partners should be considered in future work. 
+
+We additionally learned there is no one-size-fits-all solution for park and trail research. This project aimed to develop universal approaches for park and trail analysis, but still some bespoke solutions were necessary at the unit level. Within a park system, or even within a county or city, there may be two parks with such different qualities that different techniques are needed. For example, a park accessed primarily by vehicles may require a different approach than a park with minimal parking and extensive bike access.  Due to this project’s scope, it focused on methods that apply to as many parks and trails as possible. Strategies may be improved for “edge cases,” likely with the help of park staff with detailed on-the-ground knowledge. 
+
+
+### Continue exploration of novel data sources 
+
+The findings from this study were only possible due to the adoption and exploration of novel data sources (LBS data). While exploring new data sources and methods have inherent risks and challenges, the rewards may be significant. 
+
+However, no single data source can answer every research question about parks and trails. Like all data, LBS data has strengths and weaknesses. While it provides incredible spatial and temporal detail, it cannot provide information about visitor experiences or report real-time data, for example. Other data sources are needed to address such questions. LBS data may prove most insightful when combined with existing research methods. 
+
+Embracing the opportunities and challenges of novel data sources and strategies can provide impactful results. Of course, new or developing data sources have the potential to change rapidly and results from using these data sources are not guaranteed. We believe that the most robust parks research program would remain adaptable, leverage a variety of data sources, and continue experimenting with and developing new approaches. 
+
+For this project specifically, we note that industry-wide changes to the availability of LBS data have forced the data provider to discontinue providing LBS data after April 2022. While the data provider is migrating to other spatial data sources, this new data is not currently suitable for park and trail research. As such, the results from this project using LBS data should be viewed as a discrete research project which estimated visitation from January 2019 – April 2022 rather than part of a continuous (ongoing) research project. This change in availability of LBS data is emblematic of the inherit risks in using novel data sources, but the results from this project also demonstrate the rewards of exploring new data sources.  
+
+
+### Connect with park staff to explore unit-level findings 
+
+Due to this project’s scope, it was impossible to connect individually with park and trail managers, staff, or researchers at each unit. However, location-based services (LBS) data allows for highly detailed analyses and applications which may be of interest to these audiences. 
+
+Significant on-the-ground knowledge about the park or trail of interest is often required for such analyses. Connecting park managers, staff, or researchers to this detailed data may allow for deeper analysis of individual units or generate more specific research questions. See Use Cases for additional examples of questions LBS data can answer. 
+
+
+### Use findings to guide future work 
+The use of LBS data in this project has suggested several avenues for future research. In most cases, future work would not be based exclusively on LBS data. While LBS data has generated insightful results in this project, it has also clarified areas where additional work is needed to supplement LBS data or answer questions that LBS data cannot. Several potential research areas are described below. 
+
+- Interact data sources
+  - LBS data showed that Minnesota’s parks and trails attract a wide range of visitors. Analysis of other data sources, such as intercept survey responses, to interact with LBS-derived visitor attributes and behavior may provide interesting results (e.g., does travel mode or distance traveled impact how visitors use parks or trails). 
+- Estimate vehicle multipliers (persons per vehicle) 
+  - One limitation of LBS data is that it cannot estimate the number of people in each vehicle arriving at a park. Therefore, a vehicle multiplier is needed to convert counts of vehicles to counts of people. This project has highlighted the need for high-quality vehicle multipliers: regardless of how vehicles are counted, vehicle multipliers are necessary to produce visitor counts. Vehicle multipliers are best estimated by survey data; this work indicates that vehicle multipliers may be a priority for future survey efforts. 
+  - Our data show distinct use patterns across parks and trails (e.g., weekend versus weekday peaks in use, seasonal variability, high use during special events). Vehicle multipliers may be influenced by these factors. 
+- Further analyze “visitation gap” and other equity questions 
+  - This project produced unit-level estimates of visitor’s race and ethnicity, education, and income. These inferred demographics from LBS data may compliment work aimed at understanding of inequities and barriers to accessing parks and trails for underrepresented groups. Comparing LBS demographics to bespoke reference populations at the unit level may also be useful. 
+
+## Additional use cases
+
+```{r include = FALSE}
+knitr::opts_chunk$set(
+  cache = FALSE, echo = FALSE, warning = FALSE, message = FALSE,
+  fig.pos = "H",
+  fig.height = 4,
+  dpi = 300
+)
+
+library(tidyverse)
+library(councilR)
+
+fig_caption <- "Source: StreetLight Data, Inc. Accessed July 2023."
+load(file.path(here::here(), "data-intermediate/documentation/use-case-fig-dat.rda"))
+```
+
+
+This project aimed to develop universal methods of park and trail analysis. Therefore, in-depth analysis of individual units was beyond the scope of this work. Still, many park- or trail-specific research questions can be addressed with LBS data provided. These analyses require substantial on-the-ground knowledge of the park or trail of interest. Possible use cases fall broadly into three categories: those that can be completed using the data provided, those that require a StreetLight license but use this project’s methods, and those that require a StreetLight license and use custom methods beyond this project’s techniques. 
+
+
+### Using provided data
+
+#### Custom summaries
+
+This project generally reports data summarized at the state or system level. The data provided includes unit-level data in monthly time intervals for trails and weekly time intervals for parks. This data can be used to address several questions: 
+
+- Data may be summarized at any geographic level. For your convenience, the data download includes counties, DNR areas, Greater Minnesota districts, and Metropolitan regional implementing agencies for summary purposes. 
+- Similarly, data may be summarized at any temporal level. For example, weeks or months may be grouped and summarized to analyze custom-defined peak versus off-peak visitation, amenity seasons (i.e., beach or skiing season), or before-and-after study periods. 
+- Editing vehicle multipliers in the provided Excel workbook will also modify associated visitor counts and mode share data. Accurate park-level vehicle multipliers can improve data quality; however, identifying park-level multipliers was beyond this project’s scope. 
+- Updating unit-level estimates of visitation to include additional data sources. For instance, LBS data estimates park visitation by counting visitors once upon each park entry (i.e., overnight campers making a day trip outside the park would be counted upon their return as well as initial entry but visitors making multiple stops or short trips within the park are only counted upon initial entry). Adding data from camping permit sales may allow for unit-level LBS estimates to align more closely with established use estimate definitions. Similarly, data estimating park use from minors (devices registered to minors under age 18 are not included in the LBS data source) may be added to LBS visitation estimates.  
+
+#### Detailed unit-level explorations
+
+The unit-level data can be explored and applied to questions which may offer opportunities to better understand or serve visitors. In some instances, the unit-level fact sheets or online interactives can used for these explorations. In other instances, using the data downloads may offer more detail and options for summarizing data. Here are several specific questions that may of interest, and can be explored: 
+
+- Exploring mode share information to identify infrastructure improvements. For example, additional bike storage may be needed at parks or trails with high bicycle mode share. Parks with low pedestrian mode share in an otherwise walkable area may indicate barriers to access (e.g., fenced areas or roads without crosswalks or bridges, or lack of links to public transit).  
+- Explore local and non-local visitation. Summaries are provided for each unit about the percent of visitors who live within or outside Minnesota. Since data about visitor home locations are provided by zip code, it is possible to explore visitation percents using bespoke geographies.  
+
+
+#### Demographic comparisons to bespoke reference populations
+
+Park staff may be interested in comparing the demographic estimates of specific park or trail units to bespoke reference populations. The summary report compares park and trail visitor demographics to the statewide population. However, comparisons to local or regional demographics may provide additional insights. Defining unit-specific reference populations is beyond this project’s scope, but the provided data can be used to compare visitor demographics with custom populations. 
+
+The provided spreadsheet titled “LBS_visitor_attribute_results_2023.07.xlsx” contains estimated demographic characteristics for each park and trail unit. Existing, online tools such as  [Census Reporter](https://censusreporter.org/)  can be used to help access census demographics for a [range of geographies](https://censusreporter.org/topics/geography/) (e.g., state, county, census tracts and block groups, zip codes, metropolitan areas, and others). Note that LBS data only provides selected demographic categories (race, income, education), while census data contains many more demographic axes. Comparing individual park- or trail-level demographics to bespoke reference populations may provide insights for park staff.  
+
+```{r census-screenshot, include = FALSE, eval = FALSE}
+#| fig.cap = "Screenshot of Census Reporter statistics for Ramsey County, MN.",
+#| results = 'markup',
+#| out.width = "65%",
+#| out.extra = 'style="float:center"',
+#| fig.asp = .5,
+#| out.width = "3.5in"
+
+knitr::include_graphics(file.path(here::here(), "figures/storymap/census_reporter.png"))
+```
+
+
+
+### Using project methods (requires StreetLight license)
+
+In addition to park- or trail-level analyses, LBS data can be used to analyze smaller or more specific geographies. Custom geographies can be used to address many park- or trail-specific questions. Several examples are described below. Note that, due to ongoing changes in LBS data availability, these analyses are currently recommended for time periods between January 2019 and April 2022. 
+
+ **How many users drive to a given trailhead?** A researcher may define custom analysis zones encompassing relevant trailheads or parking lots and measure vehicle trips to those parking lots. 
+
+**Which park entrance receives the most use?** The number of trips passing through any number of user-defined entrance “gates” can be compared to identify the highest- or lowest-use entrances. The same approach could be used to determine which of several parking lots receives the most used. This information could be used to identify ideal locations for survey stations, permanent vehicle counters, high priority locations for signage or other visitor service, among others. 
+
+**How to schedule park and trail management to meet visitor needs?** Analyzing use over time at custom geographies may be used to schedule any number of activities. For example, identifying maximum hourly use at a specific parking lot may indicate when a surveyor will likely encounter the most park visitors (Figure \@ref(fig:peak-hourly)). Conversely, identifying minimum hourly use in areas of interest may be helpful scheduling disruptive maintenance, such as cleaning restrooms or mowing grass. 
+
+Other applications of hourly data include scheduling lifeguards at beaches, determining visitor center hours, or determining if 9-to-5 commuters may use a trail. 
+
+
+```{r peak-hourly}
+#| fig.cap = 'Average hourly pedestrian use at the entrance of Battle Creek Regional Park off-leash dog area (Metro Regional) during the summer of 2021.',
+#| results = 'markup',
+#| out.width = "5in",
+#| out.extra = 'style="float:center"',
+#| fig.asp = 0.5
+
+bc %>%
+  filter(str_detect(zone_name, "dog")) %>%
+  mutate(label = ifelse(time == "2023-08-22 18:00:00", "Ideal time for surveys", NA)) %>%
+  ggplot(aes(x = time, y = hourly_pct)) +
+  geom_point() +
+  geom_line() +
+  geom_segment(
+    aes(
+      x = as.POSIXct("2023-08-22 18:00:00"), y = 0.14478958,
+      xend = as.POSIXct("2023-08-22 15:00:00"), yend = 0.14478958 - 0.025
+    ),
+    linetype = "dotted"
+  ) +
+  geom_label(aes(label = label),
+    nudge_y = -0.025,
+    nudge_x = -3600 * 3.5
+  ) +
+  theme_council_open(base_size = 10) +
+  scale_y_continuous(labels = scales::label_percent(), limits = c(0, .16), expand = c(0, 0)) +
+  scale_x_datetime(
+    date_breaks = "4 hours", date_labels = "%l%p",
+    limits = c(as.POSIXct("2023-08-22 06:00:00"), as.POSIXct("2023-08-22 21:15:00")),
+    expand = c(0.01, 0)
+  ) +
+  labs(
+    x = "", y = "System \ntotal", color = "", shape = "",
+    title = "Pedestrian activity at Battle Creek Dog Park entrance (summer 2021)",
+    caption = fig_caption
+  ) +
+  theme(
+    legend.position = "bottom",
+    panel.grid.major.x = element_line(linetype = 3),
+    axis.title.y = element_blank(),
+    axis.title.x = element_blank(),
+    plot.title = element_text(size = 10)
+  )
+
+ggsave(file.path(here::here(), "figures/storymap/battle-creek-peak-hourly.png"))
+```
+

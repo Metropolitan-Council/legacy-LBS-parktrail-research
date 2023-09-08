@@ -1,0 +1,2471 @@
+---
+title: "State Park Polygon Processing"
+output:
+  github_document:
+    toc: true
+always_allow_html: true
+urlcolor: blue
+---
+
+This Rmarkdown manually edits each DNR state park using the polygons, water, and road features gathered in script `01_fetch_park_geography.R`. Individual parks are accessed via unique zone names. The Rmarkdown outputs two shapefiles: park polygons and park perimeters. Both shapefiles are saved in the `data-intermediate` folder of this repository. An additional `/data-temp` folder is used locally to save individual edits before combining all parks into a single shapefile. This temporary folder is not pushed to the public repository. To run this code, please create a `/data-temp/dnr-park-geography` folder at the root of this directory.
+
+Rmarkdown is used for this step primarily for better legibility. Parks are accessed manually by zone name (rather than by index, for example) to ensure that edits are associated with the correct park, and that changes to the order of parks or zone names does not introduce errors. 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+## load data
+load(file.path(here(), "data-intermediate/parks/raw-dnr-geography.rda"))
+
+## message
+cat(paste("processing", length(dnr), "DNR parks"))
+
+## set mapview to pop up in browser (optional)
+options(viewer = NULL)
+```
+
+# Edit each park individually
+
+Afton
+
+```{r}
+# UPDATE NAME AND PARK
+name <- "Afton_park_DNR"
+
+# MAP
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+# GET SHORE BUFFER IF NECESSARY
+park <- addshore_fxn(dnr, dnr_water, name, 50, 1000)
+
+# DOCUMENT MNDOT ROADS
+keep <- c(
+  "Washington CSAH 22-I", "Washington CON 105-I", "Washington CON 104-I", "Washington SPR 12-I",
+  "Washington SPR 12-D", "Washington SPR 13-I", "Washington SPR 13-D", "Washington SPR 14-I",
+  "Washington SPR 14-D", "Afton M 65-I", "Afton M 65-D"
+)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(!ROUTE_NAME %in% keep) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, we want this route to have a smaller buffer to keep 50th st parking lot in bounds
+rm2 <- dnr_mndot_roads[[name]] %>%
+  filter(ROUTE_NAME %in% c("Afton M 65-I", "Afton M 65-D")) %>%
+  st_buffer(10) %>%
+  summarise(do_union = TRUE)
+
+mapview(park, col.regions = "darkgreen") + mapview(mndot_rm)
+
+# ERASE
+park %>%
+  st_erase(mndot_rm) %>%
+  st_erase(rm2) %>%
+  drop_crumbs(threshold = units::set_units(10000, m^2)) %>%
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Banning
+
+```{r}
+name <- "Banning_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addriver_fxn(dnr, dnr_water, name, 5000)
+
+# based on feedback, include parking lot
+lat <- c(46.1145, 46.113)
+lon <- c(-92.8639, -92.8618)
+corners <- data.frame(lon, lat)
+big_falls_lot <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(big_falls_lot)
+
+big_falls_lot <- big_falls_lot %>%
+  st_transform(26915)
+
+park %>%
+  st_union(big_falls_lot) %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Bear Head Lake
+
+```{r}
+name <- "Bear-Head-Lake_park_DNR"
+park <- dnr[[name]]
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(ROUTE_NAME %in% c(
+    "Saint Louis T 3343-I", "Saint Louis T 3343-I",
+    "Saint Louis T 3343-D", "Saint Louis T 3343-D"
+  )) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# correct geography issue
+park <- park %>%
+  st_make_valid()
+
+# get lakes entirely in park
+lakes <- dnr_water[[name]] %>%
+  filter(map_label %in% c("Bear Head (main lake)", "Blueberry", "Bear Head"))
+
+park <- lakes %>%
+  st_buffer(30) %>%
+  st_union(park) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE)
+
+water_buff <- park %>%
+  st_buffer(50) %>%
+  st_intersection(dnr_water[[name]] %>% filter(!map_label %in% c("Bear Head (main lake)", "Blueberry", "Bear Head")))
+
+park <- park %>%
+  st_union(water_buff) %>%
+  fill_holes(1000) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_erase(mndot_rm) %>%
+  select(zone_name, geom) %>% # mapview()
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Beaver Creek Valley
+
+```{r}
+name <- "Beaver-Creek-Valley_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+park %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Big Bog
+
+```{r}
+name <- "Big-Bog_park_DNR_State-Recreation-Area"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 1000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(ROUTE_NAME %in% c(
+    "MN 72-I", "MN 72-D", "Beltrami T 1414-I", "Beltrami T 1414-D",
+    "Beltrami T 1415-I", "Beltrami T 1415-D"
+  )) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Big Stone Lake
+
+```{r}
+name <- "Big-Stone-Lake_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+# keep roads with state park ownership listed
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(ROUTE_NAME %in% c("MN 7-I", "MN 7-D")) %>%
+  st_buffer(20) %>% # slightly smaller buffer to make sure overlook is included
+  summarise(do_union = TRUE)
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 1000) %>%
+  st_buffer(25) # extra buffer to get the boat launch on meadowbrook
+
+# also based on feedback, include overlook area
+lat <- c(45.428492, 45.427434)
+lon <- c(-96.693222, -96.690966)
+corners <- data.frame(lon, lat)
+overlook <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(overlook)
+overlook <- overlook %>%
+  st_transform(26915)
+
+park %>%
+  st_union(overlook) %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = units::set_units(15000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Blue Mounds
+
+```{r}
+name <- "Blue-Mounds_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(!ROUTE_NAME %in% c("Rock CSAH 20-I", "Rock CSAH 20-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Buffalo River
+
+```{r}
+name <- "Buffalo-River_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(!ROUTE_NAME %in% c(
+    "Clay CSAH 44-I", "Clay CSAH 44-D",
+    "Clay SPR 4-I", "Clay SPR 4-D",
+    "Clay SPR 5-I", "Clay SPR 5-D"
+  )) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Camden
+
+```{r}
+name <- "Camden_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(!ROUTE_NAME %in% c(
+    "Lyon SPR 6-I", "Lyon SPR 6-D", "Lyon SPR 5-I", "Lyon SPR 5-D",
+    "Lyon CR 83-I", "Lyon CR 83-D", "Lyon SPR 9-I", "Lyon SPR 9-D",
+    "Lyon SPR 7-I", "Lyon SPR 7-D", "Lyon SPR 8-I", "Lyon SPR 8-D",
+    "Lyon SPR 10-I", "Lyon SPR 11-D", "Lyon SPR 4-I", "Lyon SPR 4-D",
+    "Lyon SPR 10-D", "Lyon SPR 11-I"
+  )) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Caribou Falls
+
+```{r}
+name <- "Caribou-Falls_park_DNR_State-Wayside"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(!ROUTE_NAME %in% c("Lake SPR 33-I", "Lake SPR 33-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Carley
+
+```{r}
+name <- "Carley_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(ROUTE_NAME %in% c("Wabasha CSAH 4-I", "Wabasha CSAH 4-ID")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Cascade River
+
+```{r}
+name <- "Cascade-River_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 4000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP == "County Highway Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, add this section of road to *not* buffer out because parking is too close to the street
+lat <- c(47.707155, 47.706816)
+lon <- c(-90.525544, -90.52219)
+corners <- data.frame(lon, lat)
+parking <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(parking)
+parking <- parking %>%
+  st_transform(26915)
+
+park %>%
+  st_union(parking) %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Charles A Lindbergh
+
+```{r}
+name <- "Charles-A-Lindbergh_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+
+park <- addshore_fxn(dnr, dnr_water, name, 20, 4000) # smaller buffer here so we don't get too much Mississippi traffic (only a very small amount of water is associated with the statutory boundary of this park)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Crow Wing
+
+```{r}
+name <- "Crow-Wing_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+water_buff <- park %>%
+  st_buffer(50) %>%
+  st_intersection(dnr_water[[name]])
+
+park <- park %>%
+  st_union(st_buffer(water_buff, 20)) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE) %>%
+  fill_holes(4000)
+mapview(park)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(ROUTE_NAME %in% c(
+    "Cass T 194-I", "Cass T 194-D", "Cass PVT 236-I", "Cass PVT 236-D",
+    "Crow Wing T 59-I", "Crow Wing T 59-D", "Crow Wing T 1402-I", "Crow Wing T 1402-D",
+    "Crow Wing T 387-I", "Crow Wing T 387-D"
+  )) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_erase(mndot_rm) %>%
+  fill_holes(100000) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Cuyuna
+
+```{r}
+name <- "Cuyuna-Country_park_DNR_State-Recreation-Area"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+# include lakes
+park <- park %>%
+  st_make_valid() %>%
+  st_union(dnr_water[[name]]) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE) %>%
+  fill_holes(3000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Devils Track Falls
+
+```{r}
+name <- "Devils-Track-Falls_park_DNR_State-Wayside"
+
+# no intersecting mndot roads identified
+mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+park %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Father Hennepin
+
+```{r}
+name <- "Father-Hennepin_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+water_buff <- park %>%
+  st_buffer(50) %>%
+  st_intersection(dnr_water[[name]])
+
+park <- park %>%
+  st_union(st_buffer(water_buff, 20)) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(ROUTE_NAME %in% c("MN 27-I", "MN 27-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Flandrau
+
+```{r}
+name <- "Flandrau_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  filter(!ROUTE_NAME %in% c("Brown CSAH 26-I", "Brown CSAH 26-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Flood Bay
+
+```{r}
+name <- "Flood-Bay_park_DNR_State-Wayside"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 2000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Forestville-Mystery Cave
+
+```{r}
+name <- "Forestville-Mystery-Cave_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP == "County Highway Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", stringr::str_replace(str_replace_all(name, " ", "_"), "/", "_"), ".RDS"))
+```
+
+Fort Ridgely
+
+```{r}
+name <- "Fort-Ridgely_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, add historic inholding
+lat <- c(44.454600, 44.449545)
+lon <- c(-94.737733, -94.727080)
+corners <- data.frame(lon, lat)
+historic <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(historic)
+
+historic <- historic %>%
+  st_transform(26915)
+
+park %>%
+  st_union(historic) %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Fort Snelling
+
+```{r}
+name <- "Fort-Snelling_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+park <- park %>%
+  st_make_valid() %>%
+  st_union(st_make_valid(dnr_water[[name]]) %>% filter(wb_class != "Riverine polygon")) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE) %>%
+  fill_holes(4000)
+
+water_buff <- park %>%
+  st_make_valid() %>%
+  st_buffer(20) %>% # smaller buffer for rivers with lots of unrelated traffic
+  st_intersection(st_make_valid(dnr_water[[name]]) %>% filter(wb_class == "Riverine polygon"))
+
+park <- park %>%
+  st_union(water_buff) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE) %>%
+  fill_holes(2000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = units::set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Franz Jevne
+
+```{r}
+name <- "Franz-Jevne_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 10, 2000) # smaller buffer so boundary doesn't go into Canada!
+
+park %>%
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Frontenac
+
+```{r}
+name <- "Frontenac_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 2000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  filter(!ROUTE_NAME %in% c("Goodhue CSAH 28-I", "Goodhue CSAH 28-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, include trailhead parking
+lat <- c(44.507286, 44.506209)
+lon <- c(-92.324988, -92.322788)
+corners <- data.frame(lon, lat)
+trailhead <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(trailhead)
+
+trailhead <- trailhead %>%
+  st_transform(26915)
+
+park %>%
+  st_erase(mndot_rm) %>%
+  st_union(trailhead) %>%
+  drop_crumbs(threshold = units::set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+George H Crosby Manitou
+
+```{r}
+name <- "George-H-Crosby-Manitou_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 2000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Glacial Lakes
+
+```{r}
+name <- "Glacial-Lakes_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  filter(!ROUTE_NAME %in% c("Pope CSAH 41-I", "Pope CSAH 41-D", "Pope T 643-D", "Pope T 643-I")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Glendalough
+
+```{r}
+name <- "Glendalough_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+park <- park %>%
+  st_union(dnr_water[[name]] %>% filter(map_label %in% c("Annie Battle", "Sunset", "Molly Stark", "Emma"))) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE) %>%
+  fill_holes(20000)
+
+water_buff <- park %>%
+  st_buffer(50) %>%
+  st_intersection(dnr_water[[name]] %>% filter(!map_label %in% c("Annie Battle", "Sunset", "Molly Stark", "Emma")))
+
+park <- park %>%
+  st_union(water_buff) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE) %>%
+  fill_holes(2000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP == "County Highway Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, add boat launch
+lat <- c(46.318643, 46.31150)
+lon <- c(-95.679086, -95.674186)
+corners <- data.frame(lon, lat)
+launch <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(park) + mapview(launch)
+
+launch <- launch %>%
+  st_transform(26915)
+
+park %>%
+  st_union(launch) %>%
+  st_erase(mndot_rm) %>%
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Gooseberry
+
+```{r}
+name <- "Gooseberry-Falls_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 2000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP %in% c("Private (other than Railroad)", "State Highway Agency", "Town or Township Highway Agency")) %>%
+  st_buffer(15) %>% # feedback: smaller buffer because gitchi gami is so close
+  summarise(do_union = TRUE)
+# also keeps the concourse in
+
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Grand Portage
+
+```{r}
+name <- "Grand-Portage_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, add this lot
+lat <- c(48.000618, 47.999462)
+lon <- c(-89.596635, -89.593796)
+corners <- data.frame(lon, lat)
+lot <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+lot <- lot %>%
+  st_transform(26915)
+
+mapview(lot) + mapview(park)
+
+park %>%
+  st_buffer(-10) %>% # ensure that boundary (and later, perimeter) don't extend into canada
+  st_union(lot) %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Great River Bluffs
+
+```{r}
+name <- "Great-River-Bluffs_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  drop_crumbs(threshold = units::set_units(10000, m^2)) %>%
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Greenleaf Lake
+
+```{r}
+name <- "Greenleaf-Lake_park_DNR_State-Recreation-Area"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 20000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Hayes Lake
+
+```{r}
+name <- "Hayes-Lake_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, include this section of road
+lat <- c(48.643155, 48.631225)
+lon <- c(-95.547328, -95.542130)
+corners <- data.frame(lon, lat)
+park_road <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+park_road <- park_road %>%
+  st_transform(26915)
+
+mapview(park_road)
+
+# based on feedback, exclude this area
+lat <- c(48.641205, 48.637655)
+lon <- c(-95.544218, -95.538744)
+corners <- data.frame(lon, lat)
+rm2 <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+rm2 <- rm2 %>%
+  st_transform(26915)
+
+mapview(rm2)
+
+park %>%
+  st_make_valid() %>%
+  st_union(park_road) %>%
+  st_erase(rm2) %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Hill Annex Mine
+
+```{r}
+name <- "Hill-Annex-Mine_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+park %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>%
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Inspiration Peak
+
+```{r}
+name <- "Inspiration-Peak_park_DNR_State-Wayside"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+park %>% # mapview()
+  select(zone_name, geom) %>% saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Interstate
+
+```{r}
+name <- "Interstate_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 4000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP == "State Highway Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Iron Range Off-Highway Vehicle
+
+```{r}
+name <- "Iron-Range-Off-Highway-Vehicle_park_DNR_State-Recreation-Area"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 30000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP == "State Highway Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Itasca
+
+```{r}
+name <- "Itasca_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+park <- park %>%
+  st_make_valid() %>%
+  st_union(dnr_water[[name]] %>% filter(map_label %in% c(
+    "Itasca", "Morrison",
+    "Hernando DeSoto", "Bogus",
+    "Elk", "Sibilant", "Twin",
+    "Ozawindib", "Unnamed"
+  ))) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE) %>%
+  fill_holes(400000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  filter(!ROUTE_NAME %in% c(
+    "Becker T 10-I", "Becker T 10-D",
+    "Clearwater UT 32-I", "Clearwater UT 32-D",
+    "Hubbard CR 122-I", "Hubbard CR 122-D",
+    "Hubbard SPR 9-I", "Hubbard SPR 9-D",
+    "Hubbard CR 123-D", "Hubbard CR 123-I"
+  )) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# add sna
+lat <- c(47.229895, 47.192941)
+lon <- c(-95.279882, -95.177543)
+corners <- data.frame(lon, lat)
+sna <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+sna <- sna %>%
+  st_transform(26915)
+
+mapview(sna)
+
+park %>%
+  st_make_valid() %>%
+  st_union(sna) %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = units::set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Jay Cooke
+
+```{r}
+name <- "Jay-Cooke_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+water_buff <- dnr[[name]] %>%
+  st_buffer(50) %>%
+  st_intersection(dnr_water[[name]])
+
+park <- park %>%
+  st_make_valid() %>%
+  st_union(st_buffer(water_buff, 50)) %>%
+  fill_holes(30000) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+John A Latsch
+
+```{r}
+name <- "John-A-Latsch_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+park %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Joseph R Brown
+
+```{r}
+name <- "Joseph-R-Brown_park_DNR_State-Wayside"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+park %>%
+  st_make_valid() %>%
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Judge C R Magney
+
+```{r}
+name <- "Judge-C-R-Magney_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+water_buff <- dnr[[name]] %>%
+  st_buffer(50) %>%
+  st_intersection(dnr_water[[name]])
+
+park <- park %>%
+  st_make_valid() %>%
+  st_union(st_buffer(water_buff, 50)) %>%
+  fill_holes(30000) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Kilen Woods
+
+```{r}
+name <- "Kilen-Woods_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(10) %>% # parking by bridge on 19
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Kodonce River
+
+```{r}
+name <- "Kodonce-River_park_DNR_State-Wayside"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+water_buff <- dnr[[name]] %>%
+  st_buffer(50) %>%
+  st_intersection(dnr_water[[name]])
+
+park <- park %>%
+  st_make_valid() %>%
+  st_union(st_buffer(water_buff, 50)) %>%
+  fill_holes(2000) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+lat <- c(47.794127, 47.793824)
+lon <- c(-90.154769, -90.153406)
+corners <- data.frame(lon, lat)
+parking <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc() %>%
+  st_transform(26915)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  st_union(parking) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+La Salle Lake
+
+```{r}
+name <- "La-Salle-Lake_park_DNR_State-Recreation-Area"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+park <- park %>%
+  st_union(dnr_water[[name]] %>% filter(wb_class == "Lake or Pond") %>% st_buffer(50)) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE)
+
+water_buff <- dnr[[name]] %>%
+  st_buffer(50) %>%
+  st_intersection(dnr_water[[name]])
+
+park <- park %>%
+  st_make_valid() %>%
+  st_union(st_buffer(water_buff, 50)) %>%
+  fill_holes(2000) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Lac qui Parle
+
+```{r}
+name <- "Lac-qui-Parle_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+water_buff <- dnr[[name]] %>%
+  st_buffer(50) %>%
+  st_intersection(dnr_water[[name]])
+
+park <- park %>%
+  st_make_valid() %>%
+  st_union(st_buffer(water_buff, 50)) %>%
+  fill_holes(2000) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, include park office
+lat <- c(45.053350, 45.051150)
+lon <- c(-95.890573, -95.885214)
+corners <- data.frame(lon, lat)
+office <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(office)
+
+office <- office %>%
+  st_transform(26915)
+
+park %>%
+  st_make_valid() %>%
+  st_union(office) %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Lake Bemidgi
+
+```{r}
+name <- "Lake-Bemidji_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+water_buff <- dnr[[name]] %>%
+  st_buffer(200) %>%
+  st_intersection(dnr_water[[name]])
+
+park <- park %>%
+  st_make_valid() %>%
+  st_union(st_buffer(water_buff, 50)) %>%
+  fill_holes(2000) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Lake Bronson
+
+```{r}
+name <- "Lake-Bronson_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+park <- park %>%
+  st_union(dnr_water[[name]] %>% filter(wb_class == "Lake or Pond")) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE) %>%
+  fill_holes(2000)
+
+water_buff <- dnr[[name]] %>%
+  st_buffer(50) %>%
+  st_intersection(dnr_water[[name]] %>% filter(!wb_class == "Lake or Pond"))
+
+park <- park %>%
+  st_make_valid() %>%
+  st_union(st_buffer(water_buff, 50)) %>%
+  fill_holes(2000) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency" &
+    !ROUTE_LABE %in% c("T 709", "CSAH 28")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+rm2 <- dnr_mndot_roads[[name]] %>%
+  filter(ROUTE_LABE == "CSAH 28") %>%
+  st_buffer(5) %>% # lots of parking along this street
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  st_erase(rm2) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Lake Carlos
+
+```{r}
+name <- "Lake-Carlos_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 200, 2000) # stat boundary doesn't include lake but again I'll do a big buffer
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, include lazy river lot
+lat <- c(45.982858, 45.981799)
+lon <- c(-95.328751, -95.327426)
+corners <- data.frame(lon, lat)
+lot <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(lot)
+
+lot <- lot %>%
+  st_transform(26915)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  st_union(lot) %>%
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Lake Louise
+
+```{r}
+name <- "Lake-Louise_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 200, 2000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(!ROUTE_NAME %in% c(
+    "Mower T 449-I", "Mower T 449-D",
+    "Mower CSAH 30-I", "Mower CSAH 30-D",
+    "Mower T 448-I", "Mower T 448-D"
+  )) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Lake Maria
+
+```{r}
+name <- "Lake-Maria_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+park <- park %>%
+  st_union(dnr_water[[name]] %>% filter(map_label %in% c("Maria", "Slough"))) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE)
+
+water_buff <- dnr[[name]] %>%
+  st_buffer(50) %>%
+  st_intersection(dnr_water[[name]])
+
+park <- park %>%
+  st_make_valid() %>%
+  st_union(water_buff) %>%
+  fill_holes(2000000) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Lake Shetek
+
+```{r}
+name <- "Lake-Shetek_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+park <- park %>%
+  st_union(dnr_water[[name]] %>% filter(map_label %in% c("Smith", "Webster Slough", "Unnamed"))) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE) %>%
+  fill_holes(200000)
+
+water_buff <- dnr[[name]] %>%
+  st_buffer(50) %>%
+  st_intersection(dnr_water[[name]])
+
+park <- park %>%
+  st_make_valid() %>%
+  st_union(st_buffer(water_buff, 150)) %>%
+  fill_holes(20000) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  filter(!ROUTE_NAME %in% c("Murray CSAH 37-I", "Murray CSAH 37-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, exclude these cabins
+lat <- c(44.099765, 44.097130)
+lon <- c(-95.696925, -95.692699)
+corners <- data.frame(lon, lat)
+cabin <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(cabin)
+
+cabin <- cabin %>%
+  st_transform(26915)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  st_erase(cabin) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Lake Vermilion-Soudan Underground Mind
+
+```{r}
+name <- "Lake-Vermilion-Soudan-Underground-Mine_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 200, 2000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, include more parking
+lat <- c(47.822493, 47.821108)
+lon <- c(-92.198285, -92.195893)
+corners <- data.frame(lon, lat)
+lot <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(lot)
+
+lot <- lot %>%
+  st_transform(26915)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  st_union(lot) %>%
+  drop_crumbs(threshold = units::set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Maplewood
+
+```{r}
+name <- "Maplewood_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+park <- park %>%
+  st_union(dnr_water[[name]] %>% filter(map_label %in% c("Twenty-one", "Bass", "Beers", "Grass", "Fladmark", "Unnamed"))
+    %>% st_buffer(50)) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency" |
+    ROUTE_LABE %in% c("SPR 23", "T 1904")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, remove these cabins
+lat <- c(46.526799, 46.520416)
+lon <- c(-95.978479, -95.988414)
+corners <- data.frame(lon, lat)
+cabins <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(cabins)
+
+cabins <- cabins %>%
+  st_transform(26915)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  st_erase(cabins) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+McCarthy Beach
+
+```{r}
+name <- "McCarthy-Beach_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 200, 2000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency" &
+    !ROUTE_LABE %in% c("T 2130")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, include this parking
+lat <- c(47.681462, 47.681459)
+lon <- c(-93.012442, -93.010920)
+corners <- data.frame(lon, lat)
+lot <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(lot)
+
+lot <- lot %>%
+  st_transform(26915)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  st_union(lot) %>%
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Mille Lacs Kathio
+
+```{r}
+name <- "Mille-Lacs-Kathio_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+park <- park %>%
+  st_union(dnr_water[[name]] %>% filter(map_label %in% c("Shakopee", "Ogechie")) %>%
+    st_buffer(50)) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE)
+
+water_buff <- dnr[[name]] %>%
+  st_buffer(200) %>%
+  st_intersection(dnr_water[[name]] %>% filter(!map_label %in% c("Shakopee", "Ogechie")))
+
+park <- park %>%
+  st_make_valid() %>%
+  st_union(water_buff) %>%
+  fill_holes(2000) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  filter(!ROUTE_NAME %in% c("Mille Lacs T 31-I", "Mille Lacs T 31-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Minneopa
+
+```{r}
+name <- "Minneopa_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 20000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Minnesota Valley
+
+```{r}
+name <- "Minnesota-Valley_park_DNR_State-Recreation-Area"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 20000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Monson Lake
+
+```{r}
+name <- "Monson-Lake_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 200, 20000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Moose Lake
+
+```{r}
+name <- "Moose-Lake_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+park <- park %>%
+  st_union(st_buffer(dnr_water[[name]] %>% filter(map_label == "Echo"), 30)) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE) %>%
+  fill_holes(2000)
+
+water_buff <- dnr[[name]] %>%
+  st_make_valid() %>%
+  st_buffer(50) %>%
+  st_intersection(dnr_water[[name]] %>% filter(map_label != "Echo") %>% st_make_valid())
+
+park <- park %>%
+  st_make_valid() %>%
+  st_union(water_buff) %>%
+  fill_holes(2000) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Myre-Big Island
+
+```{r}
+name <- "Myre-Big-Island_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 2000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(!OWNERSHIP %in% c("State Park, Forest, or Reservation Agency", "Town or Township Highway Agency") & !ROUTE_LABE %in% c("CSAH 38", "	SPR 11")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Nerstrand Big Woods
+
+```{r}
+name <- "Nerstrand-Big-Woods_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Old Mill
+
+```{r}
+name <- "Old-Mill_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  filter(!ROUTE_NAME %in% c("Marshall CSAH 40-I", "Marshall CSAH 40-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Ray Berglund
+
+```{r}
+name <- "Ray-Berglund_park_DNR_State-Wayside"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+# very small buffer to keep parking in boundary
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  st_buffer(3) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Red River
+
+```{r}
+name <- "Red-River_park_DNR_State-Recreation-Area"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 20000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Rice Lake
+
+```{r}
+name <- "Rice-Lake_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+park <- park %>%
+  st_union(dnr_water[[name]] %>% filter(map_label == "Rice") %>% st_buffer(100)) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE) %>%
+  fill_holes(20000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  filter(!ROUTE_NAME %in% c("Steele CSAH 40-I", "Steele CSAH 40-D", "	Dodge T 66-I", "	Dodge T 66-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, include park entrance road
+lat <- c(44.090559, 44.084162)
+lon <- c(-93.068246, -93.063982)
+corners <- data.frame(lon, lat)
+road <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(road)
+
+road <- road %>%
+  st_transform(26915)
+
+park %>%
+  st_make_valid() %>%
+  st_union(road) %>%
+  st_erase(mndot_rm) %>%
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+St Croix Boom Site
+
+```{r}
+name <- "Saint-Croix-Boom-Site_park_DNR_State-Wayside"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 2000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  st_buffer(3) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+
+Sakatah Lake
+
+```{r}
+name <- "Sakatah-Lake_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 200, 20000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Sam Brown Memorial State Wayside (Less than 10,000m^2, excluded)
+
+```{r}
+name <- "Sam-Brown-Memorial_park_DNR_State-Wayside"
+park <- dnr[[name]]
+
+st_area(park)
+
+# note that 1 park has been dropped
+dropped <- 1
+```
+
+Savanna Portage
+
+```{r}
+name <- "Savanna-Portage_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 2000)
+
+# based on feedback, remove this junction
+lat <- c(46.808387, 46.802657)
+lon <- c(-93.189875, -93.181611)
+corners <- data.frame(lon, lat)
+rm <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(rm)
+
+rm <- rm %>%
+  st_transform(26915)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(rm) %>%
+  drop_crumbs(threshold = units::set_units(10000, m^2)) %>%
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Scenic
+
+```{r}
+name <- "Scenic_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+park <- park %>%
+  st_make_valid() %>%
+  st_union(dnr_water[[name]] %>% filter(map_label %in% c("Coon", "Sandwick", "Cedar")) %>% st_buffer(50)) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE) %>%
+  fill_holes(20000)
+
+water_buff <- dnr[[name]] %>%
+  st_make_valid() %>%
+  st_buffer(50) %>%
+  st_intersection(dnr_water[[name]] %>% filter(!map_label %in% c("Coon", "Sandwick", "Cedar")) %>% st_make_valid())
+
+park <- park %>%
+  st_make_valid() %>%
+  st_union(water_buff) %>%
+  fill_holes(2000) %>%
+  group_by(UNIT_NAME, zone_name) %>%
+  summarise(do_union = TRUE)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(ROUTE_NAME %in% c("Itasca CSAH 7-I", "Itasca CSAH 7-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, add campground and water
+lat <- c(47.711869, 47.706641)
+lon <- c(-93.577133, -93.562490)
+corners <- data.frame(lon, lat)
+add1 <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(add1)
+
+add1 <- add1 %>%
+  st_transform(26915)
+
+lat2 <- c(47.718160, 47.710632)
+lon2 <- c(-93.574634, -93.565902)
+corners2 <- data.frame(lon2, lat2)
+add2 <- corners2 %>%
+  st_as_sf(coords = c("lon2", "lat2"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(add2)
+
+add2 <- add2 %>%
+  st_transform(26915)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  st_union(add1) %>%
+  st_union(add2) %>%
+  drop_crumbs(threshold = units::set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Schoolcraft
+
+```{r}
+name <- "Schoolcraft_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 2000)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Sibley
+
+```{r}
+name <- "Sibley_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 20000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  filter(!ROUTE_NAME %in% c("Kandiyohi T 812-I", "Kandiyohi T 812-D") &
+    !ROUTE_LABE %in% c("T 813")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Split Rock Creek
+
+```{r}
+name <- "Split-Rock-Creek_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Split Rock Lighthouse
+
+```{r}
+name <- "Split-Rock-Lighthouse_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 20000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency" &
+    !ROUTE_LABE %in% c("CON 28")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, exclude lighthouse, include gitchi gami, include scenic overlook
+lat <- c(47.200986, 47.197152)
+lon <- c(-91.383908, -91.378850)
+corners <- data.frame(lon, lat)
+overlook <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(overlook)
+
+overlook <- overlook %>%
+  st_transform(26915)
+
+
+lat2 <- c(47.182851, 47.181383)
+lon2 <- c(-91.410376, -91.408536)
+corners2 <- data.frame(lon2, lat2)
+lot <- corners2 %>%
+  st_as_sf(coords = c("lon2", "lat2"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(lot)
+
+lot <- lot %>%
+  st_transform(26915)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  st_union(lot) %>%
+  st_union(overlook) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Saint Croix
+
+```{r}
+name <- "Saint-Croix_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 20000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  filter(!ROUTE_NAME %in% c(
+    "Pine T 277-I", "Pine T 277-D", "Pine T 91-I", "Pine T 91-D",
+    "Pine CSAH 22-I", "Pine CSAH 22-D"
+  )) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Temperance River
+
+```{r}
+name <- "Temperance-River_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 20000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP == "State Highway Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based on feedback, include this lot
+lat <- c(47.555584, 47.554301)
+lon <- c(-90.874680, -90.872764)
+corners <- data.frame(lon, lat)
+lot <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(lot)
+
+lot <- lot %>%
+  st_transform(26915)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  st_union(lot) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Tettegouche
+
+```{r}
+name <- "Tettegouche_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 20000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(!OWNERSHIP %in% c("State Park, Forest, or Reservation Agency", "Local Park, Forest, or Reservation Agency")) %>%
+  filter(!ROUTE_NAME %in% c("Lake T 97-I", "Lake T 97-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>%
+  drop_crumbs(threshold = set_units(10000, m^2)) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Upper Souix Agency
+
+```{r}
+name <- "Upper-Sioux-Agency_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+# based feedback, include historical site
+lat <- c(44.736963, 44.732070)
+lon <- c(-95.456453, -95.449372)
+corners <- data.frame(lon, lat)
+site <- corners %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
+  st_bbox() %>%
+  st_as_sfc()
+
+mapview(site)
+
+site <- site %>%
+  st_transform(26915)
+
+park %>%
+  st_make_valid() %>%
+  st_union(site) %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Whitewater
+
+```{r}
+name <- "Whitewater_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- dnr[[name]]
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Wild River
+
+```{r}
+name <- "Wild-River_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 200000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+William O-Brien
+
+```{r}
+name <- "William-O-Brien_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 50, 20000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  filter(!ROUTE_NAME %in% c("Scandia M 157-I", "Scandia M 157-D")) %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+Zippel Bay
+
+```{r}
+name <- "Zippel-Bay_park_DNR"
+
+mapview(dnr_mndot_roads[[name]], zcol = "ROUTE_NAME") + mapview(dnr[[name]], color = "black")
+
+park <- addshore_fxn(dnr, dnr_water, name, 200, 20000)
+
+mndot_rm <- dnr_mndot_roads[[name]] %>%
+  filter(OWNERSHIP != "State Park, Forest, or Reservation Agency") %>%
+  st_buffer(30) %>%
+  summarise(do_union = TRUE)
+
+park %>%
+  st_make_valid() %>%
+  st_erase(mndot_rm) %>% # mapview()
+  select(zone_name, geom) %>%
+  saveRDS(paste0(here(), "/data-temp/dnr-park-geography/", str_replace_all(name, " ", "_"), ".RDS"))
+```
+
+# Combine all polygons into one shapefile
+
+```{r}
+if (dropped > 0) {
+  cat(paste0("dropped ", dropped, " DNR park(s), expect ", length(dnr) - dropped, " zones"))
+}
+list_of_files <- as.list(paste0(
+  here(), "/data-temp/dnr-park-geography/",
+  list.files(paste0(here(), "/data-temp/dnr-park-geography/"), pattern = ".RDS")
+))
+
+list_of_parks <- list_of_files %>%
+  map(readRDS)
+
+dnr_parks <- do.call(rbind, list_of_parks)
+
+cat(paste0("found ", nrow(dnr_parks), " zones"))
+
+st_write(dnr_parks, paste0(
+  here(), "/data-intermediate/partial-park-zones/dnr_",
+  park_geom_processing_date, ".shp"
+), append = FALSE)
+```
+# Convert polygons into perimerters
+
+```{r}
+dnr_parks <- read_sf(paste0(
+  here(), "/data-intermediate/partial-park-zones/dnr_",
+  park_geom_processing_date, ".shp"
+))
+
+perim <- 30
+
+# buffer inside of park by 30 meters
+dnr_perimeter <- dnr_parks %>%
+  # Grand Portage needs to be buffered before any processing to ensure the perimeter doesn't cross into canada
+  st_buffer(., ifelse(.$zone_name == "Grand-Portage_park_DNR", -30, 0)) %>%
+  st_boundary() %>%
+  st_buffer(-perim, singleSide = TRUE) %>%
+  st_intersection(dnr_parks) %>%
+  select(-zone_name.1) %>%
+  st_collection_extract("POLYGON") %>%
+  group_by(zone_name) %>%
+  summarise(do_union = TRUE) %>%
+  mutate(area_m2 = st_area(geometry)) %>%
+  drop_crumbs(threshold = units::set_units(10000, m^2))
+
+
+mapview(filter(dnr_perimeter, zone_name == "Minnesota-Valley_park_DNR_State-Recreation-Area"))
+mapview(filter(dnr_perimeter, zone_name == "Itasca_park_DNR"))
+
+# check to make sure all perimeters are less than 4km in area
+dnr_area_test <- dnr_perimeter %>% filter(as.numeric(area_m2) > 4e6)
+if (nrow(dnr_area_test) > 0) {
+  warning("At least 1 DNR perimeter zone is greater than 4km^2")
+}
+
+# make sure these 2 don't cross into canada:
+mapview(filter(dnr_perimeter, zone_name == "Franz-Jevne_park_DNR"))
+mapview(filter(dnr_perimeter, zone_name == "Grand-Portage_park_DNR"))
+
+st_write(dnr_perimeter, paste0(here(), "/data-intermediate/partial-park-zones/dnr_perim_", park_geom_processing_date, ".shp"), append = FALSE)
+```
