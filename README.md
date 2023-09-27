@@ -72,6 +72,9 @@ generalized visitor demographics, and unit geography, organized by
 agency and unit type. Data is generally available from 2019 to April
 2022.
 
+The `/follow_up_requests` folder will be populated with directories for
+individual follow-up requests as requests are completed.
+
 To re-render plots and factsheets properly, ensure you have the Avenir
 font installed on your machine. Avenir is available for free in various
 places online.
