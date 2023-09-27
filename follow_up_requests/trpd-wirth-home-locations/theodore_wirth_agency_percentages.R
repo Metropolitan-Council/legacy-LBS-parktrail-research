@@ -92,6 +92,7 @@ in_state_bgs <- mn_bgs %>%
 ## 7-county metro block groups
 metro_bgs <- st_intersection(mn_bgs, metro_geo) %>%
   st_make_valid() %>%
+  # calculate percent of block group that falls within region
   mutate(bg_in_region = as.numeric(st_area(.)/bg_area)) %>%
   select(GEOID, bg_in_region) %>%
   mutate(region = "7-County Metropolitan Region") %>%
@@ -100,6 +101,7 @@ metro_bgs <- st_intersection(mn_bgs, metro_geo) %>%
 ## greater mn block groups
 gmn_bgs <- st_intersection(mn_bgs, gmn_geo) %>%
   st_make_valid() %>%
+  # calculate percent of block group that falls within region
   mutate(bg_in_region = as.numeric(st_area(.)/bg_area)) %>%
   select(GEOID, bg_in_region) %>%
   mutate(region = "Greater Minnesota (outside of 7-County Metro)") %>%
@@ -108,6 +110,7 @@ gmn_bgs <- st_intersection(mn_bgs, gmn_geo) %>%
 ## minneapolis block groups
 minneapolis_bgs <- st_intersection(mn_bgs, minneapolis_geo) %>%
   st_make_valid() %>%
+  # calculate percent of block group that falls within region
   mutate(bg_in_region = as.numeric(st_area(.)/bg_area)) %>%
   select(GEOID, bg_in_region) %>%
   mutate(region = "Minneapolis") %>%
@@ -116,6 +119,7 @@ minneapolis_bgs <- st_intersection(mn_bgs, minneapolis_geo) %>%
 ## suburban hennepin block groups
 suburban_hennepin_bgs <- st_intersection(mn_bgs, suburban_hennepin_geo) %>%
   st_make_valid() %>%
+  # calculate percent of block group that falls within region
   mutate(bg_in_region = as.numeric(st_area(.)/bg_area)) %>%
   select(GEOID, bg_in_region) %>%
   mutate(region = "Suburban Hennepin County (Hennepin County minus Minneapolis, including Bloomington)") %>%
@@ -124,6 +128,7 @@ suburban_hennepin_bgs <- st_intersection(mn_bgs, suburban_hennepin_geo) %>%
 ## implementing agency block groups (this is where finding the proportions has the biggest impact)
 ia_bgs <- st_intersection(mn_bgs, ia_geo) %>%
   st_make_valid() %>%
+  # calculate percent of block group that falls within region
   mutate(bg_in_region = as.numeric(st_area(.)/bg_area)) %>%
   select(region = Map_Label3, GEOID, bg_in_region) %>%
   st_drop_geometry()
@@ -141,8 +146,10 @@ all_bgs <- bind_rows(out_of_state_bgs,
               rename(GEOID = bg_id)) %>%
   filter(!is.na(p_metro_25)) %>%
   replace_na(list(bg_in_region = 0)) %>%
+  # scale visits from block group by percent of block group in region
   mutate(pct_visits_from_region = bg_in_region * p_metro_25) %>%
   group_by(region) %>%
+  # summarise total % visitation from region
   summarise(visitation_from_region = sum(pct_visits_from_region))
 
 ##### distribute estimated annual visits based on % from home location #####
@@ -154,6 +161,7 @@ theo_21_visitation <- annual_volume %>%
 ## format results
 results <- all_bgs %>%
   transmute(Region = region,
+            # distribute annual visits by % visitation from region
             `Estimated visits` = round(visitation_from_region * theo_21_visitation$annual_total),
             `Percent of visits` = 100 * visitation_from_region) %>%
   mutate(Region = factor(Region, levels = c("Minnesota", "Out of state",
