@@ -171,6 +171,18 @@ results <- all_bgs %>%
                                             sort(ia_geo$Map_Label3)))) %>%
   arrange(Region)
 
+##### confirm regions sum correctly #####
+## in state + out of state = 100
+sum(filter(results, Region %in% c("Minnesota", "Out of state"))$`Percent of visits`)
+
+## metro + greater mn = in state
+sum(filter(results, Region %in% c("Greater Minnesota (outside of 7-County Metro)", "7-County Metropolitan Region"))$`Percent of visits`) # 98.845
+filter(results, Region == "Minnesota")$`Percent of visits` #98.846
+
+## all implementing agencies == metro
+sum(filter(results, Region %in% ia_geo$Map_Label3)$`Percent of visits`) # 95.684
+filter(results, Region == "7-County Metropolitan Region")$`Percent of visits` # 95.686
+
 ##### create output excel workbook ######
 metadata_sheet <- tibble(
   "Metadata" = c(
