@@ -25,6 +25,18 @@ theo_home_bg <- home_bg %>%
   filter(!is.na(p_metro_25))
 
 ##### get geographies ####
+metro_counties <- tigris::counties("MN") %>%
+  st_transform(4269) %>%
+  filter(NAME %in% c(
+    "Anoka",
+    "Carver",
+    "Dakota",
+    "Hennepin",
+    "Ramsey",
+    "Scott",
+    "Washington"
+  ))
+
 
 ## state
 mn_geo <- tigris::states() %>%
@@ -37,17 +49,7 @@ minneapolis_geo <- tigris::places("MN") %>%
   st_transform(4269)
 
 ## 7-county metro
-metro_geo <- tigris::counties("MN") %>%
-  st_transform(4269) %>%
-  filter(NAME %in% c(
-    "Anoka",
-    "Carver",
-    "Dakota",
-    "Hennepin",
-    "Ramsey",
-    "Scott",
-    "Washington"
-  )) %>%
+metro_geo <- metro_counties %>%
   st_union()
 
 ## greater mn (state minus 7-county metro)
@@ -55,8 +57,41 @@ gmn_geo <- st_difference(mn_geo, st_union(st_combine(metro_geo)), dimension = "p
   st_make_valid()
 
 ## each implementing agency boundary
-ia_geo <- read_sf("/Volumes/shared/CommDev/Research/Public/GIS/Parks/Park_Operating_Agencies.shp") %>%
-  st_transform(4269)
+ia_cities <- tigris::places("MN") %>%
+  filter(NAME %in% c("Minneapolis", "St. Paul", "Bloomington")) %>%
+  st_transform(4269) %>%
+  mutate(agency_name = case_when(
+    NAME == "Minneapolis" ~ "Minneapolis Park & Rec Board",
+    NAME == "Bloomington" ~ "Bloomington Parks and Recreation",
+    TRUE ~ "St. Paul Parks and Recreation"
+  ))
+
+trpd <- metro_counties %>%
+  filter(NAME == "Hennepin") %>%
+  st_difference(st_union(ia_cities), dimension = "polygon") %>%
+  st_make_valid() %>%
+  smoothr::drop_crumbs(1000) %>%
+  mutate(agency_name = "Three Rivers Park District")
+
+ramsey <- metro_counties %>%
+  filter(NAME == "Ramsey") %>%
+  st_difference(st_union(ia_cities), dimension = "polygon") %>%
+  st_make_valid() %>%
+  smoothr::drop_crumbs(1000) %>%
+  mutate(agency_name = "Ramsey County Parks and Recreation")
+
+
+ia_geo <- metro_counties %>%
+  filter(!NAME %in% c("Hennepin", "Ramsey")) %>%
+  mutate(agency_name = case_when(
+    NAME == "Anoka" ~ "Anoka County Parks",
+    NAME == "Carver" ~ "Carver County Parks and Recreation",
+    NAME == "Dakota" ~ "Dakota County Parks",
+    NAME == "Scott" ~ "Scott County Parks And Trails",
+    TRUE ~ "Washington County Parks"
+  )) %>%
+  bind_rows(trpd, ramsey, ia_cities) %>%
+  select(agency_name, geometry)
 
 ## suburban Hennepin County (all of Hennepin minus Minneapolis, but including Bloomington)
 hennepin_geo <- tigris::counties(state = "MN") %>%
@@ -133,7 +168,7 @@ ia_bgs <- st_intersection(mn_bgs, ia_geo) %>%
   st_make_valid() %>%
   # calculate percent of block group that falls within region
   mutate(bg_in_region = as.numeric(st_area(.) / bg_area)) %>%
-  select(region = Map_Label3, GEOID, bg_in_region) %>%
+  select(region = agency_name, GEOID, bg_in_region) %>%
   st_drop_geometry()
 
 ##### combine results #####
@@ -176,7 +211,7 @@ results <- all_bgs %>%
     "7-County Metropolitan Region", "Greater Minnesota (outside of 7-County Metro)",
     "Suburban Hennepin County (Hennepin County minus Minneapolis, including Bloomington)",
     "Minneapolis",
-    sort(ia_geo$Map_Label3)
+    sort(ia_geo$agency_name)
   ))) %>%
   arrange(Region)
 
@@ -189,7 +224,7 @@ sum(filter(results, Region %in% c("Greater Minnesota (outside of 7-County Metro)
 filter(results, Region == "Minnesota")$`Percent of visits` # 98.846
 
 ## all implementing agencies == metro
-sum(filter(results, Region %in% ia_geo$Map_Label3)$`Percent of visits`) # 95.684
+sum(filter(results, Region %in% ia_geo$agency_name)$`Percent of visits`) # 95.684
 filter(results, Region == "7-County Metropolitan Region")$`Percent of visits` # 95.686
 
 ##### create output excel workbook ######
